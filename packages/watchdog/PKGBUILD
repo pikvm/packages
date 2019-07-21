@@ -1,0 +1,44 @@
+_commit=03d67da
+
+pkgname=watchdog
+pkgver=5.15.$_commit
+pkgrel=1
+pkgdesc="Software watchdog for Linux"
+url="http://sourceforge.net/projects/watchdog"
+license=(GPL)
+arch=(i686 x86_64 armv6h armv7h)
+backup=(etc/watchdog.conf)
+source=(
+	${pkgname}::"git+https://git.code.sf.net/p/watchdog/code#commit=${_commit}"
+	watchdog.service
+	watchdog.logrotate
+)
+md5sums=(SKIP SKIP SKIP)
+
+
+build() {
+	cd "$srcdir"
+	rm -rf $pkgname-build
+	cp -r $pkgname $pkgname-build
+	cd $pkgname-build
+
+	autoreconf -i
+	./configure \
+		--prefix=/usr \
+		--sbindir=/usr/bin \
+		--mandir=/usr/share/man \
+		--sysconfdir=/etc \
+		--localstatedir=/var \
+		--with-pidfile=/run/watchdog.pid \
+		--with-ka_pidfile=/run/wd_keepalive.pid \
+		--disable-nfs
+	
+	make $MAKEFLAGS
+}
+
+package() {
+	cd "$srcdir/$pkgname-build"
+	make install DESTDIR="$pkgdir"
+	install -D -m644 "$srcdir/watchdog.service" "$pkgdir/usr/lib/systemd/system/watchdog.service"
+	install -D -m644 "$srcdir/watchdog.logrotate" "$pkgdir/etc/logrotate.d/watchdog/watchdog.logrotate"
+}

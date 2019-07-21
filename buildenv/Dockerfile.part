@@ -1,0 +1,53 @@
+# https://lists.gnu.org/archive/html/qemu-devel/2017-10/msg03681.html
+RUN echo "$LOCALE.UTF-8 UTF-8" > /etc/locale.gen \
+	&& ( [ "$LOCALE" == "en_US" ] || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen ) \
+	&& locale-gen
+ENV LC_ALL $LOCALE.UTF-8
+
+RUN rm -f /etc/localtime \
+	&& ln -s "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+
+RUN echo "HOOKS=(base udev block filesystems)" >> /etc/mkinitcpio.conf
+
+RUN echo "Server = $REPO_URL/\$arch/\$repo" > /etc/pacman.d/mirrorlist \
+	&& pacman-key --init \
+	&& pacman-key --populate archlinuxarm
+
+RUN pacman --noconfirm -Syy \
+	&& pacman --needed --noconfirm -S \
+		glibc \
+		pacman \
+	&& pacman-db-upgrade \
+	&& pacman --noconfirm -Syu \
+	&& pacman --needed --noconfirm -S \
+		p11-kit \
+		archlinux-keyring \
+		ca-certificates \
+		ca-certificates-mozilla \
+		ca-certificates-utils \
+	&& pacman --needed --noconfirm -S \
+		base \
+		base-devel \
+		devtools \
+		vim \
+		wget \
+		git \
+	&& ( \
+		if [[ "$BOARD" == "rpi" || "$BOARD" == "rpi2" || "$BOARD" == "rpi3" ]]; then \
+			pacman --needed --noconfirm -S linux-raspberrypi linux-raspberrypi-headers; \
+		elif [ "$BOARD" == "rpi3-x64" ]; then \
+			pacman --needed --noconfirm -S linux-aarch64 linux-aarch64-headers uboot-tools; \
+		else \
+			echo "Unknown board: $BOARD"; \
+			exit 1; \
+		fi \
+	) \
+	&& (pacman --noconfirm -Sc || true)
+
+RUN sed -i -e "s/#MAKEFLAGS=.*/MAKEFLAGS=-j5/g" /etc/makepkg.conf
+
+ARG REPO_KEY
+ENV REPO_KEY $REPO_KEY
+RUN pacman-key -r $REPO_KEY && pacman-key --lsign-key $REPO_KEY
+
+ADD stages/buildenv/buildpkg.sh /buildpkg.sh
