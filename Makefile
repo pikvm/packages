@@ -38,21 +38,31 @@ update:
 
 
 repos:
-	sed "s/^\(.*\)/PKG=\1/g" packages/order | xargs -L1 make build BOARD=rpi2
-	sed "s/^\(.*\)/PKG=\1/g" packages/order | xargs -L1 make build BOARD=rpi3
+	make packages BOARD=rpi
+	make packages BOARD=rpi2
+	make packages BOARD=rpi3
+
+
+packages:
+	make buildenv BOARD=$(BOARD)
+	cat packages/order.$(BOARD) | xargs -n 1 -L1 bash -c 'make build BOARD=$(BOARD) PKG=$$0 || exit 255'
 
 
 build:
 	@ $(_SAY) "===== Ensuring package $(PKG) for $(BOARD) ====="
 	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)' '$(NOREPO)'"
-	test ! -s .build/done || (cd repos/$(BOARD) && cat ../../.build/done | xargs -L1 gpg --detach-sign --use-agent)
-	test ! -s .build/done || make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'"
+	test ! -s .build/done || ( \
+		pushd repos/$(BOARD) \
+		&& cat ../../.build/done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent || exit 255' \
+		&& popd \
+		&& make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
+	)
 	rm -rf .build
 	@ $(_SAY) "===== Complete package $(PKG) for $(BOARD) ====="
 
 
 shell:
-	make _run
+	make _run CMD=/bin/bash OPTS=-i
 
 
 buildenv: $(_BUILDER_DIR)
@@ -78,6 +88,7 @@ _run:
 			--volume `pwd`/packages:/packages:ro \
 			--volume `pwd`/.build:/build:rw \
 			--volume `pwd`/repos/$(BOARD):/repo:rw \
+			$(OPTS) \
 		"
 
 
@@ -85,4 +96,4 @@ $(_BUILDER_DIR):
 	git clone --depth=1 https://github.com/pi-kvm/pi-builder $(_BUILDER_DIR)
 
 
-.PHONY: buildenv repos
+.PHONY: buildenv packages repos
