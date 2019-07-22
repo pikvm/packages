@@ -53,7 +53,7 @@ build:
 	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)' '$(NOREPO)'"
 	test ! -s .build/done || ( \
 		pushd repos/$(BOARD) \
-		&& cat ../../.build/done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent || exit 255' \
+		&& cat ../../.build/done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent $$0 || exit 255' \
 		&& popd \
 		&& make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
 	)
