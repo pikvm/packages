@@ -45,17 +45,21 @@ repos:
 
 packages:
 	make buildenv BOARD=$(BOARD)
-	cat packages/order.$(BOARD) | xargs -n 1 -L1 bash -c 'make build BOARD=$(BOARD) PKG=$$0 || exit 255'
+	cat packages/order.$(BOARD) | xargs -n1 -L1 bash -c 'make build BOARD=$(BOARD) PKG=$$0 || exit 255'
 
 
 build:
 	@ $(_SAY) "===== Ensuring package $(PKG) for $(BOARD) ====="
-	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)' '$(NOREPO)'"
+	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)'"
 	test ! -s .build/done || ( \
-		pushd repos/$(BOARD) \
-		&& cat ../../.build/done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent $$0 || exit 255' \
+		pushd .build \
+		&& cat done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent $$0 || exit 255' \
 		&& popd \
-		&& make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
+		&& ( test -n "$(NOREPO)" || ( \
+			cp .build/*.pkg.tar.xz .build/*.pkg.tar.xz.sig repos/$(BOARD) \
+			&& make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
+			&& cp .build/version repos/$(BOARD)/latest/$(PKG) \
+		)) \
 	)
 	rm -rf .build
 	@ $(_SAY) "===== Complete package $(PKG) for $(BOARD) ====="
@@ -73,7 +77,7 @@ buildenv: $(_BUILDER_DIR)
 		BUILD_OPTS="--build-arg REPO_KEY=$(_REPO_KEY)" \
 		PROJECT=pikvm-buildenv \
 		BOARD=$(BOARD) \
-		STAGES='__init__ buildenv' \
+		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv \
 		REPO_URL=$(_MAIN_REPO_URL)
 	@ $(_SAY) "===== Buildenv $(BOARD) is ready ====="
@@ -86,8 +90,8 @@ _run:
 		RUN_CMD="$(CMD)" \
 		RUN_OPTS=" \
 			--volume `pwd`/packages:/packages:ro \
-			--volume `pwd`/.build:/build:rw \
 			--volume `pwd`/repos/$(BOARD):/repo:rw \
+			--volume `pwd`/.build:/build:rw \
 			$(OPTS) \
 		"
 
