@@ -1,0 +1,28 @@
+pkgname=ttyd
+pkgver=1.5.1
+pkgrel=1
+pkgdesc="Share your terminal over the web"
+url="https://tsl0922.github.io/ttyd"
+license=(MIT)
+arch=(i686 x86_64 armv6h armv7h)
+depends=(json-c libpcap libwebsockets-afunix zlib)
+makedepends=(cmake vim)
+source=(${pkgname}::"git+https://github.com/tsl0922/ttyd#commit=${pkgver}")
+md5sums=(SKIP)
+
+
+build() {
+	cd "$pkgname"
+	mkdir build
+	cd build
+	cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		..
+	make $MAKEFLAGS
+}
+
+package() {
+	cd "$pkgname/build"
+	make DESTDIR="$pkgdir" install
+	install -Dm644 -t "$pkgdir/usr/share/licenses/ttyd" ../LICENSE
+}

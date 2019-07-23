@@ -3,5 +3,8 @@ python-pyghmi
 python-raspberry-gpio
 raspberrypi-io-access
 tc358743-dkms
-kvmd
+libwebsockets-afunix
+ttyd
 ustreamer
+kvmd
+kvmd-webterm

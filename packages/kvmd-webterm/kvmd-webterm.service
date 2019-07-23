@@ -1,0 +1,18 @@
+[Unit]
+Description=Pi-KVM - Web terminal (ttyd)
+After=network.target
+
+[Service]
+User=kvmd-webterm
+Group=kvmd-webterm
+WorkingDirectory=/home/kvmd-webterm
+
+ExecStart=/usr/bin/ttyd \
+		--interface=/run/kvmd/ttyd.sock \
+		--index=/usr/share/kvmd/extras/webterm/index.html \
+	/bin/bash -c 'echo -ne "\033]0;Pi-KVM Terminal: `hostname -f` (ttyd)\007"; cat /etc/motd; bash'
+
+ExecStartPost=/bin/bash -c 'sleep 3; chmod 660 /run/kvmd/ttyd.sock'
+
+[Install]
+WantedBy=multi-user.target
