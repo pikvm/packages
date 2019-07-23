@@ -50,6 +50,7 @@ packages:
 
 build:
 	@ $(_SAY) "===== Ensuring package $(PKG) for $(BOARD) ====="
+	rm -rf .build
 	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)'"
 	test ! -s .build/done || ( \
 		pushd .build \
