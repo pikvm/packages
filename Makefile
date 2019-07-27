@@ -8,9 +8,11 @@ _REPO_DEST = root@pikvm.org:/var/www/
 
 _MAIN_REPO_URL = http://mirror.yandex.ru/archlinux-arm
 
-_BUILDER_DIR = ./.pi-builder-$(BOARD)
+_BUILDENV_DIR = ./.pi-builder/$(BOARD)
+_BUILD_DIR = ./.build/$(BOARD)
+_REPO_DIR = ./repos/$(BOARD)
 
-_SAY = $(_BUILDER_DIR)/tools/say
+_SAY = $(_BUILDENV_DIR)/tools/say
 
 
 # =====
@@ -50,19 +52,18 @@ packages:
 
 build:
 	@ $(_SAY) "===== Ensuring package $(PKG) for $(BOARD) ====="
-	rm -rf .build
+	rm -rf $(_BUILD_DIR)
 	make _run CMD="/buildpkg.sh $(PKG) $(_REPO_NAME) '$(FORCE)'"
-	test ! -s .build/done || ( \
-		pushd .build \
+	test ! -s $(_BUILD_DIR)/done || ( \
+		pushd $(_BUILD_DIR) \
 		&& cat done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent $$0 || exit 255' \
 		&& popd \
 		&& ( test -n "$(NOREPO)" || ( \
-			cp .build/*.pkg.tar.xz .build/*.pkg.tar.xz.sig repos/$(BOARD) \
+			cp $(_BUILD_DIR)/*.pkg.tar.xz $(_BUILD_DIR)/*.pkg.tar.xz.sig $(_REPO_DIR) \
 			&& make _run CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
-			&& cp .build/version repos/$(BOARD)/latest/$(PKG) \
+			&& cp $(_BUILD_DIR)/version $(_REPO_DIR)/latest/$(PKG) \
 		)) \
 	)
-	rm -rf .build
 	@ $(_SAY) "===== Complete package $(PKG) for $(BOARD) ====="
 
 
@@ -70,11 +71,12 @@ shell:
 	make _run CMD=/bin/bash OPTS=-i
 
 
-buildenv: $(_BUILDER_DIR)
+buildenv: $(_BUILDENV_DIR)
+	make -C $(_BUILDENV_DIR) binfmt
 	@ $(_SAY) "===== Ensuring $(BOARD) buildenv ====="
-	rm -rf $(_BUILDER_DIR)/stages/buildenv
-	cp -a buildenv $(_BUILDER_DIR)/stages/buildenv
-	make -C $(_BUILDER_DIR) os \
+	rm -rf $(_BUILDENV_DIR)/stages/buildenv
+	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
+	make -C $(_BUILDENV_DIR) os \
 		BUILD_OPTS="--build-arg REPO_KEY=$(_REPO_KEY)" \
 		PROJECT=pikvm-buildenv \
 		BOARD=$(BOARD) \
@@ -85,20 +87,22 @@ buildenv: $(_BUILDER_DIR)
 
 
 _run:
-	mkdir -p .build repos/$(BOARD)/{,latest}
-	make -C $(_BUILDER_DIR) run \
+	mkdir -p $(_BUILD_DIR) $(_REPO_DIR)/{,latest}
+	make -C $(_BUILDENV_DIR) run \
+		PASS_ENSURE_TOOLBOX=1 \
+		PASS_ENSURE_BINFMT=1 \
 		BOARD=$(BOARD) \
 		RUN_CMD="$(CMD)" \
 		RUN_OPTS=" \
 			--volume `pwd`/packages:/packages:ro \
-			--volume `pwd`/repos/$(BOARD):/repo:rw \
-			--volume `pwd`/.build:/build:rw \
+			--volume `pwd`/$(_REPO_DIR):/repo:rw \
+			--volume `pwd`/$(_BUILD_DIR):/build:rw \
 			$(OPTS) \
 		"
 
 
-$(_BUILDER_DIR):
-	git clone --depth=1 https://github.com/pi-kvm/pi-builder $(_BUILDER_DIR)
+$(_BUILDENV_DIR):
+	git clone --depth=1 https://github.com/pi-kvm/pi-builder $(_BUILDENV_DIR)
 
 
 .PHONY: buildenv packages repos
