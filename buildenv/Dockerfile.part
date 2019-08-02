@@ -50,4 +50,7 @@ ARG REPO_KEY
 ENV REPO_KEY $REPO_KEY
 RUN pacman-key -r $REPO_KEY && pacman-key --lsign-key $REPO_KEY
 
-ADD stages/buildenv/buildpkg.sh /buildpkg.sh
+RUN mkdir /tools
+COPY stages/buildenv/say /tools/
+COPY stages/buildenv/die /tools/
+COPY stages/buildenv/buildpkg /tools/

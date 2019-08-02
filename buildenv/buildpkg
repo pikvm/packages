@@ -1,0 +1,46 @@
+#!/bin/bash
+set -x
+set -e
+
+PKG="$1"
+REPO="$2"
+FORCE="$3"
+
+SAY="/tools/say"
+DIE="/tools/die"
+
+[ -d "/packages/$PKG" ] || $DIE "===== Required existent package in PKG argument ====="
+
+find /build -mindepth 1 -delete
+cp -r "/packages/$PKG"/* /build
+cd /build
+
+. PKGBUILD
+
+[ -z "$epoch" ] || epoch_prefix="$epoch:"
+NEW_VERSION="$epoch_prefix$pkgver-$pkgrel"
+OLD_VERSION=$(cat "/repo/latest/$PKG" 2>/dev/null || true)
+
+if [ "$NEW_VERSION" != "$OLD_VERSION" -o -n "$FORCE" ]; then
+	if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+		$SAY "===== Building package $PKG ($OLD_VERSION -> $NEW_VERSION) ====="
+	else
+		$SAY "===== Building package $PKG (forced) ====="
+	fi
+
+	if [ -f "/repo/$REPO.db.tar.gz" ]; then
+		echo -e "[$REPO]\nServer = file:///repo\nSigLevel = Required DatabaseOptional" >> /etc/pacman.conf
+	fi
+
+	if [ ${#depends[@]} -ne 0 -o ${#makedepends[@]} -ne 0 ]; then
+		pacman --noconfirm -Syy
+		pacman --needed --noconfirm -S ${depends[@]} ${makedepends[@]}
+	fi
+
+	sudo -u alarm makepkg
+
+	sudo -u alarm bash -c "ls \"$PKG\"-*.pkg.tar.xz > done"
+	sudo -u alarm bash -c "echo \"$NEW_VERSION\" > version"
+
+	$SAY "===== Build $PKG complete ====="
+fi
