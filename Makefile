@@ -43,6 +43,8 @@ all:
 	@ echo
 	@ echo "    make packages"
 	@ for board in $(_KNOWN_BOARDS); do echo "    make packages-$$board"; done
+	@ echo
+	@ echo "    make upload"
 
 
 upload:
