@@ -1,7 +1,7 @@
 _ttyd=1.5.2
 
 pkgname=kvmd-webterm
-pkgver=0.25
+pkgver=0.26
 pkgrel=1
 pkgdesc="Pi-KVM - Web terminal"
 url="https://github.com/pi-kvm/kvmd-webterm"
