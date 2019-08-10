@@ -1,5 +1,5 @@
 pkgname=ttyd
-pkgver=1.5.1
+pkgver=1.5.2
 pkgrel=1
 pkgdesc="Share your terminal over the web"
 url="https://tsl0922.github.io/ttyd"
