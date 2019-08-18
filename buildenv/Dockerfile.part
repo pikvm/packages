@@ -1,6 +1,6 @@
 # https://lists.gnu.org/archive/html/qemu-devel/2017-10/msg03681.html
 RUN echo "$LOCALE.UTF-8 UTF-8" > /etc/locale.gen \
-	&& ( [ "$LOCALE" == "en_US" ] || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen ) \
+	&& ([ "$LOCALE" == "en_US" ] || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen) \
 	&& locale-gen
 ENV LC_ALL $LOCALE.UTF-8
 
@@ -46,11 +46,17 @@ RUN pacman --noconfirm -Syy \
 
 RUN sed -i -e "s/#MAKEFLAGS=.*/MAKEFLAGS=-j5/g" /etc/makepkg.conf
 
+ARG REPO_NAME
+ENV REPO_NAME $REPO_NAME
+RUN echo $REPO_NAME
+
 ARG REPO_KEY
 ENV REPO_KEY $REPO_KEY
-RUN pacman-key -r $REPO_KEY && pacman-key --lsign-key $REPO_KEY
+RUN pacman-key -r $REPO_KEY \
+	&& pacman-key --lsign-key $REPO_KEY
+
+RUN mkdir /run/user/1000 \
+	&& chown alarm:alarm /run/user/1000
 
 RUN mkdir /tools
-COPY stages/buildenv/say /tools/
-COPY stages/buildenv/die /tools/
 COPY stages/buildenv/buildpkg /tools/

@@ -17,9 +17,6 @@ _KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order
 
 
 # =====
-_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-_SAY := $(_ROOT)/buildenv/say
-
 _NULL :=
 _SPACE := $(_NULL) $(_NULL)
 
@@ -29,6 +26,21 @@ endef
 
 define optbool
 $(filter $(shell echo $(1) | tr A-Z a-z),yes on 1)
+endef
+
+define say
+@ tput bold
+@ tput setaf 2
+@ echo "===== $1 ====="
+@ tput sgr0
+endef
+
+define die
+@ tput bold
+@ tput setaf 1
+@ echo "===== $1 ====="
+@ tput sgr0
+@ exit 1
 endef
 
 
@@ -62,28 +74,19 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 define make_packages_board_target
 packages-$1:
 	make buildenv NC=$$(NC) BOARD=$1
-	cat packages/order.$1 | xargs -n1 -L1 bash -c 'make build BOARD=$1 PKG=$$$$0 || exit 255'
+	for pkg in `cat packages/order.$1`; do \
+		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
+	done
 endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_packages_board_target,$(board))))
 packages: $(addprefix packages-,$(_KNOWN_BOARDS))
 
 
 build:
-	@ $(_SAY) "===== Ensuring package $(PKG) for $(BOARD) ====="
+	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	rm -rf $(_BUILD_DIR)
-	make _run BOARD=$(BOARD) CMD="/tools/buildpkg $(PKG) $(_REPO_NAME) '$(call optbool,$(FORCE))'"
-	test ! -s $(_BUILD_DIR)/done || ( \
-		pushd $(_BUILD_DIR) \
-		&& cat done | xargs -n1 -L1 bash -c 'gpg --local-user $(_REPO_KEY) --detach-sign --use-agent $$0 || exit 255' \
-		&& popd \
-		&& ( test -n '$(call optbool,$(NOREPO))' || ( \
-			$(_SAY) "===== Placing package $(PKG) into repo =====" \
-			&& cp $(_BUILD_DIR)/*.pkg.tar.xz $(_BUILD_DIR)/*.pkg.tar.xz.sig $(_REPO_DIR) \
-			&& make _run BOARD=$(BOARD) CMD="bash -c 'cd /repo && repo-add --new $(_REPO_NAME).db.tar.gz *.pkg.tar.xz'" \
-			&& cp $(_BUILD_DIR)/version $(_REPO_DIR)/latest/$(PKG) \
-		)) \
-	)
-	@ $(_SAY) "===== Complete package $(PKG) for $(BOARD) ====="
+	make _run BOARD=$(BOARD) CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
+	$(call say,"Complete package $(PKG) for $(BOARD)")
 
 
 shell:
@@ -91,41 +94,58 @@ shell:
 
 
 buildenv: $(_BUILDENV_DIR)
+	$(call say,"Ensuring $(BOARD) buildenv")
 	make -C $(_BUILDENV_DIR) binfmt
-	@ $(_SAY) "===== Ensuring $(BOARD) buildenv ====="
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
 	make -C $(_BUILDENV_DIR) os \
 		NC=$(NC) \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
-		BUILD_OPTS="--build-arg REPO_KEY=$(_REPO_KEY)" \
+		BUILD_OPTS=" \
+			--build-arg REPO_NAME=$(_REPO_NAME) \
+			--build-arg REPO_KEY=$(_REPO_KEY) \
+		" \
 		PROJECT=pikvm-buildenv \
 		BOARD=$(BOARD) \
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv \
 		REPO_URL=$(_MAIN_REPO_URL)
-	@ $(_SAY) "===== Buildenv $(BOARD) is ready ====="
+	$(call say,"Buildenv $(BOARD) is ready")
 
 
 # =====
-_run:
-	mkdir -p $(_BUILD_DIR) $(_REPO_DIR)/{,latest}
+_run: $(_BUILD_DIR) $(_REPO_DIR)
+	$(if $(patsubst 1000,,$(shell id -u)),$(call die,"Only user with UID=1000 can build packages"),)
 	make -C $(_BUILDENV_DIR) run \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
 		BOARD=$(BOARD) \
 		RUN_CMD="$(CMD)" \
 		RUN_OPTS=" \
-			--volume `pwd`/packages:/packages:ro \
+			--interactive \
 			--volume `pwd`/$(_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
+			--volume `pwd`/packages:/packages:ro \
+			--env REPO_DIR=/repo \
+			--env BUILD_DIR=/build \
+			--env PACKAGES_DIR=/packages \
+			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
+			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
 			$(OPTS) \
 		"
 
 
 $(_BUILDENV_DIR):
 	git clone --depth=1 https://github.com/pi-kvm/pi-builder $(_BUILDENV_DIR)
+
+
+$(_BUILD_DIR):
+	mkdir -p $(_BUILD_DIR)
+
+
+$(_REPO_DIR):
+	mkdir -p $(_REPO_DIR)
 
 
 .PHONY: buildenv packages repos
