@@ -18,7 +18,7 @@ die() {
 	exit 1
 }
 
-load_pkgbuild_info() {
+get_pkgbuild_info() {
 	local pkgbuild_path="$1"
 	source <( \
 		source "$pkgbuild_path" \
@@ -48,6 +48,14 @@ get_latest_version() {
 	local repo_dir="$1"
 	local pkg_name="$2"
 	_RET_VERSION=$(cat "$repo_dir/latest/$pkg_name" 2>/dev/null || true)
+}
+
+set_latest_version() {
+	local repo_dir="$1"
+	local pkg_name="$2"
+	local version="$3"
+	mkdir -p "$repo_dir/latest"
+	echo "$version" > "$repo_dir/latest/$pkg_name"
 }
 
 prepare_build_dir() {
@@ -88,16 +96,12 @@ build() {
 
 place_to_repo() {
 	local build_dir="$1"
-	local pkg_name="$2"
-	local version="$3"
-	local repo_name="$4"
-	local repo_dir="$5"
+	local repo_name="$2"
+	local repo_dir="$3"
 	say "Placing package(s) to repo ..."
 	cp "$build_dir"/*.pkg.tar.xz{,.sig} "$repo_dir"
 	pushd "$repo_dir" >/dev/null
 	repo-add --new "$repo_name.db.tar.gz" *.pkg.tar.xz
-	mkdir -p latest
-	echo "$version" > latest/$pkg_name
 	popd >/dev/null
 }
 
@@ -116,7 +120,7 @@ main() {
 
 	# =====
 
-	load_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
+	get_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
 	local version="$_RET_VERSION"; unset _RET_VERSION
 	local deps="$_RET_DEPS"; unset _RET_DEPS
 
@@ -139,7 +143,10 @@ main() {
 		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
 		install_deps "$deps"
 		build "$BUILD_DIR"
-		[ -n "$norepo" ] || place_to_repo "$BUILD_DIR" "$pkg_name" "$version" "$REPO_NAME" "$REPO_DIR"
+		if [ -z "$norepo" ]; then
+			place_to_repo "$BUILD_DIR" "$REPO_NAME" "$REPO_DIR"
+			set_latest_version "$REPO_DIR" "$pkg_name" "$version"
+		fi
 		say "Done!"
 	fi
 }
