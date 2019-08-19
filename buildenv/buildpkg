@@ -58,6 +58,12 @@ set_latest_version() {
 	echo "$version" > "$repo_dir/latest/$pkg_name"
 }
 
+unset_latest_version() {
+	local repo_dir="$1"
+	local pkg_name="$2"
+	rm -f "$repo_dir/latest/$pkg_name"
+}
+
 prepare_build_dir() {
 	local pkg_dir="$1"
 	local build_dir="$2"
@@ -94,14 +100,28 @@ build() {
 	popd >/dev/null
 }
 
-place_to_repo() {
+remove_from_repo() {
+	local repo_dir="$1"
+	local pkg_name="$2"
+	local version="$3"
+	say "Removing old package(s) from repo ..."
+	rm -f "$repo_dir/$pkg_name"-*-"$version"-*.pkg.tar.xz{,.sig}
+}
+
+copy_to_repo() {
 	local build_dir="$1"
-	local repo_name="$2"
-	local repo_dir="$3"
+	local repo_dir="$2"
 	say "Placing package(s) to repo ..."
 	cp "$build_dir"/*.pkg.tar.xz{,.sig} "$repo_dir"
+}
+
+rebuild_repo() {
+	local repo_name="$1"
+	local repo_dir="$2"
+	say "Rebuilding repo ..."
 	pushd "$repo_dir" >/dev/null
-	repo-add --new "$repo_name.db.tar.gz" *.pkg.tar.xz
+	rm -f "$repo_name".*
+	repo-add "$repo_name.db.tar.gz" *.pkg.tar.xz
 	popd >/dev/null
 }
 
@@ -144,7 +164,12 @@ main() {
 		install_deps "$deps"
 		build "$BUILD_DIR"
 		if [ -z "$norepo" ]; then
-			place_to_repo "$BUILD_DIR" "$REPO_NAME" "$REPO_DIR"
+			if [ -n "$old_version" ]; then
+				remove_from_repo "$REPO_DIR" "$pkg_name" "$old_version"
+				unset_latest_version "$REPO_DIR" "$pkg_name"
+			fi
+			copy_to_repo "$BUILD_DIR" "$REPO_DIR"
+			rebuild_repo "$REPO_NAME" "$REPO_DIR"
 			set_latest_version "$REPO_DIR" "$pkg_name" "$version"
 		fi
 		say "Done!"
