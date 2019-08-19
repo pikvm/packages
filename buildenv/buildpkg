@@ -54,7 +54,7 @@ set_latest_version() {
 	local repo_dir="$1"
 	local pkg_name="$2"
 	local version="$3"
-	mkdir -p "$repo_dir/latest"
+	sudo -u alarm mkdir -p "$repo_dir/latest"
 	echo "$version" > "$repo_dir/latest/$pkg_name"
 }
 
