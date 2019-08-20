@@ -148,7 +148,9 @@ main() {
 	local old_version="$_RET_VERSION"; unset _RET_VERSION
 
 	if [ "$version" != "$old_version" ]; then
-		say "Found new $pkg_name (${old_version-<none>} -> $version)"
+		local old="$old_version"
+		[ -n "$old" ] || old="<none>"
+		say "Found new $pkg_name ($old -> $version)"
 		local build=1
 	elif [ -n "$force" ]; then
 		say "Forced rebuild of $pkg_name"
