@@ -54,7 +54,7 @@ set_latest_version() {
 	local repo_dir="$1"
 	local pkg_name="$2"
 	local version="$3"
-	sudo -u alarm mkdir -p "$repo_dir/latest"
+	mkdir -p "$repo_dir/latest"
 	echo "$version" > "$repo_dir/latest/$pkg_name"
 }
 
@@ -173,6 +173,7 @@ main() {
 			copy_to_repo "$BUILD_DIR" "$REPO_DIR"
 			rebuild_repo "$REPO_NAME" "$REPO_DIR"
 			set_latest_version "$REPO_DIR" "$pkg_name" "$version"
+			chown -R alarm:alarm "$REPO_DIR"/*
 		fi
 		say "Done!"
 	fi
