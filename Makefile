@@ -106,7 +106,7 @@ buildenv: $(_BUILDENV_DIR)
 			--build-arg REPO_NAME=$(_REPO_NAME) \
 			--build-arg REPO_KEY=$(_REPO_KEY) \
 		" \
-		PROJECT=pikvm-buildenv \
+		PROJECT=pikvm-packages \
 		BOARD=$(BOARD) \
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv \
