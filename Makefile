@@ -137,7 +137,7 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 
 
 $(_BUILDENV_DIR):
-	git clone --depth=1 https://github.com/pi-kvm/pi-builder $(_BUILDENV_DIR)
+	git clone --depth=1 https://github.com/pikvm/pi-builder $(_BUILDENV_DIR)
 
 
 $(_BUILD_DIR):
