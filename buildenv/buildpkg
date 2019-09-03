@@ -105,7 +105,7 @@ remove_from_repo() {
 	local pkg_name="$2"
 	local version="$3"
 	say "Removing old package(s) from repo ..."
-	rm -f "$repo_dir/$pkg_name"-*-"$version"-*.pkg.tar.xz{,.sig}
+	rm -f "$repo_dir/$pkg_name"{,-*}-"$version"-*.pkg.tar.xz{,.sig}
 }
 
 copy_to_repo() {
