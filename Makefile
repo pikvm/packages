@@ -8,6 +8,7 @@ _REPO_DEST = root@pikvm.org:/var/www/
 
 _MAIN_REPO_URL = http://mirror.yandex.ru/archlinux-arm
 
+_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
 _REPO_DIR = ./repos/$(BOARD)
@@ -73,7 +74,6 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 
 define make_packages_board_target
 packages-$1:
-	make buildenv NC=$$(NC) BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
@@ -105,25 +105,31 @@ buildenv: $(_BUILDENV_DIR)
 		BUILD_OPTS=" \
 			--build-arg REPO_NAME=$(_REPO_NAME) \
 			--build-arg REPO_KEY=$(_REPO_KEY) \
+			--tag $(_BUILDENV_IMAGE) \
 		" \
 		PROJECT=pikvm-packages \
 		BOARD=$(BOARD) \
 		STAGES="__init__ buildenv" \
-		HOSTNAME=buildenv \
-		REPO_URL=$(_MAIN_REPO_URL)
+		HOSTNAME=buildenv
 	$(call say,"Buildenv $(BOARD) is ready")
+
+
+push:
+	docker push $(_BUILDENV_IMAGE)
+
+
+pull:
+	docker pull $(_BUILDENV_IMAGE)
 
 
 # =====
 _run: $(_BUILD_DIR) $(_REPO_DIR)
 	$(if $(patsubst 1000,,$(shell id -u)),$(call die,"Only user with UID=1000 can build packages"),)
-	make -C $(_BUILDENV_DIR) run \
-		PASS_ENSURE_TOOLBOX=1 \
-		PASS_ENSURE_BINFMT=1 \
-		BOARD=$(BOARD) \
-		RUN_CMD="$(CMD)" \
-		RUN_OPTS=" \
+	docker run \
+			--rm \
+			--tty \
 			--interactive \
+			--privileged \
 			--volume `pwd`/$(_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
 			--volume `pwd`/packages:/packages:ro \
@@ -133,7 +139,8 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
 			$(OPTS) \
-		"
+		$(_BUILDENV_IMAGE) \
+		$(if $(CMD),$(CMD),/bin/bash)
 
 
 $(_BUILDENV_DIR):
