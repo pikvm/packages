@@ -48,8 +48,11 @@ endef
 # =====
 all:
 	@ echo "Available commands:"
+	@ echo "    make binfmt BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
 	@ echo "    make shell BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
+	@ echo "    make push"
+	@ echo "    make pull"
 	@ echo
 	@ echo "    make update"
 	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
@@ -74,6 +77,7 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 
 define make_packages_board_target
 packages-$1:
+	make -C $(_BUILDENV_DIR) binfmt
 	for pkg in `cat packages/order.$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
@@ -91,6 +95,10 @@ build:
 
 shell:
 	make _run BOARD=$(BOARD) CMD=/bin/bash OPTS=-i
+
+
+binfmt:
+	make -C $(_BUILDENV_DIR) binfmt
 
 
 buildenv: $(_BUILDENV_DIR)
