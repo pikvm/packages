@@ -64,7 +64,7 @@ all:
 
 
 upload:
-	rsync -rl --progress repos $(_REPO_DEST)
+	rsync -rl --progress --delete repos $(_REPO_DEST)
 
 
 define make_update_package_target
