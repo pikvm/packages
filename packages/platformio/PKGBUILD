@@ -1,5 +1,5 @@
 pkgname=platformio
-pkgver=4.0.3
+pkgver=4.0.2
 pkgrel=1
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
