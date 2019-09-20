@@ -1,13 +1,13 @@
 _pkgbase=tc358743
 
 pkgname=$_pkgbase-dkms
-pkgver=0.2
+pkgver=0.3
 pkgrel=1
 pkgdesc="DKMS wrapper for TC358743 driver for Arch Linux ARM on RPi"
 url="https://kernel.org"
 license=(GPL)
 arch=(armv6h armv7h)
-depends=(wget dkms)
+depends=(wget dkms jq)
 source=(Makefile dkms.conf)
 md5sums=(SKIP SKIP)
 
