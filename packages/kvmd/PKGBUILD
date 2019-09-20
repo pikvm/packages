@@ -13,7 +13,7 @@ for _platform in $PIKVM_PLATFORM; do
 	done
 done
 pkgbase=kvmd
-pkgver=1.10
+pkgver=1.11
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -103,7 +103,7 @@ for _platform in $PIKVM_PLATFORM; do
 			pkgdesc=\"Pi-KVM platform configs - $_platform for $_board\"
 			depends=(kvmd)
 			if [[ $_platform =~ ^.*-hdmi$ ]]; then
-				depends=(\"\${depends[@]}\" tc358743-dkms)
+				depends=(\"\${depends[@]}\" \"tc358743-dkms>=0.3\")
 			fi
 
 			mkdir -p \"\$pkgdir/etc\"/{kvmd,sysctl.d,udev/rules.d,modules-load.d}
