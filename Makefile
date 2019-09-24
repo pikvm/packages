@@ -6,8 +6,6 @@ _REPO_NAME = pikvm
 _REPO_KEY = 912C773ABBD1B584
 _REPO_DEST = root@pikvm.org:/var/www/
 
-_MAIN_REPO_URL = http://mirror.yandex.ru/archlinux-arm
-
 _BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
