@@ -1,14 +1,19 @@
 KVERSION ?= $(shell uname -r)
 
+_PKG = $(shell bash -c " \
+	if [ -f /etc/mkinitcpio.d/linux-raspberrypi4.preset ]; then echo linux-raspberrypi4; \
+	else echo linux-raspberrypi; \
+	fi \
+")
 _PKG_COMMIT = $(shell \
-	curl "https://api.github.com/repos/archlinuxarm/PKGBUILDs/commits?path=core/linux-raspberrypi/PKGBUILD" \
+	curl "https://api.github.com/repos/archlinuxarm/PKGBUILDs/commits?path=core/$(_PKG)/PKGBUILD" \
 		| jq '.[] | "\(.sha) \(.commit.message)"' \
 		| tr -d '"' \
 		| grep $(subst -ARCH,,$(KVERSION)) \
 		| awk '{print $$1}' \
 )
 _KERNEL_COMMIT = $(shell \
-	curl "https://raw.githubusercontent.com/archlinuxarm/PKGBUILDs/$(_PKG_COMMIT)/core/linux-raspberrypi/PKGBUILD" \
+	curl "https://raw.githubusercontent.com/archlinuxarm/PKGBUILDs/$(_PKG_COMMIT)/core/$(_PKG)/PKGBUILD" \
 		| grep -Po '_commit=[a-fA-F\d]+' \
 		| sed 's/_commit=//g' \
 )
