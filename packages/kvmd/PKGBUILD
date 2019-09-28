@@ -2,7 +2,7 @@
 # Author: Maxim Devaev <mdevaev@gmail.com>
 
 
-_variants=(v2-hdmi-rpi4)
+_variants=(v2-hdmi:rpi4)
 for _platform in v0-vga v0-hdmi v1-vga v1-hdmi; do
 	for _board in rpi2 rpi3; do
 		_variants+=($_platform:$_board)
@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.12
+pkgver=1.13
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
