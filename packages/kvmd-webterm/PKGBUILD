@@ -1,7 +1,8 @@
-_ttyd=1.5.2
+_commit=9126d54
+_ttyd=1.5.2.$_commit
 
 pkgname=kvmd-webterm
-pkgver=0.27
+pkgver=0.28
 pkgrel=1
 pkgdesc="Pi-KVM - Web terminal"
 url="https://github.com/pikvm/packages"
@@ -13,7 +14,7 @@ source=(
 	$pkgname.install
 	$pkgname.service
 	sysusers.conf
-	https://raw.githubusercontent.com/tsl0922/ttyd/$_ttyd/src/index.html
+	https://raw.githubusercontent.com/tsl0922/ttyd/$_commit/src/index.html
 	index.sed
 	terminal.svg
 	nginx.ctx-http.conf

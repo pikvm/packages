@@ -1,13 +1,15 @@
+_commit=9126d54
+
 pkgname=ttyd
-pkgver=1.5.2
-pkgrel=2
+pkgver=1.5.2.$_commit
+pkgrel=1
 pkgdesc="Share your terminal over the web"
 url="https://tsl0922.github.io/ttyd"
 license=(MIT)
 arch=(i686 x86_64 armv6h armv7h)
 depends=(json-c libpcap zlib "libwebsockets>=3.2.0")
 makedepends=(cmake vim)
-source=(${pkgname}::"git+https://github.com/tsl0922/ttyd#commit=${pkgver}")
+source=(${pkgname}::"git+https://github.com/tsl0922/ttyd#commit=${_commit}")
 md5sums=(SKIP)
 
 
