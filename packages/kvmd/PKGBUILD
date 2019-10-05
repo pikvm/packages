@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.18
+pkgver=1.19
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -43,6 +43,7 @@ depends=(
 	openssl
 	platformio
 	make
+	patch
 	raspberrypi-io-access
 	"ustreamer>=1.5"
 )
