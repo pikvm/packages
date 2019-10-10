@@ -9,6 +9,8 @@ RUN rm -f /etc/localtime \
 
 RUN echo "HOOKS=(base udev block filesystems)" >> /etc/mkinitcpio.conf
 
+RUN sed -i -e "s/^CheckSpace/#CheckSpace/g" /etc/pacman.conf
+
 RUN echo "Server = $REPO_URL/\$arch/\$repo" > /etc/pacman.d/mirrorlist \
 	&& pacman-key --init \
 	&& pacman-key --populate archlinuxarm
@@ -32,21 +34,14 @@ RUN pacman --noconfirm -Syy \
 		vim \
 		wget \
 		git \
-	&& ( \
-		if [[ "$BOARD" == "rpi" || "$BOARD" == "rpi2" || "$BOARD" == "rpi3" ]]; then \
-			pacman --needed --noconfirm -S linux-raspberrypi linux-raspberrypi-headers; \
-		elif [ "$BOARD" == "rpi3-x64" ]; then \
-			pacman --needed --noconfirm -S linux-aarch64 linux-aarch64-headers uboot-tools; \
-		elif [ "$BOARD" == "rpi4" ]; then \
-			pacman --needed --noconfirm -S linux-raspberrypi4 linux-raspberrypi4-headers; \
-		else \
-			echo "Unknown board: $BOARD"; \
-			exit 1; \
-		fi \
-	) \
+	&& case "$BOARD" in \
+			rpi|rpi2|rpi3|zero|zerow) pacman --needed --noconfirm -S arm-mem-git linux-raspberrypi linux-raspberrypi-headers;; \
+			rpi4) pacman --needed --noconfirm -S arm-mem-git linux-raspberrypi4 linux-raspberrypi4-headers;; \
+			*) echo "Unknown board: $BOARD"; exit 1;; \
+		esac \
 	&& (pacman --noconfirm -Sc || true)
 
-RUN sed -i -e "s/#MAKEFLAGS=.*/MAKEFLAGS=-j5/g" /etc/makepkg.conf
+RUN sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j5/g" /etc/makepkg.conf
 
 ARG REPO_NAME
 ENV REPO_NAME $REPO_NAME
