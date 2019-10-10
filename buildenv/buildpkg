@@ -77,7 +77,7 @@ install_deps() {
 	local deps="$1"
 	if [ -n "$deps" ]; then
 		say "Installing dependencies ..."
-		pacman --noconfirm -Syy
+		pacman --noconfirm -Syu
 		pacman --noconfirm --needed -S $deps
 	fi
 }
