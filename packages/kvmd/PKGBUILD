@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.20
+pkgver=1.23
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -44,11 +44,16 @@ depends=(
 	make
 	patch
 	raspberrypi-io-access
-	"ustreamer>=1.8"
+	"ustreamer>=1.9"
 )
 makedepends=(python-setuptools)
 source=("$url/archive/v$pkgver.tar.gz")
 md5sums=(SKIP)
+backup=(
+	etc/kvmd/{override,logging,auth,meta}.yaml
+	etc/kvmd/{ht,ipmi}passwd
+	etc/kvmd/nginx/{loc-{login,nocache,proxy,websocket},mime-types,ssl,nginx}.conf
+)
 
 
 build() {
@@ -89,16 +94,13 @@ package_kvmd() {
 
 	mkdir -p "$pkgdir/etc/kvmd/nginx/ssl"
 	chmod 750 "$pkgdir/etc/kvmd/nginx/ssl"
-	for _path in "$_cfg_default/kvmd"/*.yaml; do
-		ln -sf "/usr/share/kvmd/configs.default/kvmd/`basename $_path`" "$pkgdir/etc/kvmd"
-	done
-	rm "$pkgdir/etc/kvmd"/{override.yaml,logging.yaml,auth.yaml,meta.yaml}
-	cp "$_cfg_default/kvmd"/{override.yaml,logging.yaml,auth.yaml,meta.yaml} "$pkgdir/etc/kvmd"
-	cp "$_cfg_default/kvmd/"*passwd "$pkgdir/etc/kvmd"
-	chmod 600 "$pkgdir/etc/kvmd/"*passwd
-	for _path in "$_cfg_default/nginx"/*.conf; do
-		ln -sf "/usr/share/kvmd/configs.default/nginx/`basename $_path`" "$pkgdir/etc/kvmd/nginx"
-	done
+	cp "$_cfg_default/nginx"/*.conf "$pkgdir/etc/kvmd/nginx"
+
+	cp "$_cfg_default/kvmd"/*.yaml "$pkgdir/etc/kvmd"
+	chmod 644 "$pkgdir/etc/kvmd"/*.yaml
+
+	cp "$_cfg_default/kvmd"/*passwd "$pkgdir/etc/kvmd"
+	chmod 600 "$pkgdir/etc/kvmd/"/*passwd
 }
 
 for _variant in "${_variants[@]}"; do
@@ -110,18 +112,29 @@ for _variant in "${_variants[@]}"; do
 		if [[ $_platform =~ ^.*-hdmi$ ]]; then
 			depends=(\"\${depends[@]}\" \"tc358743-dkms>=0.3\")
 		fi
+		backup=(
+			etc/sysctl.d/99-kvmd.conf
+			etc/udev/rules.d/99-kvmd.rules
+			etc/kvmd/main.yaml
+		)
+
+		cd \"kvmd-\$pkgver\"
 
 		mkdir -p \"\$pkgdir/etc\"/{kvmd,sysctl.d,udev/rules.d,modules-load.d}
 
-		local _cfg_default=\"/usr/share/kvmd/configs.default\"
+		cp configs/os/sysctl.conf \"\$pkgdir/etc/sysctl.d/99-kvmd.conf\"
+		cp configs/os/udev/$_platform-$_board.rules \"\$pkgdir/etc/udev/rules.d/99-kvmd.rules\"
+		if [ -f configs/os/modules-load/$_platform.conf ]; then
+			backup=(\"\${backup[@]}\" etc/modules-load.d/kvmd.conf)
+			cp configs/os/modules-load/$_platform.conf \"\$pkgdir/etc/modules-load.d/kvmd.conf\"
+		fi
 
-		ln -sf \"\$_cfg_default/os/sysctl.conf\" \"\$pkgdir/etc/sysctl.d/99-kvmd.conf\"
-		ln -sf \"\$_cfg_default/os/udev/$_platform-$_board.rules\" \"\$pkgdir/etc/udev/rules.d/99-kvmd.rules\"
-		ln -sf \"\$_cfg_default/os/modules-load/$_platform.conf\" \"\$pkgdir/etc/modules-load.d/kvmd.conf\"
+		cp configs/kvmd/main/$_platform.yaml \"\$pkgdir/etc/kvmd/main.yaml\"
+		chmod 444 \"\$pkgdir/etc/kvmd/main.yaml\"
 
-		ln -sf \"\$_cfg_default/kvmd/main/$_platform.yaml\" \"\$pkgdir/etc/kvmd/main.yaml\"
 		if [[ $_platform =~ ^.*-hdmi$ ]]; then
-			ln -sf \"\$_cfg_default/kvmd/tc358743-edid.hex\" \"\$pkgdir/etc/kvmd/tc358743-edid.hex\"
+			backup=(\"\${backup[@]}\" etc/kvmd/tc358743-edid.hex)
+			cp configs/kvmd/tc358743-edid.hex \"\$pkgdir/etc/kvmd/tc358743-edid.hex\"
 		fi
 	}"
 done
