@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.19
+pkgver=1.20
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -37,7 +37,6 @@ depends=(
 	python-dbus
 	python-pygments
 	python-pyghmi
-	psmisc
 	v4l-utils
 	nginx-mainline
 	openssl
@@ -45,7 +44,7 @@ depends=(
 	make
 	patch
 	raspberrypi-io-access
-	"ustreamer>=1.5"
+	"ustreamer>=1.8"
 )
 makedepends=(python-setuptools)
 source=("$url/archive/v$pkgver.tar.gz")
