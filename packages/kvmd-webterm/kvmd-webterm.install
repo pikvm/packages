@@ -9,5 +9,5 @@ post_upgrade() {
 	[ -d /home/kvmd-webterm ] || mkhomedir_helper kvmd-webterm
 
 	# https://github.com/systemd/systemd/issues/13522
-	usermod --expiredate= kvmd >/dev/null
+	usermod --expiredate= kvmd-webterm >/dev/null
 }
