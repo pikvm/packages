@@ -5,5 +5,9 @@ post_install() {
 post_upgrade() {
 	echo "==> Ensuring KVMD-Webterm users and groups ..."
 	systemd-sysusers /usr/lib/sysusers.d/kvmd-webterm.conf
+
 	[ -d /home/kvmd-webterm ] || mkhomedir_helper kvmd-webterm
+
+	# https://github.com/systemd/systemd/issues/13522
+	usermod --expiredate= kvmd >/dev/null
 }
