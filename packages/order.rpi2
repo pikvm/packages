@@ -1,9 +1,1 @@
-watchdog
-python-pyghmi
-python-raspberry-gpio
-raspberrypi-io-access
-ttyd
-platformio
-ustreamer
-kvmd
-kvmd-webterm
+order.rpi
