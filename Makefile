@@ -47,10 +47,10 @@ endef
 all:
 	@ echo "Available commands:"
 	@ echo "    make binfmt BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
-	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
 	@ echo "    make shell BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
-	@ echo "    make push"
-	@ echo "    make pull"
+	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
+	@ echo "    make pushenv"
+	@ echo "    make pullenv"
 	@ echo
 	@ echo "    make update"
 	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
@@ -81,7 +81,7 @@ packages-$1:
 	done
 endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_packages_board_target,$(board))))
-packages: $(addprefix packages-,$(_KNOWN_BOARDS))
+# packages: $(addprefix packages-,$(_KNOWN_BOARDS))
 
 
 build:
@@ -120,11 +120,11 @@ buildenv: $(_BUILDENV_DIR)
 	$(call say,"Buildenv $(BOARD) is ready")
 
 
-push:
+pushenv:
 	docker push $(_BUILDENV_IMAGE)
 
 
-pull:
+pullenv:
 	docker pull $(_BUILDENV_IMAGE)
 
 
@@ -159,6 +159,7 @@ $(_BUILD_DIR):
 
 $(_REPO_DIR):
 	mkdir -p $(_REPO_DIR)
+	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow)
 
 
 .PHONY: buildenv packages repos
