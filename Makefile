@@ -75,7 +75,7 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 
 define make_packages_board_target
 packages-$1:
-	make -C $(_BUILDENV_DIR) binfmt
+	make binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
