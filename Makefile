@@ -55,7 +55,7 @@ all:
 	@ echo "    make update"
 	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
 	@ echo
-	@ echo "    make packages"
+#	@ echo "    make packages"
 	@ for board in $(_KNOWN_BOARDS); do echo "    make packages-$$board"; done
 	@ echo
 	@ echo "    make upload"
