@@ -1,4 +1,4 @@
-BOARD ?= rpi3
+BOARD ?= rpi4
 
 
 # =====
