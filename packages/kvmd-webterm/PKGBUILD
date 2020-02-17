@@ -1,27 +1,25 @@
-_commit=9126d54
-_ttyd=1.5.2.$_commit
+_commit=1cf43ad
+_ttyd=1.6.0.$_commit
 
 pkgname=kvmd-webterm
-pkgver=0.30
+pkgver=0.31
 pkgrel=1
 pkgdesc="Pi-KVM - Web terminal"
 url="https://github.com/pikvm/packages"
 license=(GPL)
 arch=(any)
-depends=(kvmd ttyd=$_ttyd)
+depends=(kvmd ttyd=$_ttyd inetutils)
 install=$pkgname.install
 source=(
 	$pkgname.install
 	$pkgname.service
 	sysusers.conf
-	https://raw.githubusercontent.com/tsl0922/ttyd/$_commit/src/index.html
-	index.sed
 	terminal.svg
 	nginx.ctx-http.conf
 	nginx.ctx-server.conf
 	manifest.yaml
 )
-md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 
 
 package() {
@@ -35,6 +33,5 @@ package() {
 	cp terminal.svg "$pkgdir/usr/share/kvmd/web/extras/webterm"
 
 	mkdir -p "$pkgdir/usr/share/kvmd/extras/webterm"
-	cp nginx.*.conf index.html manifest.yaml "$pkgdir/usr/share/kvmd/extras/webterm"
-	sed -i -f index.sed "$pkgdir/usr/share/kvmd/extras/webterm/index.html"
+	cp nginx.*.conf manifest.yaml "$pkgdir/usr/share/kvmd/extras/webterm"
 }
