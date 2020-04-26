@@ -1,6 +1,6 @@
 pkgname=platformio
-pkgver=4.0.2
-pkgrel=2
+pkgver=4.3.1
+pkgrel=1
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
 license=("Apache 2.0")
@@ -8,22 +8,23 @@ arch=(any)
 depends=(
 	"python>=3.8"
 	"python<3.9"
+	python-setuptools
 	python-bottle
 	python-click
 	python-colorama
-	python-lockfile
 	"python-pyserial>=3.4"
 	python-requests
 	python-semantic-version
-	python-setuptools
 	python-tabulate
+	python-pyelftools
+	python-marshmallow
 )
 conflicts=(platformio-git)
-source=(${pkgname}::"git+https://github.com/platformio/platformio-core#commit=v${pkgver}")
-md5sums=(SKIP)
+source=("https://github.com/platformio/platformio-core/archive/v${pkgver}.tar.gz")
+sha256sums=(82c5c99c859cd287674cbd4d298f4b4f143a7ed4ba76db5c3195c2499c9df6ce)
 
 
 package() {
-	cd "$srcdir/$pkgname"
+	cd "$srcdir/platformio-core-$pkgver"
 	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
 }
