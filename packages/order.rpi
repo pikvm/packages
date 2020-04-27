@@ -2,6 +2,7 @@ watchdog
 python-pyghmi
 python-raspberry-gpio
 raspberrypi-io-access
+raspberrypi-hdmi
 libwebsockets-patched
 ttyd
 platformio
