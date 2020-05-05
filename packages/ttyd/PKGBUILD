@@ -2,7 +2,7 @@ _commit=913b3bb
 
 pkgname=ttyd
 pkgver=1.6.0.$_commit
-pkgrel=3
+pkgrel=4
 pkgdesc="Share your terminal over the web"
 url="https://tsl0922.github.io/ttyd"
 license=(MIT)
