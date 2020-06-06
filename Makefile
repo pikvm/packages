@@ -49,14 +49,19 @@ all:
 	@ echo "    make binfmt BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo "    make shell BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
-	@ echo "    make pushenv"
-	@ echo "    make pullenv"
+	@ echo "    make pushenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
+	@ echo "    make pullenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo
 	@ echo "    make update"
 	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
 	@ echo
-#	@ echo "    make packages"
 	@ for board in $(_KNOWN_BOARDS); do echo "    make packages-$$board"; done
+	@ echo
+	@ for board in $(_KNOWN_BOARDS); do echo "    make buildenv-$$board NC=<1|0>"; done
+	@ echo
+	@ for board in $(_KNOWN_BOARDS); do echo "    make pushenv-$$board"; done
+	@ echo
+	@ for board in $(_KNOWN_BOARDS); do echo "    make pushenv-$$board"; done
 	@ echo
 	@ echo "    make upload"
 
@@ -73,15 +78,20 @@ $(foreach pkg,$(_UPDATABLE_PACKAGES),$(eval $(call make_update_package_target,$(
 update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 
 
-define make_packages_board_target
+define make_board_target
 packages-$1:
 	make binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
+buildenv-$1:
+	make buildenv BOARD=$1 NC=$$(NC)
+pushenv-$1:
+	make pushenv BOARD=$1
+pullenv-$1:
+	make pullenv BOARD=$1
 endef
-$(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_packages_board_target,$(board))))
-# packages: $(addprefix packages-,$(_KNOWN_BOARDS))
+$(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 
 
 build:
