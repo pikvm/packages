@@ -61,7 +61,7 @@ all:
 	@ echo
 	@ for board in $(_KNOWN_BOARDS); do echo "    make pushenv-$$board"; done
 	@ echo
-	@ for board in $(_KNOWN_BOARDS); do echo "    make pushenv-$$board"; done
+	@ for board in $(_KNOWN_BOARDS); do echo "    make pullenv-$$board"; done
 	@ echo
 	@ echo "    make upload"
 
