@@ -1,15 +1,15 @@
 pkgname=raspberrypi-hdmi
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
 pkgdesc="Control HDMI output on Raspberry Pi"
 url=""
 license=(GPL)
 arch=(any)
 depends=(raspberrypi-firmware)
-source=(raspberrypi-hdmi-off.service)
-md5sums=(SKIP)
+source=(raspberrypi-hdmi-off.{service,timer})
+md5sums=(SKIP SKIP)
 
 
 package() {
-	install -Dm644 -t "$pkgdir/usr/lib/systemd/system" raspberrypi-hdmi-off.service
+	install -Dm644 -t "$pkgdir/usr/lib/systemd/system" raspberrypi-hdmi-off.{service,timer}
 }
