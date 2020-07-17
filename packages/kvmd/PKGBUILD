@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.74
+pkgver=1.75
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -50,7 +50,7 @@ depends=(
 	patch
 	sudo
 	raspberrypi-io-access
-	"ustreamer>=1.17"
+	"ustreamer>=1.19"
 )
 makedepends=(python-setuptools)
 source=("$url/archive/v$pkgver.tar.gz")
@@ -83,6 +83,7 @@ package_kvmd() {
 
 	mkdir -p "$pkgdir/usr/share/kvmd"
 	cp -r {hid,web,extras,contrib/keymaps} "$pkgdir/usr/share/kvmd"
+	find "$pkgdir/usr/share/kvmd/web" -name '*.pug' -exec rm -f '{}' \;
 
 	local _cfg_default="$pkgdir/usr/share/kvmd/configs.default"
 	mkdir -p "$_cfg_default"
