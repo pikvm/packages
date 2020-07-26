@@ -2,7 +2,7 @@
 # Author: Maxim Devaev <mdevaev@gmail.com>
 
 
-_variants=(v2-hdmi:rpi4 v2-hdmi:zerow)
+_variants=(v2-hdmi:rpi4 v2-hdmi:zerow v2-hdmiusb:rpi4)
 for _platform in v0-vga v0-hdmi v1-vga v1-hdmi; do
 	for _board in rpi2 rpi3; do
 		_variants+=($_platform:$_board)
@@ -17,7 +17,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=1.78
+pkgver=1.80
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -120,7 +120,7 @@ for _variant in "${_variants[@]}"; do
 		if [[ $_platform =~ ^.*-hdmi$ ]]; then
 			depends=(\"\${depends[@]}\")
 			if [ $_board == rpi4 ]; then
-				depends=(\"\${depends[@]}\" \"linux-raspberrypi4=5.4.51\" \"linux-raspberrypi4-headers=5.4.51\")
+				depends=(\"\${depends[@]}\" \"linux-raspberrypi4>=5.4.51\" \"linux-raspberrypi4-headers>=5.4.51\")
 			else
 				depends=(\"\${depends[@]}\" \"linux-raspberrypi=4.19.118-1\" \"linux-raspberrypi-headers=4.19.118-1\")
 			fi
