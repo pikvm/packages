@@ -53,7 +53,10 @@ RUN echo $REPO_NAME
 
 ARG REPO_KEY
 ENV REPO_KEY $REPO_KEY
-RUN pacman-key -r $REPO_KEY \
+RUN ( \
+		pacman-key --keyserver hkps://hkps.pool.sks-keyservers.net -r $REPO_KEY \
+		|| pacman-key --keyserver keyserver.ubuntu.com -r $REPO_KEY \
+	) \
 	&& pacman-key --lsign-key $REPO_KEY
 
 RUN mkdir /run/user/1000 \
