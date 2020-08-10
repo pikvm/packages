@@ -1,0 +1,22 @@
+# Based on https://aur.archlinux.org/packages/tailscale
+
+
+pkgname=tailscale
+pkgver=1.0.4
+pkgrel=1
+pkgdesc="A mesh VPN that makes it easy to connect your devices, wherever they are"
+url="https://tailscale.com"
+license=(MIT)
+arch=(armv6h armv7h)
+install=tailscale.install
+source=("$pkgname-$pkgver.tgz::https://pkgs.tailscale.com/stable/tailscale_${pkgver}_arm.tgz")
+sha256sums=(9966e0e0f057437e42fa3380baa72e182bd8c72812d0e46515c19cad4665ba45)
+
+
+package() {
+	cd tailscale_${pkgver}_arm
+	mkdir -p "$pkgdir/usr/bin" "$pkgdir/etc/default" "$pkgdir/usr/lib/systemd/system"
+	install -m755 tailscale tailscaled "$pkgdir/usr/bin"
+	install -m644 systemd/tailscaled.defaults "$pkgdir/etc/default/tailscaled"
+	install -m644 systemd/tailscaled.service "$pkgdir/usr/lib/systemd/system"
+}
