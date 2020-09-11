@@ -1,5 +1,5 @@
 pkgname=raspberrypi-io-access
-pkgver=0.4
+pkgver=0.5
 pkgrel=1
 pkgdesc="Raspberry Pi port access rules and groups"
 url=""
