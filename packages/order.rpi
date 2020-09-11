@@ -4,6 +4,7 @@ python-pyghmi
 python-raspberry-gpio
 raspberrypi-io-access
 raspberrypi-hdmi
+libgpiod
 ttyd
 platformio
 ustreamer
