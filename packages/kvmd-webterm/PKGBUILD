@@ -1,8 +1,7 @@
-_commit=7f42964
-_ttyd=1.6.1.$_commit
+_ttyd=1.6.1.100
 
 pkgname=kvmd-webterm
-pkgver=0.34
+pkgver=0.35
 pkgrel=1
 pkgdesc="Pi-KVM - Web terminal"
 url="https://github.com/pikvm/packages"
