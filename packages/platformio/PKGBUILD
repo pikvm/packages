@@ -1,5 +1,5 @@
 pkgname=platformio
-pkgver=4.3.1
+pkgver=5.0.1
 pkgrel=1
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
@@ -21,7 +21,7 @@ depends=(
 )
 conflicts=(platformio-git)
 source=("https://github.com/platformio/platformio-core/archive/v${pkgver}.tar.gz")
-sha256sums=(82c5c99c859cd287674cbd4d298f4b4f143a7ed4ba76db5c3195c2499c9df6ce)
+sha256sums=(0c1224f1d593c6fbccdf73de2ce02a412521a3095965c7eee19b2a4d6dc83c89)
 
 
 package() {
