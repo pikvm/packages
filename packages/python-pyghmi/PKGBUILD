@@ -1,11 +1,17 @@
 pkgname=python-pyghmi
-pkgver=1.5.14
+pkgver=1.5.18
 pkgrel=1
 pkgdesc="A Pure python IPMI library"
 url="https://opendev.org/x/pyghmi"
 license=("Apache 2.0")
 arch=(any)
-depends=("python>=3.8" "python<3.9" python-cryptography)
+depends=(
+	"python>=3.8"
+	"python<3.9"
+	python-cryptography
+	python-dateutil
+	python-six
+)
 makedepends=(python-distribute)
 source=(${pkgname}::"git+https://opendev.org/x/pyghmi#commit=${pkgver}")
 md5sums=(SKIP)
