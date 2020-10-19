@@ -1,0 +1,36 @@
+_revision=1450
+
+pkgname=avrdude-svn
+pkgver=20201019.$_revision
+pkgrel=1
+pkgdesc="Download/upload/manipulate the ROM and EEPROM contents of AVR microcontrollers"
+url="http://www.nongnu.org/avrdude"
+arch=(armv6h armv7h)
+license=(GPL)
+depends=(readline libftdi libusb-compat hidapi elfutils)
+#makedepends=(svn)
+provides=(avrdude)
+conflicts=(avrdude)
+#source=("avrdude::svn+http://svn.savannah.nongnu.org/svn/avrdude/trunk/avrdude#revision=$_revision")
+# QEMU segfaults on SVN, so using tarball
+# svn export --revision 1450 http://svn.savannah.nongnu.org/svn/avrdude/trunk/avrdude avrdude
+source=(avrdude.tar.bz2)
+md5sums=(SKIP)
+
+
+build() {
+	cd "$srcdir/avrdude"
+	./bootstrap
+	./configure \
+		--mandir=/usr/share/man \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--enable-linuxgpio \
+		--enable-linuxspi
+	make $MAKEFLAGS
+}
+
+package() {
+	cd "$srcdir/avrdude"
+	make DESTDIR="$pkgdir" install
+}
