@@ -1,7 +1,6 @@
 watchdog
 tailscale
 python-pyghmi
-python-raspberry-gpio
 raspberrypi-io-access
 raspberrypi-hdmi
 libgpiod
