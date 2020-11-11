@@ -2,7 +2,7 @@
 
 
 pkgname=tailscale
-pkgver=1.0.5
+pkgver=1.2.5
 pkgrel=1
 pkgdesc="A mesh VPN that makes it easy to connect your devices, wherever they are"
 url="https://tailscale.com"
@@ -10,7 +10,7 @@ license=(MIT)
 arch=(armv6h armv7h)
 install=tailscale.install
 source=("$pkgname-$pkgver.tgz::https://pkgs.tailscale.com/stable/tailscale_${pkgver}_arm.tgz")
-sha256sums=(8b6eef2163ffc0e8a275c710721d9b7bcd59ff603b092a9b293d0d1d137fa48b)
+sha256sums=(3b354e973b2607837b134c05f231700aae40b5ab2af943ebe65abe1d48dcb0b4)
 
 
 package() {
