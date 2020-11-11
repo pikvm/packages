@@ -1,0 +1,18 @@
+# https://gist.github.com/whitelynx/9f9bd4cb266b3924c64dfdff14bce2e8
+# https://archlinuxarm.org/forum/viewtopic.php?f=67&t=14244
+
+[Unit]
+Description=Configure RPi Bluetooth modem connected by UART
+ConditionPathIsDirectory=/proc/device-tree/soc/gpio@7e200000/bt_pins
+After=dev-ttyAMA0.device bluetooth.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+
+ExecStart=/usr/bin/btattach -B /dev/ttyAMA0 -P bcm -S 3000000
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

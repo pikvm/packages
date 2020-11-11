@@ -1,0 +1,15 @@
+pkgname=raspberrypi-bluetooth
+pkgver=0.1
+pkgrel=1
+pkgdesc="Bluetooth for Raspberry Pi"
+url="https://github.com/pikvm/packages"
+license=(GPL)
+arch=(any)
+depends=(bluez-utils)
+source=(raspberrypi-btuart.service)
+md5sums=(SKIP)
+
+
+package() {
+	install -Dm644 -t "$pkgdir/usr/lib/systemd/system" raspberrypi-btuart.service
+}
