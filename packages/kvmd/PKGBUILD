@@ -16,6 +16,7 @@ _variants=(
 	v2-hdmi:rpi4
 
 	v2-hdmiusb:rpi4
+	v2-hdmiusb:rock64
 )
 
 
@@ -26,10 +27,10 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=2.4
+pkgver=master
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
-url="https://github.com/pikvm/kvmd"
+url="https://github.com/Yura80/kvmd"
 license=(GPL)
 arch=(any)
 depends=(
@@ -40,6 +41,7 @@ depends=(
 	python-aiofiles
 	python-passlib
 	python-pyserial
+	python-spidev
 	python-setproctitle
 	python-psutil
 	python-systemd
@@ -56,6 +58,7 @@ depends=(
 	nginx-mainline
 	openssl
 	platformio
+	avrdude-svn
 	make
 	patch
 	sudo
@@ -70,7 +73,7 @@ depends=(
 	netctl
 )
 makedepends=(python-setuptools)
-source=("$url/archive/v$pkgver.tar.gz")
+source=("$url/archive/master.tar.gz")
 md5sums=(SKIP)
 backup=(
 	etc/kvmd/{override,logging,auth,meta}.yaml
