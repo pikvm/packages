@@ -13,7 +13,7 @@ _BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
 _REPO_DIR = ./repos/$(BOARD)-$(ARCH)
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order.*))))
+_KNOWN_BOARDS := $(sort $(subst order., ,$(wildcard packages/order.*)))
 
 
 # =====
