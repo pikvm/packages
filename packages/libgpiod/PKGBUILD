@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc="C library and tools for interacting with the Linux GPIO character device"
 url="https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git"
 license=(LGPL2.1)
-arch=(armv6h armv7h)
+arch=(armv6h armv7h aarch64)
 depends=("linux-api-headers>=5.5" "python>=3.8" "python<3.9")
 makedepends=(autoconf-archive help2man gcc m4)
 conflicts=(libgpiod-git)

@@ -1,15 +1,16 @@
 BOARD ?= rpi4
-
+ARCH ?= arm
 
 # =====
-_REPO_NAME = pikvm
-_REPO_KEY = 912C773ABBD1B584
-_REPO_DEST = root@pikvm.org:/var/www/
+_REPO_NAME ?= pikvm
+_REPO_KEY ?= 912C773ABBD1B584
+_REPO_DEST ?= root@pikvm.org:/var/www/
+_PIBUILDER_REPO ?= https://github.com/pikvm/pi-builder
 
-_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
-_BUILDENV_DIR = ./.pi-builder/$(BOARD)
-_BUILD_DIR = ./.build/$(BOARD)
-_REPO_DIR = ./repos/$(BOARD)
+_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)-$(ARCH)
+_BUILDENV_DIR = ./.pi-builder/$(BOARD)-$(ARCH)
+_BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
+_REPO_DIR = ./repos/$(BOARD)-$(ARCH)
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
 _KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order.*))))
@@ -125,6 +126,7 @@ buildenv: $(_BUILDENV_DIR)
 		" \
 		PROJECT=pikvm-packages \
 		BOARD=$(BOARD) \
+		ARCH=$(ARCH) \
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv
 	$(call say,"Buildenv $(BOARD) is ready")
@@ -160,7 +162,7 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 
 
 $(_BUILDENV_DIR):
-	git clone --depth=1 https://github.com/pikvm/pi-builder $(_BUILDENV_DIR)
+	git clone --depth=1 $(_PIBUILDER_REPO) $(_BUILDENV_DIR)
 
 
 $(_BUILD_DIR):
