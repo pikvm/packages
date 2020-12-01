@@ -171,8 +171,9 @@ $(_BUILD_DIR):
 
 $(_REPO_DIR):
 	mkdir -p $(_REPO_DIR)
-	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow)
-	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3)
+	[ $(ARCH) != arm ] || (cd `dirname $(_REPO_DIR)` && ln -sf $(BOARD)-arm $(BOARD))
+	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow && ln -sf rpi-$(ARCH) zerow-$(ARCH))
+	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3 && ln -sf rpi2-$(ARCH) rpi3-$(ARCH))
 
 
 .PHONY: buildenv packages repos
