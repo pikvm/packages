@@ -1,10 +1,9 @@
+uboot-pikvm-aarch64
 watchdog
 tailscale
 python-pyghmi
 python-spidev
 raspberrypi-io-access
-raspberrypi-hdmi
-raspberrypi-bluetooth
 libgpiod
 ttyd
 platformio

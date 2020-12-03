@@ -1,0 +1,13 @@
+uboot-pikvm
+watchdog
+tailscale
+python-pyghmi
+python-spidev
+raspberrypi-io-access
+libgpiod
+ttyd
+platformio
+avrdude-svn
+ustreamer
+kvmd
+kvmd-webterm

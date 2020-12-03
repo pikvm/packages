@@ -13,7 +13,7 @@ _BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
 _REPO_DIR = ./repos/$(BOARD)-$(ARCH)
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := $(sort $(subst order., ,$(wildcard packages/order.*)))
+_KNOWN_BOARDS := $(sort $(subst order.$(ARCH)., ,$(wildcard packages/order.$(ARCH).*)))
 
 
 # =====
@@ -82,7 +82,7 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 define make_board_target
 packages-$1:
 	make binfmt BOARD=$1
-	for pkg in `cat packages/order.$1`; do \
+	for pkg in `cat packages/order.$(ARCH).$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
 buildenv-$1:

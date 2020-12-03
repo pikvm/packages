@@ -1,0 +1,66 @@
+# U-Boot: pikvm
+
+
+pkgbase=uboot-pikvm
+pkgname=('uboot-pikvm-rock64')
+pkgver=2020.07
+pkgrel=3
+arch=('aarch64')
+url="http://git.denx.de/u-boot.git/"
+license=('GPL')
+makedepends=('bc' 'git' 'python' 'swig' 'dtc' 'uboot-tools')
+depends=('uboot-tools')
+backup=(boot/boot.txt boot/boot.scr)
+source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
+		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.3.tar.gz"
+		'boot.txt.rock64'
+        'mkscr')
+md5sums=(SKIP SKIP SKIP SKIP)
+
+
+boards_rockchip=('rock64-rk3328')
+
+prepare() {
+  cd ${srcdir}/arm-trusted-firmware-2.3
+  make PLAT=rk3328 all
+
+}
+
+build() {
+  cd ${srcdir}/u-boot-${pkgver}
+  unset CFLAGS CXXFLAGS LDFLAGS
+  
+  for i in ${boards_rockchip[@]}; do
+    mkdir ../bin_${i}
+    make distclean
+	cp ../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf ./bl31.el
+    make ${i}_defconfig
+    echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
+    make EXTRAVERSION=-${pkgrel}
+	make EXTRAVERSION=-${pkgrel} u-boot.itb
+	mv ./tpl/u-boot-tpl.bin ../bin_${i}
+	mv ./spl/u-boot-spl.bin ../bin_${i}
+    mv ./u-boot.itb ../bin_${i}	
+	tools/mkimage -n rk3328 -T rksd -d ./tpl/u-boot-tpl.bin "../bin_${i}/rksd_loader.img"
+	cat ./spl/u-boot-spl.bin >> "../bin_${i}/rksd_loader.img"	
+  done 
+
+  tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.rock64 ../boot.scr.rock64
+}
+
+
+package_uboot-pikvm-rock64() {
+  pkgdesc="U-Boot for Rock64"
+  install=uboot-rock64.install
+  arch=('aarch64')
+  provides=('uboot-rock64')
+  conflicts=('uboot-rock64')
+
+  install -d "${pkgdir}"/boot
+  install -Dm644 bin_rock64-rk3328/rksd_loader.img.bin "${pkgdir}"/boot
+  install -Dm644 bin_rock64-rk3328/u-boot-itb.bin "${pkgdir}"/boot
+
+  install -Dm644 boot.txt.rock64 "${pkgdir}"/boot/boot.txt
+  install -Dm644 boot.scr.rock64 "${pkgdir}"/boot/boot.scr
+  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+}
