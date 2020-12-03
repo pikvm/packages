@@ -3,9 +3,9 @@
 pkgbase=uboot-pikvm
 pkgname=('uboot-pikvm-libretech-all-h3-cc-h2-plus'
 		 'uboot-pikvm-libretech-all-h3-cc-h3'
-		 'uboot-pikvm-libretech-all-h3-cc-h5'
 		 'uboot-pikvm-orangepi-one'
-		 'uboot-pikvm-orangepi-zero')
+		 'uboot-pikvm-orangepi-zero'
+		 )
 pkgver=2020.07
 pkgrel=3
 arch=('armv7h')
@@ -21,10 +21,10 @@ md5sums=(SKIP SKIP SKIP)
 
 boards_sunxi=('libretech_all_h3_cc_h2_plus'
 			'libretech_all_h3_cc_h3'
-			'libretech_all_h3_cc_h5'
 			'orangepi_one'
-			'orangepi_zero')
-
+			'orangepi_zero'
+			)
+# nanopi_neo
 
 build() {
 
@@ -33,7 +33,7 @@ build() {
   
   for i in ${boards_sunxi[@]}; do
     mkdir ../bin_${i}
-    make distclean
+    make clean
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
     make EXTRAVERSION=-${pkgrel}
@@ -46,11 +46,10 @@ build() {
 
 package_uboot-pikvm-libretech-all-h3-cc-h2-plus() {
   pkgdesc="U-Boot for Libre Computer Board ALL-H3-CC"
-  arch=('armv7h')
   install=${pkgbase}.install
 
   install -d "${pkgdir}"/boot
-  install -Dm644 bin_libretech_all_h3_cc_h2_plus/u-boot-sunxi-with-spl.bin "${pkgdir}"/boot
+  install -Dm644 bin_libretech_all_h3_cc_h2_plus/u-boot.bin "${pkgdir}"/boot
 
   install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
   install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
@@ -59,24 +58,10 @@ package_uboot-pikvm-libretech-all-h3-cc-h2-plus() {
 
 package_uboot-pikvm-libretech-all-h3-cc-h3() {
   pkgdesc="U-Boot for Libre Computer Board ALL-H3-CC"
-  arch=('armv7h')
   install=${pkgbase}.install
 
   install -d "${pkgdir}"/boot
-  install -Dm644 bin_libretech_all_h3_cc_h3/u-boot-sunxi-with-spl.bin "${pkgdir}"/boot
-
-  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
-  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
-  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
-}
-
-package_uboot-pikvm-libretech-all-h3-cc-h5() {
-  pkgdesc="U-Boot for Libre Computer Board ALL-H3-CC"
-  arch=('armv7h')
-  install=${pkgbase}.install
-
-  install -d "${pkgdir}"/boot
-  install -Dm644 bin_libretech_all_h3_cc_h5/u-boot-sunxi-with-spl.bin "${pkgdir}"/boot
+  install -Dm644 bin_libretech_all_h3_cc_h3/u-boot.bin "${pkgdir}"/boot
 
   install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
   install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
@@ -85,7 +70,6 @@ package_uboot-pikvm-libretech-all-h3-cc-h5() {
 
 package_uboot-pikvm-orangepi-one() {
   pkgdesc="U-Boot for Orange Pi One"
-  arch=('armv7h')
   install=${pkgbase}.install
 
   install -d "${pkgdir}"/boot
@@ -98,7 +82,6 @@ package_uboot-pikvm-orangepi-one() {
 
 package_uboot-pikvm-orangepi-zero() {
   pkgdesc="U-Boot for Orange Pi Zero"
-  arch=('armv7h')
   install=${pkgbase}.install
 
   install -d "${pkgdir}"/boot

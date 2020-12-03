@@ -5,12 +5,12 @@ part uuid ${devtype} ${devnum}:2 uuid
 
 setenv bootargs console=${console} root=PARTUUID=${uuid} ro rootwait
 
-if load ${devtype} ${devnum}:${bootpart} ${kernel_addr_r} /boot/zImage; then
-  if load ${devtype} ${devnum}:${bootpart} ${fdt_addr_r} /boot/dtbs/${fdtfile}; then	
+if load ${devtype} ${devnum}:${bootpart} ${kernel_addr_r} /zImage; then
+  if load ${devtype} ${devnum}:${bootpart} ${fdt_addr_r} /dtbs/${fdtfile}; then	
 	fdt addr ${fdt_addr_r}
     fdt resize
-    fdt set /usb@1c19000 dr_mode "peripheral"    
-	if load ${devtype} ${devnum}:${bootpart} ${ramdisk_addr_r} /boot/initramfs-linux.img; then
+    fdt set /soc/usb@1c19000 dr_mode "peripheral"    
+	if load ${devtype} ${devnum}:${bootpart} ${ramdisk_addr_r} /initramfs-linux.img; then
       bootz ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r};
     else
       bootz ${kernel_addr_r} - ${fdt_addr_r};
