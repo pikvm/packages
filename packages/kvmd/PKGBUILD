@@ -16,7 +16,7 @@ _variants=(
 	v2-hdmi:rpi4
 
 	v2-hdmiusb:rpi4
-	v2-hdmiusb:rock64
+	v2-hdmiusb:generic
 )
 
 
@@ -27,7 +27,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=master
+pkgver=2.4
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/Yura80/kvmd"
@@ -73,7 +73,8 @@ depends=(
 	netctl
 )
 makedepends=(python-setuptools)
-source=("$url/archive/master.tar.gz")
+#source=("$url/archive/master.tar.gz")
+source=(kvmd-${pkgver}::"git+${url}#branch=generic")
 md5sums=(SKIP)
 backup=(
 	etc/kvmd/{override,logging,auth,meta}.yaml

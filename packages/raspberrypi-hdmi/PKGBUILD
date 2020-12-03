@@ -5,7 +5,7 @@ pkgdesc="Control HDMI output on Raspberry Pi"
 url=""
 license=(GPL)
 arch=(any)
-depends_arm=(raspberrypi-firmware)
+depends=(raspberrypi-firmware)
 source=(raspberrypi-hdmi-off.{service,timer})
 md5sums=(SKIP SKIP)
 
