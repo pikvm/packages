@@ -55,8 +55,8 @@ package_uboot-pikvm-rock64() {
   conflicts=('uboot-rock64')
 
   install -d "${pkgdir}"/boot
-  install -Dm644 bin_rock64_rk3328/rksd_loader.img "${pkgdir}"/boot
-  install -Dm644 bin_rock64_rk3328/u-boot-itb.bin "${pkgdir}"/boot
+  install -Dm644 bin_rock64-rk3328/rksd_loader.img "${pkgdir}"/boot
+  install -Dm644 bin_rock64-rk3328/u-boot.itb "${pkgdir}"/boot
 
   install -Dm644 boot.txt.rock64 "${pkgdir}"/boot/boot.txt
   install -Dm644 boot.scr.rock64 "${pkgdir}"/boot/boot.scr
