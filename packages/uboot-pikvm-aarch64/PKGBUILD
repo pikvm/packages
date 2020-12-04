@@ -33,7 +33,7 @@ build() {
   for i in ${boards_rk3328[@]}; do
     mkdir ../bin_${i}
     make distclean
-	cp ../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf ./bl31.el
+	cp ../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf ./bl31.elf
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
     make EXTRAVERSION=-${pkgrel}

@@ -111,7 +111,7 @@ binfmt:
 
 
 buildenv: $(_BUILDENV_DIR)
-	$(call say,"Ensuring $(BOARD) buildenv")
+	$(call say,"Ensuring $(BOARD)-$(ARCH) buildenv")
 	make -C $(_BUILDENV_DIR) binfmt
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
@@ -129,7 +129,7 @@ buildenv: $(_BUILDENV_DIR)
 		ARCH=$(ARCH) \
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv
-	$(call say,"Buildenv $(BOARD) is ready")
+	$(call say,"Buildenv $(BOARD)-$(ARCH) is ready")
 
 
 pushenv:
