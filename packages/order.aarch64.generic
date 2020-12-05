@@ -8,6 +8,6 @@ libgpiod
 ttyd
 platformio
 avrdude-svn
-ustreamer-generic
+ustreamer
 kvmd
 kvmd-webterm

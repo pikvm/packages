@@ -73,7 +73,7 @@ upload:
 
 define make_update_package_target
 update-$1:
-	make -C packages/$1 -f update.mk update
+	make -C packages/$1 -f update.mk update BOARD=$(BOARD) ARCH=$(ARCH)
 endef
 $(foreach pkg,$(_UPDATABLE_PACKAGES),$(eval $(call make_update_package_target,$(pkg))))
 update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
