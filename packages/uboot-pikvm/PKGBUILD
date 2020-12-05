@@ -5,9 +5,13 @@ pkgname=('uboot-pikvm-libretech-all-h3-cc-h2-plus'
 		 'uboot-pikvm-libretech-all-h3-cc-h3'
 		 'uboot-pikvm-orangepi-one'
 		 'uboot-pikvm-orangepi-zero'
+		 'uboot-pikvm-orangepi-2'
+		 'uboot-pikvm-nanopi-neo'
+		 'uboot-pikvm-nanopi-m1'
+		 'uboot-pikvm-nanopi-m1-plus'
 		 )
 pkgver=2020.07
-pkgrel=3
+pkgrel=4
 arch=('armv7h')
 url="http://git.denx.de/u-boot.git/"
 license=('GPL')
@@ -23,8 +27,11 @@ boards_sunxi=('libretech_all_h3_cc_h2_plus'
 			'libretech_all_h3_cc_h3'
 			'orangepi_one'
 			'orangepi_zero'
+			'orangepi_2'
+			'nanopi_neo'
+			'nanopi_m1'
+			'nanopi_m1_plus'
 			)
-# nanopi_neo
 
 build() {
 
@@ -32,6 +39,7 @@ build() {
   unset CFLAGS CXXFLAGS LDFLAGS
   
   for i in ${boards_sunxi[@]}; do
+	echo "Building ${i}..."
     mkdir ../bin_${i}
     make clean
     make ${i}_defconfig
@@ -44,50 +52,46 @@ build() {
 
 }
 
+_package_sunxi() {
+	board="$1"
+	pkgdesc="U-Boot for ${board}"
+	install=${pkgbase}.install
+
+	install -d "${pkgdir}"/boot
+	install -Dm644 bin_${board}/u-boot.bin "${pkgdir}"/boot
+
+	install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
+	install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
+	install -Dm755 mkscr "${pkgdir}"/boot/mkscr	
+}
+
 package_uboot-pikvm-libretech-all-h3-cc-h2-plus() {
-  pkgdesc="U-Boot for Libre Computer Board ALL-H3-CC"
-  install=${pkgbase}.install
-
-  install -d "${pkgdir}"/boot
-  install -Dm644 bin_libretech_all_h3_cc_h2_plus/u-boot.bin "${pkgdir}"/boot
-
-  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
-  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
-  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+	_package_sunxi libretech_all_h3_cc_h2_plus
 }
 
 package_uboot-pikvm-libretech-all-h3-cc-h3() {
-  pkgdesc="U-Boot for Libre Computer Board ALL-H3-CC"
-  install=${pkgbase}.install
-
-  install -d "${pkgdir}"/boot
-  install -Dm644 bin_libretech_all_h3_cc_h3/u-boot.bin "${pkgdir}"/boot
-
-  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
-  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
-  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
-}
-
-package_uboot-pikvm-orangepi-one() {
-  pkgdesc="U-Boot for Orange Pi One"
-  install=${pkgbase}.install
-
-  install -d "${pkgdir}"/boot
-  install -Dm644 bin_orangepi_one/u-boot.bin "${pkgdir}"/boot
-
-  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
-  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
-  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+	_package_sunxi libretech_all_h3_cc_h3
 }
 
 package_uboot-pikvm-orangepi-zero() {
-  pkgdesc="U-Boot for Orange Pi Zero"
-  install=${pkgbase}.install
+	_package_sunxi orangepi_zero
+}
 
-  install -d "${pkgdir}"/boot
-  install -Dm644 bin_orangepi_zero/u-boot.bin "${pkgdir}"/boot
+package_uboot-pikvm-orangepi-one() {
+	_package_sunxi orangepi_one
+}
 
-  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
-  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
-  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+package_uboot-pikvm-orangepi-2() {
+	_package_sunxi orangepi_2
+}
+package_uboot-pikvm-nanopi-neo() {
+	_package_sunxi nanopi_neo
+}
+
+package_uboot-pikvm-nanopi-m1() {
+	_package_sunxi nanopi_m1
+}
+
+package_uboot-pikvm-nanopi-m1-plus() {
+	_package_sunxi nanopi_m1_plus
 }
