@@ -10,8 +10,8 @@ pkgname=('uboot-pikvm-libretech-all-h3-cc-h2-plus'
 		 'uboot-pikvm-nanopi-m1'
 		 'uboot-pikvm-nanopi-m1-plus'
 		 )
-pkgver=2020.07
-pkgrel=4
+pkgver=2020.10
+pkgrel=1
 arch=('armv7h')
 url="http://git.denx.de/u-boot.git/"
 license=('GPL')
