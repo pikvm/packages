@@ -17,6 +17,7 @@ backup=(boot/boot.txt boot/boot.scr)
 source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
 		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.3.tar.gz"
 		'100-nanopi-r2s-rk3328.patch'
+		'rk3328-nanopi-r2s.dtb'
 		'boot.txt.rock64'
         'mkscr')
 md5sums=(SKIP SKIP SKIP SKIP SKIP)
@@ -48,7 +49,7 @@ build() {
 	tools/mkimage -n rk3328 -T rksd -d ./tpl/u-boot-tpl.bin "../bin_${i}/rksd_loader.img"
 	cat ./spl/u-boot-spl.bin >> "../bin_${i}/rksd_loader.img"
 	mv ./u-boot.itb ../bin_${i}
-	mv arch/arm/dts/*.dtb ../bin_${i}
+	# mv arch/arm/dts/*.dtb ../bin_${i}
   done 
 
   tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.rock64 ../boot.scr.rock64
@@ -89,7 +90,7 @@ package_uboot-pikvm-nanopi-r2s-rk3328() {
   install -Dm644 bin_nanopi-r2s-rk3328/rksd_loader.img "${pkgdir}"/boot
   install -Dm644 bin_nanopi-r2s-rk3328/u-boot.itb "${pkgdir}"/boot
   
-  install -Dm644 bin_nanopi-r2s-rk3328/rk3328-nanopi-r2s.dtb "${pkgdir}"/boot/dtbs/rockchip/rk3328-nanopi-r2s.dtb
+  install -Dm644 rk3328-nanopi-r2s.dtb "${pkgdir}"/boot/dtbs/rockchip/rk3328-nanopi-r2s.dtb
   install -Dm644 boot.txt.rock64 "${pkgdir}"/boot/boot.txt
   install -Dm644 boot.scr.rock64 "${pkgdir}"/boot/boot.scr
   install -Dm755 mkscr "${pkgdir}"/boot/mkscr
