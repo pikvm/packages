@@ -20,7 +20,7 @@ source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
 		'rk3328-nanopi-r2s.dtb'
 		'boot.txt.rock64'
         'mkscr')
-md5sums=(SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP)
 
 
 boards_rk3328=('rock64-rk3328'
