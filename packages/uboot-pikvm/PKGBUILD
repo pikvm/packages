@@ -34,7 +34,6 @@ boards_sunxi=('libretech_all_h3_cc_h2_plus'
 			)
 
 build() {
-
   cd ${srcdir}/u-boot-${pkgver}
   unset CFLAGS CXXFLAGS LDFLAGS
   
@@ -49,7 +48,6 @@ build() {
   done
 
   tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.sunxi ../boot.scr.sunxi
-
 }
 
 _package_sunxi() {

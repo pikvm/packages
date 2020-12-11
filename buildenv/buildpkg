@@ -137,6 +137,7 @@ main() {
 	[ -n "$REPO_DIR" ] || die "Missing REPO_DIR variable"
 	[ -n "$BUILD_DIR" ] || die "Missing BUILD_DIR variable"
 	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
+	[ -n "$CCACHE_DIR" ] || die "Missing CCACHE_DIR variable"
 
 	# =====
 
@@ -163,6 +164,7 @@ main() {
 	if [ -n "$build" ]; then
 		append_repo "$REPO_NAME" "$REPO_DIR"
 		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+		chown -R alarm:alarm "$CCACHE_DIR"
 		install_deps "$deps"
 		build "$BUILD_DIR"
 		if [ -z "$norepo" ]; then
