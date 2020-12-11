@@ -2,7 +2,7 @@
 
 
 pkgbase=uboot-pikvm
-pkgname=('uboot-pikvm-rock64'
+pkgname=('uboot-pikvm-rock64-rk3328'
 		'uboot-pikvm-roc-cc-rk3328'
 		'uboot-pikvm-nanopi-r2s-rk3328'
 		'uboot-pikvm-rock-pi-e-rk3328')
@@ -56,7 +56,7 @@ build() {
 }
 
 
-package_uboot-pikvm-rock64() {
+package_uboot-pikvm-rock64-rk3328() {
   pkgdesc="U-Boot for Rock64"
   install=uboot-rock64.install
 

@@ -3,6 +3,7 @@ watchdog
 tailscale
 python-pyghmi
 python-spidev
+python-raspberry-gpio
 raspberrypi-io-access
 libgpiod
 ttyd
