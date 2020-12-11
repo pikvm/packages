@@ -86,7 +86,7 @@ build() {
 	local build_dir="$1"
 	pushd "$build_dir" >/dev/null
 	say "Building package ..."
-	sudo -u alarm makepkg
+	sudo -u alarm --preserve-env=CCACHE_DIR makepkg
 	say "Signing package(s) ..."
 	ls *.pkg.tar.xz | sudo -u alarm xargs -n1 -L1 bash -c "gpg \
 			--verbose \

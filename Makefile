@@ -11,6 +11,7 @@ _BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)-$(ARCH)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)-$(ARCH)
 _BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
 _REPO_DIR = ./repos/$(BOARD)-$(ARCH)
+_CACHE_DIR = ./.cache/$(BOARD)-$(ARCH)
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
 _KNOWN_BOARDS := $(sort $(subst order.$(ARCH)., ,$(wildcard packages/order.$(ARCH).*)))
@@ -150,10 +151,12 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 			--privileged \
 			--volume `pwd`/$(_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
+			--volume `pwd`/$(_CACHE_DIR):/cache:rw \
 			--volume `pwd`/packages:/packages:ro \
 			--env REPO_DIR=/repo \
 			--env BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
+			--env CCACHE_DIR=/cache \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
 			$(OPTS) \
@@ -175,5 +178,8 @@ $(_REPO_DIR):
 	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow && ln -sf rpi-$(ARCH) zerow-$(ARCH))
 	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3 && ln -sf rpi2-$(ARCH) rpi3-$(ARCH))
 
+
+$(_CACHE_DIR):
+	mkdir -p $(_CACHE_DIR)
 
 .PHONY: buildenv packages repos
