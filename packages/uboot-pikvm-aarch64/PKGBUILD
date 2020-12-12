@@ -39,22 +39,22 @@ boards_sun50i_h5=('nanopi_neo2'
 prepare() {
   cd ${srcdir}/arm-trusted-firmware-2.4
   make PLAT=rk3328 all
+  make clean
   make PLAT=sun50i_a64 all
 }
 
 build() {
-  cd ${srcdir}/u-boot-${pkgver}
   unset CFLAGS CXXFLAGS LDFLAGS
+  cd ${srcdir}/u-boot-${pkgver}
   patch -p1 < ../100-nanopi-r2s-rk3328.patch
   
   for i in ${boards_rk3328[@]}; do
     mkdir ../bin_${i}
     make clean
-	cp ../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf ./bl31.elf
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
-    make EXTRAVERSION=-${pkgrel}
-	make EXTRAVERSION=-${pkgrel} u-boot.itb
+    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf
+	make EXTRAVERSION=-${pkgrel} u-boot.itb BL31=../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf
 	tools/mkimage -n rk3328 -T rksd -d ./tpl/u-boot-tpl.bin "../bin_${i}/rksd_loader.img"
 	cat ./spl/u-boot-spl.bin >> "../bin_${i}/rksd_loader.img"
 	mv ./u-boot.itb ../bin_${i}
@@ -63,10 +63,9 @@ build() {
   for i in ${boards_sun50i_h5[@]}; do
     mkdir ../bin_${i}
     make clean
-	cp ../arm-trusted-firmware-2.4/build/sun50i_a64/release/bl31/bl31.elf ./bl31.elf
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
-    make EXTRAVERSION=-${pkgrel}
+    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.4/build/sun50i_a64/release/bl31/bl31.elf
 	mv ./u-boot-sunxi-with-spl.bin ../bin_${i}/u-boot.bin
   done   
 
