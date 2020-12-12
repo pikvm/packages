@@ -5,7 +5,10 @@ pkgbase=uboot-pikvm
 pkgname=('uboot-pikvm-rock64-rk3328'
 		'uboot-pikvm-roc-cc-rk3328'
 		'uboot-pikvm-nanopi-r2s-rk3328'
-		'uboot-pikvm-rock-pi-e-rk3328')
+		'uboot-pikvm-rock-pi-e-rk3328'
+        'uboot-pikvm-nanopi-neo2'
+        'uboot-pikvm-orangepi-zero-plus'        
+        'uboot-pikvm-libretech-all-h3-cc-h5')
 pkgver=2020.10
 pkgrel=1
 arch=('aarch64')
@@ -15,33 +18,39 @@ makedepends=('bc' 'git' 'python' 'swig' 'dtc' 'uboot-tools')
 depends=('uboot-tools')
 backup=(boot/boot.txt boot/boot.scr)
 source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
-		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.3.tar.gz"
+		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.4.tar.gz"
 		'100-nanopi-r2s-rk3328.patch'
 		'rk3328-nanopi-r2s.dtb'
 		'boot.txt.rock64'
+        'boot.txt.sunxi'
         'mkscr')
-md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 
 
 boards_rk3328=('rock64-rk3328'
 			'roc-cc-rk3328'
 			'nanopi-r2s-rk3328'
 			'rock-pi-e-rk3328')
+            
+boards_sun50i_h5=('nanopi_neo2'
+            'orangepi_zero_plus'
+            'libretech_all_h3_cc_h5')            
 
 prepare() {
-  cd ${srcdir}/arm-trusted-firmware-2.3
+  cd ${srcdir}/arm-trusted-firmware-2.4
   make PLAT=rk3328 all
-
+  make PLAT=sun50i_a64 all
 }
 
 build() {
   cd ${srcdir}/u-boot-${pkgver}
   unset CFLAGS CXXFLAGS LDFLAGS
   patch -p1 < ../100-nanopi-r2s-rk3328.patch
+  
   for i in ${boards_rk3328[@]}; do
     mkdir ../bin_${i}
     make clean
-	cp ../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf ./bl31.elf
+	cp ../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf ./bl31.elf
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
     make EXTRAVERSION=-${pkgrel}
@@ -49,10 +58,20 @@ build() {
 	tools/mkimage -n rk3328 -T rksd -d ./tpl/u-boot-tpl.bin "../bin_${i}/rksd_loader.img"
 	cat ./spl/u-boot-spl.bin >> "../bin_${i}/rksd_loader.img"
 	mv ./u-boot.itb ../bin_${i}
-	# mv arch/arm/dts/*.dtb ../bin_${i}
-  done 
+  done
+  
+  for i in ${boards_sun50i_h5[@]}; do
+    mkdir ../bin_${i}
+    make clean
+	cp ../arm-trusted-firmware-2.4/build/sun50i_a64/release/bl31/bl31.elf ./bl31.elf
+    make ${i}_defconfig
+    echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
+    make EXTRAVERSION=-${pkgrel}
+	mv ./u-boot-sunxi-with-spl.bin ../bin_${i}/u-boot.bin
+  done   
 
   tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.rock64 ../boot.scr.rock64
+  tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.sunxi ../boot.scr.sunxi
 }
 
 
@@ -106,5 +125,41 @@ package_uboot-pikvm-rock-pi-e-rk3328() {
 
   install -Dm644 boot.txt.rock64 "${pkgdir}"/boot/boot.txt
   install -Dm644 boot.scr.rock64 "${pkgdir}"/boot/boot.scr
+  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+}
+
+package_uboot-pikvm-nanopi-neo2() {
+  pkgdesc="U-Boot for NanoPi NEO2"
+  install=uboot-sunxi.install
+
+  install -d "${pkgdir}"/boot
+  install -Dm644 bin_nanopi_neo2/u-boot.bin "${pkgdir}"/boot
+
+  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
+  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
+  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+}
+
+package_uboot-pikvm-orangepi-zero-plus() {
+  pkgdesc="U-Boot for Orange Pi Zero Plus"
+  install=uboot-sunxi.install
+
+  install -d "${pkgdir}"/boot
+  install -Dm644 bin_orangepi_zero_plus/u-boot.bin "${pkgdir}"/boot
+
+  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
+  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
+  install -Dm755 mkscr "${pkgdir}"/boot/mkscr
+}
+
+package_uboot-pikvm-libretech-all-h3-cc-h5() {
+  pkgdesc="U-Boot for Libre Computer ALL-H3-CC-H5"
+  install=uboot-sunxi.install
+
+  install -d "${pkgdir}"/boot
+  install -Dm644 bin_libretech_all_h3_cc_h5/u-boot.bin "${pkgdir}"/boot
+
+  install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
+  install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
   install -Dm755 mkscr "${pkgdir}"/boot/mkscr
 }
