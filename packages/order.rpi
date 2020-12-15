@@ -3,6 +3,8 @@ tailscale
 python-pyghmi
 python-spidev
 python-raspberry-gpio
+raspberrypi-bootloader
+raspberrypi-firmware
 raspberrypi-io-access
 raspberrypi-hdmi
 raspberrypi-bluetooth
