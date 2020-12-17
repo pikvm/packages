@@ -3,6 +3,11 @@ tailscale
 python-pyghmi
 python-spidev
 python-raspberry-gpio
+python-cbor2
+python-pyftdi
+python-smbus2
+python-luma-core
+python-luma-oled
 raspberrypi-bootloader
 raspberrypi-firmware
 raspberrypi-io-access
