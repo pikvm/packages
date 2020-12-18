@@ -18,7 +18,7 @@ makedepends=('bc' 'git' 'python' 'swig' 'dtc' 'uboot-tools')
 depends=('uboot-tools')
 backup=(boot/boot.txt boot/boot.scr)
 source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
-		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.4.tar.gz"
+		"https://github.com/ARM-software/arm-trusted-firmware/archive/v2.3.tar.gz"
 		'100-nanopi-r2s-rk3328.patch'
 		'rk3328-nanopi-r2s.dtb'
 		'boot.txt.rock64'
@@ -37,7 +37,8 @@ boards_sun50i_h5=('nanopi_neo2'
             'libretech_all_h3_cc_h5')            
 
 prepare() {
-  cd ${srcdir}/arm-trusted-firmware-2.4
+  unset CFLAGS CXXFLAGS LDFLAGS
+  cd ${srcdir}/arm-trusted-firmware-2.3
   make PLAT=rk3328 all
   make clean
   make PLAT=sun50i_a64 all
@@ -53,8 +54,8 @@ build() {
     make clean
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
-    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf
-	make EXTRAVERSION=-${pkgrel} u-boot.itb BL31=../arm-trusted-firmware-2.4/build/rk3328/release/bl31/bl31.elf
+    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf
+	make EXTRAVERSION=-${pkgrel} u-boot.itb BL31=../arm-trusted-firmware-2.3/build/rk3328/release/bl31/bl31.elf
 	tools/mkimage -n rk3328 -T rksd -d ./tpl/u-boot-tpl.bin "../bin_${i}/rksd_loader.img"
 	cat ./spl/u-boot-spl.bin >> "../bin_${i}/rksd_loader.img"
 	mv ./u-boot.itb ../bin_${i}
@@ -65,7 +66,7 @@ build() {
     make clean
     make ${i}_defconfig
     echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
-    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.4/build/sun50i_a64/release/bl31/bl31.elf
+    make EXTRAVERSION=-${pkgrel} BL31=../arm-trusted-firmware-2.3/build/sun50i_a64/release/bl31.bin
 	mv ./u-boot-sunxi-with-spl.bin ../bin_${i}/u-boot.bin
   done   
 
