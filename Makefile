@@ -1,18 +1,20 @@
 BOARD ?= rpi4
-
+ARCH ?= arm
 
 # =====
-_REPO_NAME = pikvm
-_REPO_KEY = 912C773ABBD1B584
-_REPO_DEST = root@pikvm.org:/var/www/
+_REPO_NAME ?= pikvm
+_REPO_KEY ?= 912C773ABBD1B584
+_REPO_DEST ?= root@pikvm.org:/var/www/
+_PIBUILDER_REPO ?= https://github.com/pikvm/pi-builder
 
-_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
-_BUILDENV_DIR = ./.pi-builder/$(BOARD)
-_BUILD_DIR = ./.build/$(BOARD)
-_REPO_DIR = ./repos/$(BOARD)
+_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)-$(ARCH)
+_BUILDENV_DIR = ./.pi-builder/$(BOARD)-$(ARCH)
+_BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
+_REPO_DIR = ./repos/$(BOARD)-$(ARCH)
+_CACHE_DIR = ./.cache/$(BOARD)-$(ARCH)
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order.*))))
+_KNOWN_BOARDS := $(sort $(subst order.$(ARCH)., ,$(wildcard packages/order.$(ARCH).*)))
 
 
 # =====
@@ -72,7 +74,7 @@ upload:
 
 define make_update_package_target
 update-$1:
-	make -C packages/$1 -f update.mk update
+	make -C packages/$1 -f update.mk update BOARD=$(BOARD) ARCH=$(ARCH)
 endef
 $(foreach pkg,$(_UPDATABLE_PACKAGES),$(eval $(call make_update_package_target,$(pkg))))
 update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
@@ -81,7 +83,7 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 define make_board_target
 packages-$1:
 	make binfmt BOARD=$1
-	for pkg in `cat packages/order.$1`; do \
+	for pkg in `cat packages/order.$(ARCH).$1`; do \
 		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
 	done
 buildenv-$1:
@@ -110,7 +112,7 @@ binfmt:
 
 
 buildenv: $(_BUILDENV_DIR)
-	$(call say,"Ensuring $(BOARD) buildenv")
+	$(call say,"Ensuring $(BOARD)-$(ARCH) buildenv")
 	make -C $(_BUILDENV_DIR) binfmt
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
@@ -125,9 +127,10 @@ buildenv: $(_BUILDENV_DIR)
 		" \
 		PROJECT=pikvm-packages \
 		BOARD=$(BOARD) \
+		ARCH=$(ARCH) \
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv
-	$(call say,"Buildenv $(BOARD) is ready")
+	$(call say,"Buildenv $(BOARD)-$(ARCH) is ready")
 
 
 pushenv:
@@ -148,10 +151,12 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 			--privileged \
 			--volume `pwd`/$(_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
+			--volume `pwd`/$(_CACHE_DIR):/cache:rw \
 			--volume `pwd`/packages:/packages:ro \
 			--env REPO_DIR=/repo \
 			--env BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
+			--env CCACHE_DIR=/cache \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
 			$(OPTS) \
@@ -160,7 +165,7 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 
 
 $(_BUILDENV_DIR):
-	git clone --depth=1 https://github.com/pikvm/pi-builder $(_BUILDENV_DIR)
+	git clone --depth=1 $(_PIBUILDER_REPO) $(_BUILDENV_DIR)
 
 
 $(_BUILD_DIR):
@@ -169,9 +174,11 @@ $(_BUILD_DIR):
 
 $(_REPO_DIR):
 	mkdir -p $(_REPO_DIR)
-	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow && ln -sf rpi rpi-arm)
-	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3 && ln -sf rpi2 rpi2-arm && ln -sf rpi2 rpi3-arm)
-	[ $(BOARD) != rpi4 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi4 rpi4-arm)
+	[ $(ARCH) != arm ] || (cd `dirname $(_REPO_DIR)` && ln -sf $(BOARD)-arm $(BOARD))
+	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow && ln -sf rpi-$(ARCH) zerow-$(ARCH))
+	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3 && ln -sf rpi2-$(ARCH) rpi3-$(ARCH))
 
+$(_CACHE_DIR):
+	mkdir -p $(_CACHE_DIR)
 
 .PHONY: buildenv packages repos

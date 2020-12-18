@@ -31,7 +31,7 @@ pkgbase=kvmd
 pkgver=2.8
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
-url="https://github.com/pikvm/kvmd"
+url="https://github.com/Yura80/kvmd"
 license=(GPL)
 arch=(any)
 depends=(
@@ -74,7 +74,7 @@ depends=(
 	netctl
 )
 makedepends=(python-setuptools)
-source=("$url/archive/v$pkgver.tar.gz")
+source=(kvmd-${pkgver}::"git+${url}")
 md5sums=(SKIP)
 backup=(
 	etc/kvmd/{override,logging,auth,meta}.yaml

@@ -1,0 +1,95 @@
+# U-Boot: pikvm
+
+pkgbase=uboot-pikvm
+pkgname=('uboot-pikvm-libretech-all-h3-cc-h2-plus'
+		 'uboot-pikvm-libretech-all-h3-cc-h3'
+		 'uboot-pikvm-orangepi-one'
+		 'uboot-pikvm-orangepi-zero'
+		 'uboot-pikvm-orangepi-2'
+		 'uboot-pikvm-nanopi-neo'
+		 'uboot-pikvm-nanopi-m1'
+		 'uboot-pikvm-nanopi-m1-plus'
+		 )
+pkgver=2020.10
+pkgrel=1
+arch=('armv7h')
+url="http://git.denx.de/u-boot.git/"
+license=('GPL')
+makedepends=('bc' 'git' 'python' 'swig' 'dtc' 'uboot-tools')
+depends=('uboot-tools')
+backup=(boot/boot.txt boot/boot.scr)
+source=("ftp://ftp.denx.de/pub/u-boot/u-boot-${pkgver}.tar.bz2"
+        'boot.txt.sunxi'
+        'mkscr')
+md5sums=(SKIP SKIP SKIP)
+
+boards_sunxi=('libretech_all_h3_cc_h2_plus'
+			'libretech_all_h3_cc_h3'
+			'orangepi_one'
+			'orangepi_zero'
+			'orangepi_2'
+			'nanopi_neo'
+			'nanopi_m1'
+			'nanopi_m1_plus'
+			)
+
+build() {
+  cd ${srcdir}/u-boot-${pkgver}
+  unset CFLAGS CXXFLAGS LDFLAGS
+  
+  for i in ${boards_sunxi[@]}; do
+	echo "Building ${i}..."
+    mkdir ../bin_${i}
+    make clean
+    make ${i}_defconfig
+    echo 'CONFIG_IDENT_STRING=" Arch Linux ARM"' >> .config
+    make EXTRAVERSION=-${pkgrel}
+    mv u-boot-sunxi-with-spl.bin ../bin_${i}/u-boot.bin
+  done
+
+  tools/mkimage -A arm -O linux -T script -C none -n "U-Boot boot script" -d ../boot.txt.sunxi ../boot.scr.sunxi
+}
+
+_package_sunxi() {
+	board="$1"
+	pkgdesc="U-Boot for ${board}"
+	install=${pkgbase}.install
+
+	install -d "${pkgdir}"/boot
+	install -Dm644 bin_${board}/u-boot.bin "${pkgdir}"/boot
+
+	install -Dm644 boot.txt.sunxi "${pkgdir}"/boot/boot.txt
+	install -Dm644 boot.scr.sunxi "${pkgdir}"/boot/boot.scr
+	install -Dm755 mkscr "${pkgdir}"/boot/mkscr	
+}
+
+package_uboot-pikvm-libretech-all-h3-cc-h2-plus() {
+	_package_sunxi libretech_all_h3_cc_h2_plus
+}
+
+package_uboot-pikvm-libretech-all-h3-cc-h3() {
+	_package_sunxi libretech_all_h3_cc_h3
+}
+
+package_uboot-pikvm-orangepi-zero() {
+	_package_sunxi orangepi_zero
+}
+
+package_uboot-pikvm-orangepi-one() {
+	_package_sunxi orangepi_one
+}
+
+package_uboot-pikvm-orangepi-2() {
+	_package_sunxi orangepi_2
+}
+package_uboot-pikvm-nanopi-neo() {
+	_package_sunxi nanopi_neo
+}
+
+package_uboot-pikvm-nanopi-m1() {
+	_package_sunxi nanopi_m1
+}
+
+package_uboot-pikvm-nanopi-m1-plus() {
+	_package_sunxi nanopi_m1_plus
+}
