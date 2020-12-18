@@ -4,7 +4,7 @@ pkgrel=1
 pkgdesc="Pure Python CBOR (de)serializer with extensive tag support"
 url="https://github.com/agronholm/cbor2"
 license=(MIT)
-arch=(armv6h armv7h)
+arch=(armv6h armv7h aarch64)
 depends=("python>=3.9" "python<3.10")
 makedepends=(gcc python-distribute)
 source=("https://pypi.python.org/packages/source/c/cbor2/cbor2-$pkgver.tar.gz")
