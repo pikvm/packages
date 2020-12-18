@@ -1,0 +1,21 @@
+pkgname=python-luma-oled
+pkgver=3.8.1
+pkgrel=1
+pkgdesc="Python module to drive OLED displays"
+url="https://github.com/rm-hull/luma.oled"
+license=(MIT)
+arch=(any)
+depends=(
+	"python>=3.9"
+	"python<3.10"
+	python-luma-core
+)
+makedepends=(python-distribute)
+source=("https://pypi.python.org/packages/source/l/luma.oled/luma.oled-$pkgver.tar.gz")
+sha1sums=(79861c09ac590266d3c947d700d943879fad7bd2)
+
+
+package() {
+	cd "$srcdir/luma.oled-$pkgver"
+	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
+}
