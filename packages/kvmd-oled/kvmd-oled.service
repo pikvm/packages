@@ -1,0 +1,14 @@
+[Unit]
+Description=Pi-KVM - Small OLED daemon
+Wants=dev-i2c\x2d1.device
+After=dev-i2c\x2d1.device systemd-modules-load.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+ExecStart=/usr/bin/kvmd-oled --height=32
+TimeoutStopSec=3
+
+[Install]
+WantedBy=multi-user.target

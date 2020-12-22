@@ -1,0 +1,27 @@
+pkgname=kvmd-oled
+pkgver=0.2
+pkgrel=1
+pkgdesc="Pi-KVM - Small OLED daemon"
+url="https://github.com/pikvm/packages"
+license=(GPL)
+arch=(any)
+depends=(
+	python-luma-oled
+	python-netifaces
+	python-psutil
+	ttf-proggy-clean
+)
+source=(
+	$pkgname.service
+	$pkgname.py
+)
+md5sums=(SKIP SKIP)
+
+
+package() {
+	mkdir -p "$pkgdir/usr/bin"
+	install -Dm755 $pkgname.py "$pkgdir/usr/bin/$pkgname"
+
+	mkdir -p "$pkgdir/usr/lib/systemd/system"
+	cp $pkgname.service "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+}
