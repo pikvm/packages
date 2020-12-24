@@ -1,7 +1,7 @@
 [Unit]
 Description=Pi-KVM - Small OLED daemon
-Wants=dev-i2c\x2d1.device
-After=dev-i2c\x2d1.device systemd-modules-load.service
+After=systemd-modules-load.service
+ConditionPathExists=/dev/i2c-1
 
 [Service]
 Type=simple

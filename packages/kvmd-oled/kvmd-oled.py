@@ -60,7 +60,7 @@ def _get_ip() -> Tuple[str, str]:
         for addr in netifaces.ifaddresses(iface).get(proto, []):
             return (iface, addr["addr"])
     except Exception:
-        _logger.exception("Can't get iface/IP")
+        # _logger.exception("Can't get iface/IP")
         return ("<no-iface>", "<no-ip>")
 
 
