@@ -1,5 +1,5 @@
 watchdog
-tailscale
+tailscale-pikvm
 python-pyghmi
 python-spidev
 python-raspberry-gpio
