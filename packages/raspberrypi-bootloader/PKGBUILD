@@ -6,7 +6,7 @@ buildarch=28
 pkgbase=raspberrypi-bootloader
 pkgname=('raspberrypi-bootloader'
          'raspberrypi-bootloader-x')
-pkgver=20210107
+pkgver=20210112
 pkgrel=2
 _commit=8a5549c137dbce0e082ecf21607dc5e3feac1160
 arch=('any')

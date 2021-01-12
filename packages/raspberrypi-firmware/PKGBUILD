@@ -5,7 +5,7 @@
 buildarch=28
 
 pkgname=raspberrypi-firmware
-pkgver=20210107
+pkgver=20210112
 pkgrel=2
 _commitfirmware=8a5549c137dbce0e082ecf21607dc5e3feac1160
 _commituserland=093b30bbc2fd083d68cc3ee07e6e555c6e592d11
