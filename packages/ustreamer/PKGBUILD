@@ -3,7 +3,7 @@
 
 
 pkgname=ustreamer
-pkgver=3.3
+pkgver=3.4
 pkgrel=1
 pkgdesc="Lightweight and fast MJPG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
@@ -24,6 +24,10 @@ build() {
 
 	local _options="WITH_GPIO=1"
 	[ -e /opt/vc/include/IL/OMX_Core.h ] && _options="$_options WITH_OMX=1"
+
+	# LD does not link mmal with this option
+	LDFLAGS="${LDFLAGS//--as-needed/}"
+	LDFLAGS="${LDFLAGS//,,/,}"
 
 	make $_options CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" $MAKEFLAGS
 }
