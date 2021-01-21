@@ -34,6 +34,8 @@ RUN pacman --noconfirm -Syy \
 		vim \
 		wget \
 		git \
+		python \
+		raspberrypi-firmware \
 	&& case "$BOARD" in \
 			rpi|rpi2|rpi3|zero|zerow) pacman --needed --noconfirm -S linux-raspberrypi linux-raspberrypi-headers;; \
 			rpi4) pacman --needed --noconfirm -S linux-raspberrypi4 linux-raspberrypi4-headers;; \
