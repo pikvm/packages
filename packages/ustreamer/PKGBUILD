@@ -3,7 +3,7 @@
 
 
 pkgname=ustreamer
-pkgver=3.8
+pkgver=3.9
 pkgrel=1
 pkgdesc="Lightweight and fast MJPG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
@@ -43,5 +43,5 @@ build() {
 
 package() {
 	cd "$srcdir/$pkgname-build"
-	make DESTDIR="$pkgdir" PREFIX=/usr install
+	make $_options DESTDIR="$pkgdir" PREFIX=/usr install
 }
