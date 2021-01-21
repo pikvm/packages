@@ -28,7 +28,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=2.14
+pkgver=2.15
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -67,7 +67,7 @@ depends=(
 	iproute2
 	dnsmasq
 	"raspberrypi-io-access>=0.5"
-	"ustreamer>=1.19"
+	"ustreamer>=3.12"
 
 	# Avoid dhcpcd stack trace
 	dhclient
