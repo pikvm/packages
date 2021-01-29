@@ -12,7 +12,5 @@ ExecStart=/usr/bin/ttyd \
 		--port=0 \
 	/bin/bash -c 'echo -ne "\033]0;Pi-KVM Terminal: `hostname -f` (ttyd)\007"; cat /etc/motd; bash'
 
-ExecStartPost=/bin/bash -c 'sleep 3; chmod 660 /run/kvmd/ttyd.sock'
-
 [Install]
 WantedBy=multi-user.target
