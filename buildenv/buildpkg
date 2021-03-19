@@ -78,7 +78,7 @@ install_deps() {
 	if [ -n "$deps" ]; then
 		say "Installing dependencies ..."
 		pacman --noconfirm -Syu
-		pacman --noconfirm --needed -S $deps
+		yes | pacman --needed -S $deps
 	fi
 }
 
