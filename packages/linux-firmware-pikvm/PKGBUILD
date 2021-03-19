@@ -1,10 +1,10 @@
 # Maintainer: Thomas Bächler <thomas@archlinux.org>
 
 pkgbase=linux-firmware
-pkgname=(linux-firmware amd-ucode)
+pkgname=(linux-firmware-pikvm amd-ucode-pikvm)
 _tag=20210208
 pkgver=20210221.b79d239
-pkgrel=1
+pkgrel=4
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
@@ -15,7 +15,7 @@ source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firm
 sha256sums=('SKIP')
 
 prepare() {
-  cd ${pkgname}
+  cd ${pkgbase}
 }
 
 build() {
@@ -33,25 +33,31 @@ build() {
     bsdtar --null -cf - --format=newc @- > amd-ucode.img
 }
 
-package_linux-firmware() {
-  cd ${pkgname}
+package_linux-firmware-pikvm() {
+  conflicts=(linux-firmware)
+  provides=("linux-firmware=$pkgver")
+
+  cd ${pkgbase}
 
   make DESTDIR="${pkgdir}" FIRMWAREDIR=/usr/lib/firmware install
 
   # Trigger a microcode reload for configurations not using early updates
   echo 'w /sys/devices/system/cpu/microcode/reload - - - - 1' |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/lib/tmpfiles.d/${pkgname}.conf"
+    install -Dm644 /dev/stdin "${pkgdir}/usr/lib/tmpfiles.d/linux-firmware.conf"
 
-  install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 LICEN* WHENCE
+  install -Dt "${pkgdir}/usr/share/licenses/linux-firmware" -m644 LICEN* WHENCE
 }
 
-package_amd-ucode() {
+package_amd-ucode-pikvm() {
+  conflicts=(amd-ucode)
+  provides=("amd-ucode=$pkgver")
+
   pkgdesc="Microcode update image for AMD CPUs"
   license=(custom)
 
   install -Dt "${pkgdir}/boot" -m644 amd-ucode.img
 
-  install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 ${pkgbase}/LICENSE.amd-ucode
+  install -Dt "${pkgdir}/usr/share/licenses/amd-ucode" -m644 ${pkgbase}/LICENSE.amd-ucode
 }
 
 # vim:set sw=2 et:

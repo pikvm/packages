@@ -1,4 +1,10 @@
-linux-firmware
+linux-api-headers-pikvm
+linux-firmware-pikvm
+firmware-raspberrypi-pikvm
+raspberrypi-firmware-pikvm
+raspberrypi-bootloader-pikvm
+linux-raspberrypi-pikvm
+pikvm-os-raspberrypi
 watchdog
 tailscale-pikvm
 python-pyghmi
