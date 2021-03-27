@@ -1,0 +1,16 @@
+pkgname=kvmd-fan
+pkgver=0.1
+pkgrel=1
+pkgdesc="Pi-KVM - The fan control daemon"
+url="https://github.com/pikvm/packages"
+license=(GPL)
+arch=(any)
+depends=(wiringpi)
+source=($pkgname.service)
+md5sums=(SKIP)
+
+
+package() {
+	mkdir -p "$pkgdir/usr/lib/systemd/system"
+	cp $pkgname.service "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+}

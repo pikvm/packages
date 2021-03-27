@@ -1,0 +1,12 @@
+[Unit]
+Description=Pi-KVM - The fan control daemon
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c "gpio -g mode 12 pwm && gpio -g pwm 12 127"
+ExecStop=/bin/true
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
