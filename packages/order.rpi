@@ -5,6 +5,7 @@ raspberrypi-firmware-pikvm
 raspberrypi-bootloader-pikvm
 linux-raspberrypi-pikvm
 pikvm-os-raspberrypi
+janus-gateway-minimal
 watchdog
 tailscale-pikvm
 python-pyghmi

@@ -1,0 +1,55 @@
+pkgname=janus-gateway-minimal
+pkgver=0.10.10
+pkgrel=1
+pkgdesc="An open source, general purpose, WebRTC server (minimal)"
+url='https://janus.conf.meetecho.com'
+license=(GPL3)
+arch=(i686 x86_64 armv6h armv7h)
+depends=(
+	glib2
+	jansson
+	libconfig
+	libmicrohttpd
+	libnice
+	libsrtp
+	openssl
+)
+makedepends=(
+	cmake
+	gcc
+	pkg-config
+	gengetopt
+	autoconf
+)
+conflicts=(
+	janus-gateway
+	janus-gateway-git
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz")
+md5sums=(SKIP)
+
+
+build() {
+	cd "janus-gateway-$pkgver"
+	./autogen.sh
+	./configure \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--disable-docs \
+		--disable-data-channels \
+		--disable-turn-rest-api \
+		--disable-all-plugins \
+		--disable-all-loggers \
+		--disable-all-transports \
+		--enable-rest \
+		--disable-sample-event-handler \
+		--disable-websockets-event-handler \
+		--disable-gelf-event-handler
+	make $MAKEFLAGS
+}
+
+package() {
+	cd "janus-gateway-$pkgver"
+	make DESTDIR="$pkgdir" install
+	sed -i -e 's|^#include "refcount.h"$|#include "../refcount.h"|g' "$pkgdir/usr/include/janus/plugins/plugin.h"
+}
