@@ -7,7 +7,7 @@ linux-raspberrypi-pikvm
 linux-raspberrypi4-pikvm
 pikvm-os-raspberrypi
 pikvm-os-raspberrypi4
-janus-gateway-minimal
+janus-gateway-pikvm
 watchdog
 tailscale-pikvm
 python-pyghmi

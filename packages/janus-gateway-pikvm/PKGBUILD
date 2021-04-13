@@ -1,7 +1,8 @@
-pkgname=janus-gateway-minimal
-pkgver=0.10.10
+_commit=8bd58ab49f3f4aca508df53b0092620adff2e44f
+pkgname=janus-gateway-pikvm
+pkgver=0.11.2
 pkgrel=1
-pkgdesc="An open source, general purpose, WebRTC server (minimal)"
+pkgdesc="An open source, general purpose, WebRTC server (Pi-KVM build)"
 url='https://janus.conf.meetecho.com'
 license=(GPL3)
 arch=(i686 x86_64 armv6h armv7h)
@@ -9,7 +10,7 @@ depends=(
 	glib2
 	jansson
 	libconfig
-	libmicrohttpd
+	libwebsockets
 	libnice
 	libsrtp
 	openssl
@@ -25,12 +26,14 @@ conflicts=(
 	janus-gateway
 	janus-gateway-git
 )
-source=("$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz")
+#source=("$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz")
+source=("$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz")
 md5sums=(SKIP)
 
 
 build() {
-	cd "janus-gateway-$pkgver"
+	#cd "janus-gateway-$pkgver"
+	cd "janus-gateway-$_commit"
 	./autogen.sh
 	./configure \
 		--prefix=/usr \
@@ -41,7 +44,7 @@ build() {
 		--disable-all-plugins \
 		--disable-all-loggers \
 		--disable-all-transports \
-		--enable-rest \
+		--enable-websockets \
 		--disable-sample-event-handler \
 		--disable-websockets-event-handler \
 		--disable-gelf-event-handler
@@ -49,7 +52,8 @@ build() {
 }
 
 package() {
-	cd "janus-gateway-$pkgver"
+	#cd "janus-gateway-$pkgver"
+	cd "janus-gateway-$_commit"
 	make DESTDIR="$pkgdir" install
 	sed -i -e 's|^#include "refcount.h"$|#include "../refcount.h"|g' "$pkgdir/usr/include/janus/plugins/plugin.h"
 }
