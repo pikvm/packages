@@ -77,8 +77,10 @@ install_deps() {
 	local deps="$1"
 	if [ -n "$deps" ]; then
 		say "Installing dependencies ..."
-		pacman --noconfirm -Syu
-		yes | pacman --needed -S $deps
+		# https://unix.stackexchange.com/questions/274727/how-to-force-pacman-to-answer-yes-to-all-questions
+		# https://bugs.archlinux.org/task/48835
+		pacman --noconfirm --ask=4 -Syu
+		pacman --noconfirm --ask=4 --needed -S $deps
 	fi
 }
 
