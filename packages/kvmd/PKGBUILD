@@ -31,17 +31,17 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=2.43
+pkgver=2.50
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
 license=(GPL)
 arch=(any)
 depends=(
-	"python>=3.9"
+	"python>=3.9.3-1.1"
 	"python<3.10"
 	python-yaml
-	python-aiohttp
+	"python-aiohttp>=3.7.4.post0-1.1"
 	python-aiofiles
 	python-passlib
 	python-pyserial
@@ -76,6 +76,10 @@ depends=(
 	# Avoid dhcpcd stack trace
 	dhclient
 	netctl
+)
+conflicts=(
+	python-pikvm
+	python-aiohttp-pikvm
 )
 makedepends=(python-setuptools)
 source=("$url/archive/v$pkgver.tar.gz")

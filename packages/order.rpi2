@@ -10,7 +10,6 @@ pikvm-os-raspberrypi4
 janus-gateway-pikvm
 watchdog
 tailscale-pikvm
-python-pikvm
 python-pyghmi
 python-spidev
 python-raspberry-gpio
