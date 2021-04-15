@@ -23,7 +23,7 @@ get_pkgbuild_info() {
 	source <( \
 		source "$pkgbuild_path" \
 		; [ -z "$epoch" ] || epoch_prefix="$epoch:" \
-		; deps=("${depends[@]}" "${makedepends[@]}") \
+		; deps=("${depends[@]}" "${makedepends[@]}" "${checkdepends[@]}") \
 		; printf %s\\n \
 			"_RET_VERSION=\"$epoch_prefix$pkgver-$pkgrel\"" \
 			"_RET_DEPS=\"${deps[*]}\"" \
