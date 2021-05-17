@@ -1,7 +1,7 @@
 #_commit=8bd58ab49f3f4aca508df53b0092620adff2e44f
 pkgname=janus-gateway-pikvm
 pkgver=0.11.2
-pkgrel=5
+pkgrel=6
 pkgdesc="An open source, general purpose, WebRTC server (Pi-KVM build)"
 url='https://janus.conf.meetecho.com'
 license=(GPL3)
@@ -26,9 +26,12 @@ conflicts=(
 	janus-gateway
 	janus-gateway-git
 )
-source=("$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz")
+source=(
+	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
+	"https://webrtc.github.io/adapter/adapter-latest.js"
+)
 #source=("$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz")
-md5sums=(SKIP)
+md5sums=(SKIP SKIP)
 
 
 build() {
@@ -57,4 +60,6 @@ package() {
 	make DESTDIR="$pkgdir" install
 	sed -i -e 's|^#include "refcount.h"$|#include "../refcount.h"|g' "$pkgdir/usr/include/janus/plugins/plugin.h"
 	sed -i -e 's|^function Janus(|export function Janus(|g' "$pkgdir/usr/share/janus/javascript/janus.js"
+	sed -i '1s|^|import "./adapter.js"\n|' "$pkgdir/usr/share/janus/javascript/janus.js"
+	cp ../adapter-latest.js "$pkgdir/usr/share/janus/javascript/adapter.js"
 }
