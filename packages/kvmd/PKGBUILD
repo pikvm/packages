@@ -31,7 +31,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=2.83
+pkgver=2.84
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -72,7 +72,7 @@ depends=(
 	iproute2
 	dnsmasq
 	ipmitool
-	janus-gateway-pikvm
+	"janus-gateway-pikvm>=0.11.2-7"
 	"raspberrypi-io-access>=0.5"
 	"ustreamer>=3.20"
 
