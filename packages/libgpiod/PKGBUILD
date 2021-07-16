@@ -1,5 +1,5 @@
 pkgname=libgpiod
-pkgver=1.6.2
+pkgver=1.6.3
 pkgrel=1
 pkgdesc="C library and tools for interacting with the Linux GPIO character device"
 url="https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git"
@@ -9,7 +9,7 @@ depends=("linux-api-headers>=5.5" "python>=3.9" "python<3.10")
 makedepends=(autoconf-archive help2man gcc m4)
 conflicts=(libgpiod-git)
 source=("$url/snapshot/$pkgname-$pkgver.tar.gz")
-sha1sums=(d60da5ebb5afb829aa4fde382d63f8d8c14442a1)
+sha1sums=(9be40cfaa5ef71ec619a8ad754c14d3a4511ad48)
 
 
 build() {
