@@ -1,5 +1,5 @@
 pkgname=python-pyftdi
-pkgver=0.52.0
+pkgver=0.53.2
 pkgrel=1
 pkgdesc="FTDI device driver written in pure Python"
 url="https://github.com/eblot/pyftdi"
@@ -12,8 +12,8 @@ depends=(
 	python-pyserial
 )
 makedepends=(python-distribute)
-source=("https://pypi.python.org/packages/source/p/pyftdi/pyftdi-$pkgver.tar.gz")
-sha1sums=(25710f9144f0a6967e52d2367ddbff8a45adeeef)
+source=("https://github.com/eblot/pyftdi/archive/v${pkgver}.tar.gz")
+sha1sums=(799cc241e8c2c185773b4cf240e699120f5c0db0)
 
 
 package() {
