@@ -1,17 +1,17 @@
 pkgname=python-cbor2
-pkgver=5.2.0
+pkgver=5.4.0
 pkgrel=1
 pkgdesc="Pure Python CBOR (de)serializer with extensive tag support"
 url="https://github.com/agronholm/cbor2"
 license=(MIT)
 arch=(armv6h armv7h)
 depends=("python>=3.9" "python<3.10")
-makedepends=(gcc python-distribute)
-source=("https://pypi.python.org/packages/source/c/cbor2/cbor2-$pkgver.tar.gz")
-sha1sums=(f931691ad845005e9e5180dbc0cc1cd084e9917e)
+makedepends=(gcc git python-distribute python-setuptools-scm)
+source=("git+https://github.com/agronholm/cbor2#commit=${pkgver}")
+md5sums=(SKIP)
 
 
 package() {
-	cd "$srcdir/cbor2-$pkgver"
+	cd "$srcdir/cbor2"
 	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
 }
