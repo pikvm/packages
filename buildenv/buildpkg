@@ -27,6 +27,7 @@ get_pkgbuild_info() {
 		; printf %s\\n \
 			"_RET_VERSION=\"$epoch_prefix$pkgver-$pkgrel\"" \
 			"_RET_DEPS=\"${deps[*]}\"" \
+			"_RET_KEYS=\"${validpgpkeys[*]}\"" \
 	)
 	[ -n "$_RET_VERSION" ] || die "Missing or incorrect PKGBUILD"
 }
@@ -145,6 +146,7 @@ main() {
 	get_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
 	local version="$_RET_VERSION"; unset _RET_VERSION
 	local deps="$_RET_DEPS"; unset _RET_DEPS
+	local keys="$_RET_KEYS"; unset _RET_KEYS
 
 	get_latest_version "$REPO_DIR" "$pkg_name"
 	local old_version="$_RET_VERSION"; unset _RET_VERSION
@@ -165,6 +167,14 @@ main() {
 	if [ -n "$build" ]; then
 		append_repo "$REPO_NAME" "$REPO_DIR"
 		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+# FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
+#		if [ -n "$keys" ]; then
+#			for key in $keys; do
+#				sudo -u alarm gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv-key $key \
+#				|| sudo -u alarm gpg --keyserver hkps://keys.gnupg.net:443 --recv-key $key \
+#				|| sudo -u alarm gpg --keyserver hkps://pgp.mit.edu:443 --recv-key $key
+#			done
+#		fi
 		install_deps "$deps"
 		build "$BUILD_DIR"
 		if [ -z "$norepo" ]; then
