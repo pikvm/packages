@@ -85,13 +85,8 @@ install_deps() {
 	fi
 }
 
-build() {
-	local build_dir="$1"
-	pushd "$build_dir" >/dev/null
-	say "Building package ..."
-	sudo -u alarm makepkg
-	say "Signing package(s) ..."
-	ls *.pkg.tar.xz | sudo -u alarm xargs -n1 -L1 bash -c "gpg \
+sign_piped() {
+	sudo -u alarm xargs -n1 -L1 bash -c "gpg \
 			--verbose \
 			--pinentry-mode loopback \
 			--local-user $REPO_KEY \
@@ -100,6 +95,24 @@ build() {
 			--no-autostart \
 			\$0 \
 		|| exit 255"
+}
+
+build() {
+	local build_dir="$1"
+	pushd "$build_dir" >/dev/null
+
+	say "Testing sign ..."
+	rm -f .testsign{,.sig}
+	echo "test" > .testsign
+	echo .testsign | sign_piped
+	rm .testsign{,.sig}
+
+	say "Building package ..."
+	sudo -u alarm makepkg
+
+	say "Signing package(s) ..."
+	ls *.pkg.tar.xz | sign_piped
+
 	popd >/dev/null
 }
 
@@ -140,6 +153,7 @@ main() {
 	[ -n "$REPO_DIR" ] || die "Missing REPO_DIR variable"
 	[ -n "$BUILD_DIR" ] || die "Missing BUILD_DIR variable"
 	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
+	[ -n "$MAKE_J" ] || die "Missing MAKE_J variable"
 
 	# =====
 
@@ -165,6 +179,8 @@ main() {
 	fi
 
 	if [ -n "$build" ]; then
+		sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j$MAKE_J/g" /etc/makepkg.conf
+		say "Using MAKE_J=$MAKE_J"
 		append_repo "$REPO_NAME" "$REPO_DIR"
 		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
 # FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой

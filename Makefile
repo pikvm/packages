@@ -11,6 +11,8 @@ _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
 _REPO_DIR = ./repos/$(BOARD)
 
+_MAKE_J = 7
+
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
 _KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order.*))))
 
@@ -82,7 +84,7 @@ define make_board_target
 packages-$1:
 	make binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
-		make build BOARD=$1 PKG=$$$$pkg || exit 1; \
+		make build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
 	done
 buildenv-$1:
 	make buildenv BOARD=$1 NC=$$(NC)
@@ -97,12 +99,12 @@ $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 build:
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	rm -rf $(_BUILD_DIR)
-	make _run BOARD=$(BOARD) CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
+	make _run _MAKE_J=$(if $(J),$(J),$(_MAKE_J)) BOARD=$(BOARD) CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
 
 shell:
-	make _run BOARD=$(BOARD) CMD=/bin/bash OPTS=-i
+	make _run _MAKE_J=$(if $(J),$(J),$(_MAKE_J)) BOARD=$(BOARD) CMD=/bin/bash OPTS=-i
 
 
 binfmt:
@@ -152,6 +154,7 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 			--env REPO_DIR=/repo \
 			--env BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
+			--env MAKE_J=$(_MAKE_J) \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
 			$(OPTS) \
