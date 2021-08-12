@@ -6,34 +6,35 @@
 buildarch=20
 
 pkgbase=linux-raspberrypi
-_commit=13c43880f2ee6db7d26949cb6a3e8db1a4b76736
+_commit=4e5d621498df7fce8b2cf90ac6bb7b2efbdbec5e
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _desc="Raspberry Pi"
-pkgver=5.10.23
-pkgrel=2
+pkgver=5.10.52
+pkgrel=9
 arch=('armv6h' 'armv7h')
 url="http://www.kernel.org/"
 license=('GPL2')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git')
 options=('!strip')
 source=("https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
-        'config.txt'
         'cmdline.txt'
-        'config'
         'linux.preset'
+        'config.txt'
+        'config'
         '60-linux.hook'
         '90-linux.hook'
-        0001-vc4-drm-vc4_plane-remove-subpixel-positioning-check.patch::https://patch-diff.githubusercontent.com/raw/raspberrypi/linux/pull/4215.patch
-        )
-md5sums=('d7be2334df48ecbe08841cf43d76f7dc'
-         '9669d916a5929a2eedbd64477f83d99e'
+        '1001-usb-gadget-f_hid-added-GET_IDLE-and-SET_IDLE-handler.patch'
+        '1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch')
+md5sums=('0f1709cde4347c31f6dbaca21a213892'
          '31c02f4518d46deb5f0c2ad1f8b083cd'
-         '0a74ed04514740a92fded4cbd9c6d157'
          '86d4a35722b5410e3b29fc92dae15d4b'
+         '9669d916a5929a2eedbd64477f83d99e'
+         '4e77a3c2e7dbf645f60fcc9217587dc6'
          'ce6c81ad1ad1f8b333fd6077d47abdaf'
          '69e1db90d78f691dc446fe2ab94727eb'
-         'ce0949a5704dfcddc25382118600e813')
+         'SKIP'
+         'SKIP')
 
 prepare() {
   cd "${srcdir}/${_srcname}"
@@ -46,7 +47,8 @@ prepare() {
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
 
-  patch -Np1 -i ../0001-vc4-drm-vc4_plane-remove-subpixel-positioning-check.patch
+  patch -Np1 -i ../1001-usb-gadget-f_hid-added-GET_IDLE-and-SET_IDLE-handler.patch
+  patch -Np1 -i ../1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch
 }
 
 build() {

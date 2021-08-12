@@ -2,9 +2,9 @@
 
 pkgbase=linux-firmware
 pkgname=(linux-firmware-pikvm amd-ucode-pikvm)
-_tag=20210208
-pkgver=20210221.b79d239
-pkgrel=4
+_tag=20210716
+pkgver=20210716.b7c134f
+pkgrel=1
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
@@ -14,8 +14,17 @@ options=(!strip)
 source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git#tag=${_tag}")
 sha256sums=('SKIP')
 
+_backports=(
+)
+
 prepare() {
   cd ${pkgbase}
+
+  local _c
+  for _c in "${_backports[@]}"; do
+    git log --oneline -1 "${_c}"
+    git cherry-pick -n "${_c}"
+  done
 }
 
 build() {
