@@ -1,45 +1,54 @@
-From 8dfcb85674963d8a4a6f03ed13edc9ad8430d815 Mon Sep 17 00:00:00 2001
+From 2d6892f04bbf567013250cfda3e1cc27734e3f42 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Tue, 10 Aug 2021 11:30:02 +0300
-Subject: [PATCH] usb: gadget: f_hid: optional SETUP/SET_REPORT mode
+Subject: [PATCH v2] usb: gadget: f_hid: optional SETUP/SET_REPORT mode
 
-f_hid provides the OUT Endpoint for receiving reports from the host.
-The USB HID standard describes the OUT Endpoint support as optional,
-and hosts can ignore it if they don't support it.
-However, this raises several problems.
+f_hid provides the OUT Endpoint as only way for receiving reports
+from the host. SETUP/SET_REPORT method is not supported, and this causes
+a number of compatibility problems with various host drivers, especially
+in the case of keyboard emulation using f_hid.
 
-(1) Some host OS drivers without OUT Endpoint support can't receive
-    reports at all. In the case of the keyboard, it becomes impossible
-    to get the status of the LEDs from the host OS.
+- Some hosts do not support the OUT Endpoint and ignore it,
+  so it becomes impossible for the gadget to receive a report
+  from the host. In the case of a keyboard, the gadget loses the ability
+  to get the status of the LEDs.
 
-(2) Some BIOSes and UEFIs not only don't support the OUT Endpoint,
-    they cannot work with HID with this configuration at all.
-    For example, absolutely all Apple UEFIs in all Macs can't handle
-    the OUT Endpoint in accordance with the HID standard so it makes
-    impossible to enter the Boot Menu using the hotkey at boot.
-    This problem also occurs on HP and DELL BIOSes and in some dumb
-    devices with primitive embedded firmware like KVM switches.
+- Some BIOSes/UEFIs can't work with HID with the OUT Endpoint at all.
+  This may be due to their bugs or incomplete implementation
+  of the HID standard.
+  For example, absolutely all Apple UEFIs can't handle the OUT Endpoint
+  if it goes after IN Endpoint in the descriptor and require the reverse
+  order (OUT, IN) which is a violation of the standard.
+  Other hosts either do not initialize gadgets with a descriptor
+  containing the OUT Endpoint completely (like some HP and DELL BIOSes
+  and embedded firmwares like on KVM switches), or initialize them,
+  but will not poll.
 
 This patch adds option no_out_endpoint=1 to disable the OUT Endpoint
 and allow f_hid to receive reports from the host via SETUP/SET_REPORT.
 
 Previously, there was such a feature in f_hid, but it was replaced
-by the OUT Endpoint ("usb: gadget: hidg: register OUT INT endpoint
-for SET_REPORT"). It seems that no one knew at the time that it would
-cause problems with BIOS. So this patch actually returns the removed
-functionality making it optional. For backward compatibility reasons,
-the OUT Endpoint mode remains the default behaviour.
+by the OUT Endpoint [1] in the commit 99c515005857 ("usb: gadget: hidg:
+register OUT INT endpoint for SET_REPORT"). So this patch actually returns
+the removed functionality making it optional. For backward compatibility
+reasons, the OUT Endpoint mode remains the default behaviour.
 
-If the SETUP/SET_REPORT mode is used, there is no event processing queue,
-so the user will only read the last report. For classic HID devices
-like keyboard this is not a problem, since it is intended to transmit
-the status of the LEDs and only the last report is important.
+- The OUT Endpoint mode provides the report queue and reduces USB overhead
+  (eliminating SETUP routine) on transmitting a report from the host.
 
-Both modes pass USBCV tests. Checking with the USB protocol analyzer
-also confirms that everything is working as it should and the new mode
+- If the SETUP/SET_REPORT mode is used, there is no report queue,
+  so the userspace will only read the last report. For classic HID
+  devices like keyboard this is not a problem, since it is intended
+  to transmit the status of the LEDs and only the last report
+  is important. This mode provides better compatibility with strange
+  and buggy host drivers.
+
+Both modes passed USBCV tests. Checking with the USB protocol analyzer
+also confirmed that everything is working as it should and the new mode
 ensures operability in all of the described cases.
 
 Signed-off-by: Maxim Devaev <mdevaev@gmail.com>
+Link: https://www.spinics.net/lists/linux-usb/msg65494.html [1]
 ---
  drivers/usb/gadget/function/f_hid.c | 217 +++++++++++++++++++++++-----
  drivers/usb/gadget/function/u_hid.h |   1 +
