@@ -31,7 +31,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.21
+pkgver=3.22
 pkgrel=1
 pkgdesc="The main Pi-KVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -55,7 +55,7 @@ depends=(
 	python-pygments
 	python-pyghmi
 	python-pam
-	python-pillow
+	"python-pillow>=8.3.1-1"
 	python-xlib
 	python-hidapi
 	libgpiod
@@ -65,7 +65,6 @@ depends=(
 	openssl
 	platformio
 	avrdude-svn
-	wiringpi
 	make
 	patch
 	sudo
@@ -83,9 +82,6 @@ depends=(
 	# Avoid dhcpcd stack trace
 	dhclient
 	netctl
-
-	# Broken pillow dependency
-	libraqm
 )
 conflicts=(
 	python-pikvm
