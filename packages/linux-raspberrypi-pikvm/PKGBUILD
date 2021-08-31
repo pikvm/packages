@@ -11,7 +11,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _desc="Raspberry Pi"
 pkgver=5.10.52
-pkgrel=9
+pkgrel=10
 arch=('armv6h' 'armv7h')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -25,7 +25,9 @@ source=("https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
         '60-linux.hook'
         '90-linux.hook'
         '1001-usb-gadget-f_hid-added-GET_IDLE-and-SET_IDLE-handler.patch'
-        '1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch')
+        '1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch'
+        '1003-remote-wakeup.patch'
+        '2001-rename-msd.patch')
 md5sums=('0f1709cde4347c31f6dbaca21a213892'
          '31c02f4518d46deb5f0c2ad1f8b083cd'
          '86d4a35722b5410e3b29fc92dae15d4b'
@@ -33,8 +35,7 @@ md5sums=('0f1709cde4347c31f6dbaca21a213892'
          '4e77a3c2e7dbf645f60fcc9217587dc6'
          'ce6c81ad1ad1f8b333fd6077d47abdaf'
          '69e1db90d78f691dc446fe2ab94727eb'
-         'SKIP'
-         'SKIP')
+         'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_srcname}"
