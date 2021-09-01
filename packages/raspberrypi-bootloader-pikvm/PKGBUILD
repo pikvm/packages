@@ -7,7 +7,7 @@ pkgbase=raspberrypi-bootloader
 pkgname=('raspberrypi-bootloader-pikvm'
          'raspberrypi-bootloader-x-pikvm')
 pkgver=20210805
-pkgrel=1
+pkgrel=3
 _commit=a51c6008766ecd928d774dafc5eefe88a4f9bf75
 arch=('any')
 url="https://github.com/raspberrypi/firmware"
