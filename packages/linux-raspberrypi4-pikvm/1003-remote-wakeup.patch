@@ -64,7 +64,7 @@ index 3146df6e6510..c64e573af7ca 100644
  
  /**
 diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
-index ca0a7d9eaa34..76f70a562ccf 100644
+index ca0a7d9eaa34..cf11ab8e88e0 100644
 --- a/drivers/usb/gadget/function/f_hid.c
 +++ b/drivers/usb/gadget/function/f_hid.c
 @@ -54,6 +54,8 @@ struct f_hidg {
@@ -76,7 +76,7 @@ index ca0a7d9eaa34..76f70a562ccf 100644
  
  	/* recv report */
  	spinlock_t			read_spinlock;
-@@ -422,10 +424,18 @@ static ssize_t f_hidg_write(struct file *file, const char __user *buffer,
+@@ -422,10 +424,19 @@ static ssize_t f_hidg_write(struct file *file, const char __user *buffer,
  			    size_t count, loff_t *offp)
  {
  	struct f_hidg *hidg  = file->private_data;
@@ -87,15 +87,16 @@ index ca0a7d9eaa34..76f70a562ccf 100644
  
 +	/*
 +	 * remote wakeup is allowed only when the corresponding bit
-+	 * in config descriptor is set and wakeup_on_write is enabled
++	 * in config descriptor is set and wakeup_on_write is enabled.
++     * FIXME: cdev->config can be NULLed on disconnect.
 +	 */
-+	if (hidg->wakeup_on_write && cdev->config->bmAttributes & 0x20)
++	if (hidg->wakeup_on_write /*&& cdev->config->bmAttributes & 0x20*/)
 +		usb_gadget_wakeup(cdev->gadget);
 +
  	spin_lock_irqsave(&hidg->write_spinlock, flags);
  
  	if (!hidg->req) {
-@@ -1101,6 +1111,7 @@ CONFIGFS_ATTR(f_hid_opts_, name)
+@@ -1101,6 +1112,7 @@ CONFIGFS_ATTR(f_hid_opts_, name)
  F_HID_OPT(subclass, 8, 255);
  F_HID_OPT(protocol, 8, 255);
  F_HID_OPT(no_out_endpoint, 8, 1);
@@ -103,7 +104,7 @@ index ca0a7d9eaa34..76f70a562ccf 100644
  F_HID_OPT(report_length, 16, 65535);
  
  static ssize_t f_hid_opts_report_desc_show(struct config_item *item, char *page)
-@@ -1161,6 +1172,7 @@ static struct configfs_attribute *hid_attrs[] = {
+@@ -1161,6 +1173,7 @@ static struct configfs_attribute *hid_attrs[] = {
  	&f_hid_opts_attr_subclass,
  	&f_hid_opts_attr_protocol,
  	&f_hid_opts_attr_no_out_endpoint,
@@ -111,7 +112,7 @@ index ca0a7d9eaa34..76f70a562ccf 100644
  	&f_hid_opts_attr_report_length,
  	&f_hid_opts_attr_report_desc,
  	&f_hid_opts_attr_dev,
-@@ -1293,6 +1305,7 @@ static struct usb_function *hidg_alloc(struct usb_function_instance *fi)
+@@ -1293,6 +1306,7 @@ static struct usb_function *hidg_alloc(struct usb_function_instance *fi)
  		}
  	}
  	hidg->use_out_ep = !opts->no_out_endpoint;
