@@ -25,6 +25,7 @@ get_pkgbuild_info() {
 		; [ -z "$epoch" ] || epoch_prefix="$epoch:" \
 		; deps=("${depends[@]}" "${makedepends[@]}" "${checkdepends[@]}") \
 		; printf %s\\n \
+			"_RET_PKGNAMES=\"${pkgname[*]}\"" \
 			"_RET_VERSION=\"$epoch_prefix$pkgver-$pkgrel\"" \
 			"_RET_DEPS=\"${deps[*]}\"" \
 			"_RET_KEYS=\"${validpgpkeys[*]}\"" \
@@ -160,6 +161,7 @@ main() {
 	# =====
 
 	get_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
+	local pkgs="$_RET_PKGNAMES"; unset _RET_PKGNAMES
 	local version="$_RET_VERSION"; unset _RET_VERSION
 	local deps="$_RET_DEPS"; unset _RET_DEPS
 	local keys="$_RET_KEYS"; unset _RET_KEYS
@@ -198,7 +200,9 @@ main() {
 		build "$BUILD_DIR"
 		if [ -z "$norepo" ]; then
 			if [ -n "$old_version" ]; then
-				remove_from_repo "$REPO_DIR" "$pkg_name" "$old_version"
+				for sub_pkg_name in $pkgs; do
+					remove_from_repo "$REPO_DIR" "$sub_pkg_name" "$old_version"
+				done
 				unset_latest_version "$REPO_DIR" "$pkg_name"
 			fi
 			copy_to_repo "$BUILD_DIR" "$REPO_DIR"
