@@ -1,6 +1,6 @@
 pkgname=pikvm-os-raspberrypi
 pkgver=0.1
-pkgrel=1
+pkgrel=2
 pkgdesc="Pi-KVM OS Metapackage"
 url="https://pikvm.org"
 license=(GPL)
