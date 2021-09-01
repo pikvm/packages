@@ -11,7 +11,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _desc="Raspberry Pi"
 pkgver=5.10.52
-pkgrel=10
+pkgrel=12
 arch=('armv6h' 'armv7h')
 url="http://www.kernel.org/"
 license=('GPL2')
@@ -50,6 +50,8 @@ prepare() {
 
   patch -Np1 -i ../1001-usb-gadget-f_hid-added-GET_IDLE-and-SET_IDLE-handler.patch
   patch -Np1 -i ../1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch
+  patch -Np1 -i ../1003-remote-wakeup.patch
+  patch -Np1 -i ../2001-rename-msd.patch
 }
 
 build() {
