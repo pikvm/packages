@@ -1,7 +1,7 @@
-_commit=99cfaa9a49c3ff8da65ce0bc847b75ce32bace28
+_commit=a5f0765d45ac623384460699c0e0640bbf23f33c
 
 pkgname=ttyd
-pkgver=1.6.3.101
+pkgver=1.6.3.102
 pkgrel=1
 pkgdesc="Share your terminal over the web"
 url="https://tsl0922.github.io/ttyd"
