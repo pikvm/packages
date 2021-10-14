@@ -72,6 +72,11 @@ upload:
 	rsync -rl --progress --delete repos $(_REPO_DEST)
 
 
+download:
+	rm -rf repos
+	rsync -rl --progress $(_REPO_DEST)/repos .
+
+
 define make_update_package_target
 update-$1:
 	make -C packages/$1 -f update.mk update
