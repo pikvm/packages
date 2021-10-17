@@ -4,7 +4,6 @@ BOARD ?= rpi2
 # =====
 _REPO_NAME = pikvm
 _REPO_KEY = 912C773ABBD1B584
-_REPO_DEST = root@files.pikvm.org:/var/www/files.pikvm.org/
 
 _BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
@@ -69,12 +68,13 @@ all:
 
 
 upload:
-	rsync -rl --progress --delete repos $(_REPO_DEST)
+	rsync -rl --progress --delete repos/ root@pikvm.org:/var/www/repos
+	rsync -rl --progress --delete repos/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
 
 
-download:
-	rm -rf repos
-	rsync -rl --progress $(_REPO_DEST)/repos .
+#download:
+#	rm -rf repos
+#	rsync -rl --progress $(_REPO_DEST)/repos .
 
 
 define make_update_package_target
