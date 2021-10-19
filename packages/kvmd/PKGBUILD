@@ -31,7 +31,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.32
+pkgver=3.33
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -82,6 +82,13 @@ depends=(
 	# Avoid dhcpcd stack trace
 	dhclient
 	netctl
+
+	# Bootconfig
+	dos2unix
+	parted
+	e2fsprogs
+	openssh
+	wpa_supplicant
 )
 conflicts=(
 	python-pikvm
