@@ -8,12 +8,13 @@ _REPO_KEY = 912C773ABBD1B584
 _BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
-_REPO_DIR = ./repos/$(BOARD)
+_BASE_REPOS_DIR = ./repos
+_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
 
 _MAKE_J = 7
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := $(sort $(filter rpi%,$(subst order., ,$(wildcard packages/order.*))))
+_KNOWN_BOARDS := rpi rpi2
 
 
 # =====
@@ -68,8 +69,8 @@ all:
 
 
 upload:
-	rsync -rl --progress --delete repos/ root@pikvm.org:/var/www/repos
-	rsync -rl --progress --delete repos/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
+	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@pikvm.org:/var/www/repos
+	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
 
 
 #download:
@@ -175,10 +176,19 @@ $(_BUILD_DIR):
 	mkdir -p $(_BUILD_DIR)
 
 
-$(_REPO_DIR):
-	mkdir -p $(_REPO_DIR)
-	[ $(BOARD) != rpi ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi zerow && ln -sf rpi rpi-arm)
-	[ $(BOARD) != rpi2 ] || (cd `dirname $(_REPO_DIR)` && ln -sf rpi2 rpi3 && ln -sf rpi2 rpi2-arm && ln -sf rpi2 rpi3-arm && ln -sf rpi2 rpi4 && ln -sf rpi2 rpi4-arm)
+$(_BASE_REPOS_DIR)/rpi:
+	mkdir -p $(_BASE_REPOS_DIR)/rpi
+	ln -sf rpi $(_BASE_REPOS_DIR)/zerow
+	ln -sf rpi $(_BASE_REPOS_DIR)/rpi-arm
+
+
+$(_BASE_REPOS_DIR)/rpi2:
+	mkdir -p $(_BASE_REPOS_DIR)/rpi2
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
 
 
 .PHONY: buildenv packages repos
