@@ -1,0 +1,41 @@
+name: __packages__
+on:
+  workflow_call:
+    inputs:
+      BOARD:
+        required: true
+        type: string
+    secrets:
+      DEPLOY_KEY:
+        required: true
+
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_KEY: "${{secrets.DEPLOY_KEY}}"
+      BOARD: "${{inputs.BOARD}}"
+      TERM: xterm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configuring SSH
+        run: |
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H files.pikvm.org > ~/.ssh/known_hosts
+          echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Fetching current packages
+        run: |
+          make "repos/$BOARD"
+          rsync -rl --progress "data@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$BOARD" repos/
+
+      - name: Building environment
+        run: make "buildenv-$BOARD" NC=1
+
+      - name: Building packages
+        run: make "packages-$BOARD"

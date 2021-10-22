@@ -54,13 +54,21 @@ RUN echo $REPO_NAME
 ARG REPO_KEY
 ENV REPO_KEY $REPO_KEY
 RUN ( \
-		pacman-key --keyserver hkps://hkps.pool.sks-keyservers.net -r $REPO_KEY \
-		|| pacman-key --keyserver keyserver.ubuntu.com -r $REPO_KEY \
+		pacman-key --keyserver hkps://keyserver.ubuntu.com:443 -r $REPO_KEY \
+		|| pacman-key --keyserver hkps://keys.gnupg.net:443 -r $REPO_KEY \
+		|| pacman-key --keyserver hkps://pgp.mit.edu:443 -r $REPO_KEY \
 	) \
 	&& pacman-key --lsign-key $REPO_KEY
 
-RUN mkdir -p /run/user/1000 \
-	&& chown alarm:alarm /run/user/1000
+ARG ALARM_UID
+ENV ALARM_UID $ALARM_UID
+ARG ALARM_GID
+ENV ALARM_GID $ALARM_GID
+RUN usermod -u $ALARM_UID alarm \
+	&& groupmod -g $ALARM_GID alarm \
+	&& chown -R $ALARM_UID:$ALARM_GID /home/alarm \
+	&& mkdir -p /run/user/$ALARM_UID \
+	&& chown alarm:alarm /run/user/$ALARM_UID
 
 RUN mkdir /tools
 COPY stages/buildenv/buildpkg /tools/

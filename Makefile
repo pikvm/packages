@@ -5,7 +5,9 @@ BOARD ?= rpi2
 _REPO_NAME = pikvm
 _REPO_KEY = 912C773ABBD1B584
 
-_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)
+_ALARM_UID := $(shell id -u)
+_ALARM_GID := $(shell id -g)
+_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)-$(_ALARM_UID)-$(_ALARM_GID)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
 _BASE_REPOS_DIR = ./repos
@@ -73,9 +75,9 @@ upload:
 	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
 
 
-#download:
-#	rm -rf repos
-#	rsync -rl --progress $(_REPO_DEST)/repos .
+download:
+	rm -rf $(_BASE_REPOS_DIR)
+	rsync -rl --progress root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
 
 
 define make_update_package_target
@@ -129,6 +131,8 @@ buildenv: $(_BUILDENV_DIR)
 		BUILD_OPTS=" \
 			--build-arg REPO_NAME=$(_REPO_NAME) \
 			--build-arg REPO_KEY=$(_REPO_KEY) \
+			--build-arg ALARM_UID=$(_ALARM_UID) \
+			--build-arg ALARM_GID=$(_ALARM_GID) \
 			--tag $(_BUILDENV_IMAGE) \
 		" \
 		PROJECT=pikvm-packages \
@@ -148,7 +152,6 @@ pullenv:
 
 # =====
 _run: $(_BUILD_DIR) $(_REPO_DIR)
-	$(if $(patsubst 1000,,$(shell id -u)),$(call die,"Only user with UID=1000 can build packages"),)
 	docker run \
 			--rm \
 			--tty \
@@ -162,7 +165,7 @@ _run: $(_BUILD_DIR) $(_REPO_DIR)
 			--env PACKAGES_DIR=/packages \
 			--env MAKE_J=$(_MAKE_J) \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
-			--volume /run/user/1000/gnupg:/run/user/1000/gnupg:rw \
+			--volume /run/user/$(_ALARM_UID)/gnupg:/run/user/$(_ALARM_UID)/gnupg:rw \
 			$(OPTS) \
 		$(_BUILDENV_IMAGE) \
 		$(if $(CMD),$(CMD),/bin/bash)

@@ -1,0 +1,11 @@
+name: rpi
+on: workflow_dispatch
+
+
+jobs:
+  packages:
+    uses: pikvm/packages/.github/workflows/packages.yml@master
+    with:
+      BOARD: rpi
+    secrets:
+      DEPLOY_KEY: "${{secrets.DEPLOY_KEY}}"
