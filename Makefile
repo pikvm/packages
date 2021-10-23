@@ -86,7 +86,7 @@ define make_board_target
 packages-$1:
 	make binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
-		make build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
+		make _build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
 	done
 buildenv-$1:
 	make buildenv BOARD=$1 NC=$$(NC)
@@ -94,7 +94,7 @@ endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 
 
-build:
+_build:
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	rm -rf $(_BUILD_DIR)
 	make _run \
