@@ -76,7 +76,7 @@ download:
 
 define make_update_package_target
 update-$1:
-	make -C packages/$1 -f update.mk update
+	$(MAKE) -C packages/$1 -f update.mk update
 endef
 $(foreach pkg,$(_UPDATABLE_PACKAGES),$(eval $(call make_update_package_target,$(pkg))))
 update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
@@ -84,12 +84,12 @@ update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
 
 define make_board_target
 packages-$1:
-	make binfmt BOARD=$1
+	$(MAKE) binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
-		make _build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
+		$(MAKE) _build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
 	done
 buildenv-$1:
-	make buildenv BOARD=$1 NC=$$(NC)
+	$(MAKE) buildenv BOARD=$1 NC=$$(NC)
 endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 
@@ -97,7 +97,7 @@ $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 _build:
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	rm -rf $(_BUILD_DIR)
-	make _run \
+	$(MAKE) _run \
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
 		BOARD=$(BOARD) \
 		OPTS="--tty --interactive" \
@@ -106,7 +106,7 @@ _build:
 
 
 shell:
-	make _run \
+	$(MAKE) _run \
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
 		BOARD=$(BOARD) \
 		OPTS="--tty --interactive" \
@@ -114,15 +114,15 @@ shell:
 
 
 binfmt:
-	make -C $(_BUILDENV_DIR) binfmt
+	$(MAKE) -C $(_BUILDENV_DIR) binfmt
 
 
 buildenv: $(_BUILDENV_DIR)
 	$(call say,"Ensuring $(BOARD) buildenv")
-	make -C $(_BUILDENV_DIR) binfmt
+	$(MAKE) -C $(_BUILDENV_DIR) binfmt
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
-	make -C $(_BUILDENV_DIR) os \
+	$(MAKE) -C $(_BUILDENV_DIR) os \
 		NC=$(NC) \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
