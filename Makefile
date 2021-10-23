@@ -107,12 +107,20 @@ $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 build:
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	rm -rf $(_BUILD_DIR)
-	make _run _MAKE_J=$(if $(J),$(J),$(_MAKE_J)) BOARD=$(BOARD) CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
+	make _run \
+		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
+		BOARD=$(BOARD) \
+		OPTS="--tty --interactive" \
+		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
 
 shell:
-	make _run _MAKE_J=$(if $(J),$(J),$(_MAKE_J)) BOARD=$(BOARD) CMD=/bin/bash OPTS=-i
+	make _run \
+		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
+		BOARD=$(BOARD) \
+		OPTS="--tty --interactive" \
+		CMD=/bin/bash
 
 
 binfmt:
@@ -154,8 +162,6 @@ pullenv:
 _run: $(_BUILD_DIR) $(_REPO_DIR)
 	docker run \
 			--rm \
-			--tty \
-			--interactive \
 			--privileged \
 			--volume `pwd`/$(_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
