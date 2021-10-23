@@ -1,7 +1,7 @@
-_commit=a5f0765d45ac623384460699c0e0640bbf23f33c
+_commit=47c554323a00c413996c6db4df9cf6dde6e2f574
 
 pkgname=ttyd
-pkgver=1.6.3.106
+pkgver=1.6.3.107
 pkgrel=1
 pkgdesc="Share your terminal over the web"
 url="https://tsl0922.github.io/ttyd"
@@ -9,13 +9,12 @@ license=(MIT)
 arch=(i686 x86_64 armv6h armv7h)
 depends=(json-c libpcap zlib libuv "libwebsockets>=4.2.0")
 makedepends=(cmake vim)
-source=(${pkgname}::"git+https://github.com/tsl0922/ttyd#commit=${_commit}" html.h)
-md5sums=(SKIP SKIP)
+source=(${pkgname}::"git+https://github.com/tsl0922/ttyd#commit=${_commit}")
+md5sums=(SKIP)
 
 
 build() {
 	cd "$pkgname"
-	cp ../html.h src/html.h
 	mkdir build
 	cd build
 	cmake \
