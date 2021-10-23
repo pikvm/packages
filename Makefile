@@ -53,8 +53,6 @@ all:
 	@ echo "    make binfmt BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo "    make shell BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
-	@ echo "    make pushenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
-	@ echo "    make pullenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
 	@ echo
 	@ echo "    make update"
 	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
@@ -62,10 +60,6 @@ all:
 	@ for board in $(_KNOWN_BOARDS); do echo "    make packages-$$board"; done
 	@ echo
 	@ for board in $(_KNOWN_BOARDS); do echo "    make buildenv-$$board NC=<1|0>"; done
-	@ echo
-	@ for board in $(_KNOWN_BOARDS); do echo "    make pushenv-$$board"; done
-	@ echo
-	@ for board in $(_KNOWN_BOARDS); do echo "    make pullenv-$$board"; done
 	@ echo
 	@ echo "    make upload"
 
@@ -96,10 +90,6 @@ packages-$1:
 	done
 buildenv-$1:
 	make buildenv BOARD=$1 NC=$$(NC)
-pushenv-$1:
-	make pushenv BOARD=$1
-pullenv-$1:
-	make pullenv BOARD=$1
 endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 
@@ -148,14 +138,6 @@ buildenv: $(_BUILDENV_DIR)
 		STAGES="__init__ buildenv" \
 		HOSTNAME=buildenv
 	$(call say,"Buildenv $(BOARD) is ready")
-
-
-pushenv:
-	docker push $(_BUILDENV_IMAGE)
-
-
-pullenv:
-	docker pull $(_BUILDENV_IMAGE)
 
 
 # =====
