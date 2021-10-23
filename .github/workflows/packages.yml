@@ -38,4 +38,4 @@ jobs:
         run: make "buildenv-$BOARD" NC=1
 
       - name: Building packages
-        run: make "packages-$BOARD"
+        run: make "packages-$BOARD" NOINT=1
