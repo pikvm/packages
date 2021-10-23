@@ -86,7 +86,7 @@ define make_board_target
 packages-$1:
 	$(MAKE) binfmt BOARD=$1
 	for pkg in `cat packages/order.$1`; do \
-		$(MAKE) _build BOARD=$1 PKG=$$$$pkg J=$$$$J || exit 1; \
+		$(MAKE) _build BOARD=$1 PKG=$$$$pkg NOINT=$$$$NOINT J=$$$$J || exit 1; \
 	done
 buildenv-$1:
 	$(MAKE) buildenv BOARD=$1 NC=$$(NC)
@@ -100,7 +100,7 @@ _build:
 	$(MAKE) _run \
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
 		BOARD=$(BOARD) \
-		OPTS="--tty --interactive" \
+		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))'"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
