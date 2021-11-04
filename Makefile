@@ -113,7 +113,7 @@ shell:
 		CMD=/bin/bash
 
 
-binfmt:
+binfmt: buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) binfmt
 
 
