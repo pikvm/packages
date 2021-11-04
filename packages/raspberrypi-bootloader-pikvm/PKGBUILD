@@ -6,15 +6,15 @@ buildarch=28
 pkgbase=raspberrypi-bootloader
 pkgname=('raspberrypi-bootloader-pikvm'
          'raspberrypi-bootloader-x-pikvm')
-pkgver=20210805
-pkgrel=3
-_commit=a51c6008766ecd928d774dafc5eefe88a4f9bf75
+pkgver=20211102
+pkgrel=1
+_commit=27f12ea332fa4d94b963f8e0f6e48502684a5343
 arch=('any')
 url="https://github.com/raspberrypi/firmware"
 license=('custom')
 options=(!strip)
 source=("https://github.com/raspberrypi/firmware/archive/${_commit}.tar.gz")
-md5sums=('c2e4b340dc30660074edfaa44445811f')
+md5sums=('44fc9c2aa625a8cfdfc02101bc629c4c')
 
 package_raspberrypi-bootloader-pikvm() {
   pkgdesc="Bootloader files for Raspberry Pi"
