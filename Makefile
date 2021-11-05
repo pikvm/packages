@@ -13,7 +13,7 @@ _BUILD_DIR = ./.build/$(BOARD)
 _BASE_REPOS_DIR = ./repos
 _REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
 
-_MAKE_J = 7
+_MAKE_J = 12
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
 _KNOWN_BOARDS := rpi rpi2
