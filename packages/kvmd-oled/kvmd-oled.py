@@ -32,8 +32,9 @@ from typing import Tuple
 import netifaces
 import psutil
 
-from luma.core import cmdline 
-from luma.core.render import canvas
+from luma.core import cmdline as luma_cmdline
+from luma.core.device import device as luma_device
+from luma.core.render import canvas as luma_canvas
 
 from PIL import ImageFont
 
@@ -72,42 +73,68 @@ def _get_uptime() -> str:
     return "{days}d {hours}h {mins}m".format(**pl)
 
 
+def _draw_text(device: luma_device, font: ImageFont.FreeTypeFont, offset_y: int, text: str) -> None:
+    with luma_canvas(device) as draw:
+        draw.multiline_text((0, offset_y), text, font=font, fill="white")
+
+
 # =====
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     logging.getLogger("PIL").setLevel(logging.ERROR)
 
-    parser = cmdline.create_parser(description="Display FQDN and IP on the OLED")
+    parser = luma_cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
     parser.add_argument("--font-size", default=16, type=int, help="Font size")
+    parser.add_argument("--offset-y", default=0, type=int, help="Vertical offset")
     parser.add_argument("--interval", default=5, type=int, help="Screens interval")
+    parser.add_argument("--text", default="", help="Just display some text, wait a single interval and exit")
+    parser.add_argument("--pipe", action="store_true", help="Read and display lines from stdin until EOF, wait a single interval and exit")
+    parser.add_argument("--clear-on-exit", action="store_true", help="Clear display on exit")
     options = parser.parse_args(sys.argv[1:])
     if options.config:
-        config = cmdline.load_config(options.config)
+        config = luma_cmdline.load_config(options.config)
         options = parser.parse_args(config + sys.argv[1:])
 
-    device = cmdline.create_device(options)
+    device = luma_cmdline.create_device(options)
+    device.cleanup = (lambda _: None)
     font = ImageFont.truetype(options.font, options.font_size)
 
-    display_types = cmdline.get_display_types()
-    if options.display not in cmdline.get_display_types()["emulator"]:
+    display_types = luma_cmdline.get_display_types()
+    if options.display not in luma_cmdline.get_display_types()["emulator"]:
         _logger.info("Iface: %s", options.interface)
     _logger.info("Display: %s", options.display)
     _logger.info("Size: %dx%d", device.width, device.height)
 
     try:
-        summary = True
-        while True:
-            with canvas(device) as draw:
+        if options.text:
+            _draw_text(device, font, options.offset_y, options.text)
+            time.sleep(options.interval)
+
+        elif options.pipe:
+            text = ""
+            for line in sys.stdin:
+                text += line
+                if "\0" in text:
+                    _draw_text(device, font, options.offset_y, text.replace("\0", ""))
+                    text = ""
+            time.sleep(options.interval)
+
+        else:
+            summary = True
+            while True:
                 if summary:
                     text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
                 else:
                     text = f"Iface: %s\n%s" % (_get_ip())
-                draw.multiline_text((0, 0), text, font=font, fill="white")
+                _draw_text(device, font, options.offset_y, text)
                 summary = (not summary)
-                time.sleep(options.interval)
+                time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
+
+    if options.clear_on_exit:
+        _draw_text(device, font, options.offset_y, "")
 
 
 if __name__ == "__main__":

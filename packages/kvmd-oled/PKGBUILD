@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.3
+pkgver=0.4
 pkgrel=1
 pkgdesc="Pi-KVM - Small OLED daemon"
 url="https://github.com/pikvm/packages"
@@ -9,6 +9,7 @@ depends=(
 	python-luma-oled
 	python-netifaces
 	python-psutil
+	"python-pillow>=8.3.1-1"
 	ttf-proggy-clean
 )
 source=(
