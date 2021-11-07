@@ -65,7 +65,6 @@ all:
 
 
 upload:
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@pikvm.org:/var/www/repos
 	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
 
 
