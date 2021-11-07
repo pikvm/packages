@@ -36,6 +36,7 @@ from luma.core import cmdline as luma_cmdline
 from luma.core.device import device as luma_device
 from luma.core.render import canvas as luma_canvas
 
+from PIL import Image
 from PIL import ImageFont
 
 
@@ -73,9 +74,14 @@ def _get_uptime() -> str:
     return "{days}d {hours}h {mins}m".format(**pl)
 
 
-def _draw_text(device: luma_device, font: ImageFont.FreeTypeFont, offset_y: int, text: str) -> None:
+def _draw_text(device: luma_device, font: ImageFont.FreeTypeFont, offset: Tuple[int, int], text: str) -> None:
     with luma_canvas(device) as draw:
-        draw.multiline_text((0, offset_y), text, font=font, fill="white")
+        draw.multiline_text(offset, text, font=font, fill="white")
+
+
+def _draw_image(device: luma_device, offset: Tuple[int, int], image_path: str) -> None:
+    with luma_canvas(device) as draw:
+        draw.bitmap(offset, Image.open(image_path).convert("1"), fill="white")
 
 
 # =====
@@ -86,9 +92,11 @@ def main() -> None:
     parser = luma_cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
     parser.add_argument("--font-size", default=16, type=int, help="Font size")
+    parser.add_argument("--offset-x", default=0, type=int, help="Horizontal offset")
     parser.add_argument("--offset-y", default=0, type=int, help="Vertical offset")
     parser.add_argument("--interval", default=5, type=int, help="Screens interval")
-    parser.add_argument("--text", default="", help="Just display some text, wait a single interval and exit")
+    parser.add_argument("--image", default="", help="Display some image, wait a single interval and exit")
+    parser.add_argument("--text", default="", help="Display some text, wait a single interval and exit")
     parser.add_argument("--pipe", action="store_true", help="Read and display lines from stdin until EOF, wait a single interval and exit")
     parser.add_argument("--clear-on-exit", action="store_true", help="Clear display on exit")
     options = parser.parse_args(sys.argv[1:])
@@ -98,6 +106,7 @@ def main() -> None:
 
     device = luma_cmdline.create_device(options)
     device.cleanup = (lambda _: None)
+    offset = (options.offset_x, options.offset_y)
     font = ImageFont.truetype(options.font, options.font_size)
 
     display_types = luma_cmdline.get_display_types()
@@ -107,8 +116,12 @@ def main() -> None:
     _logger.info("Size: %dx%d", device.width, device.height)
 
     try:
-        if options.text:
-            _draw_text(device, font, options.offset_y, options.text.replace("\\n", "\n"))
+        if options.image:
+            _draw_image(device, offset, options.image)
+            time.sleep(options.interval)
+
+        elif options.text:
+            _draw_text(device, font, offset, options.text.replace("\\n", "\n"))
             time.sleep(options.interval)
 
         elif options.pipe:
@@ -116,7 +129,7 @@ def main() -> None:
             for line in sys.stdin:
                 text += line
                 if "\0" in text:
-                    _draw_text(device, font, options.offset_y, text.replace("\0", ""))
+                    _draw_text(device, font, offset, text.replace("\0", ""))
                     text = ""
             time.sleep(options.interval)
 
@@ -127,14 +140,14 @@ def main() -> None:
                     text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
                 else:
                     text = f"Iface: %s\n%s" % (_get_ip())
-                _draw_text(device, font, options.offset_y, text)
+                _draw_text(device, font, offset, text)
                 summary = (not summary)
                 time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
 
     if options.clear_on_exit:
-        _draw_text(device, font, options.offset_y, "")
+        _draw_text(device, font, offset, "")
 
 
 if __name__ == "__main__":

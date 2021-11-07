@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.7
+pkgver=0.8
 pkgrel=1
 pkgdesc="Pi-KVM - Small OLED daemon"
 url="https://github.com/pikvm/packages"
@@ -17,8 +17,9 @@ source=(
 	$pkgname-shutdown.service
 	$pkgname-reboot.service
 	$pkgname.py
+	hello.ppm
 )
-md5sums=(SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP)
 
 
 package() {
@@ -27,4 +28,7 @@ package() {
 
 	mkdir -p "$pkgdir/usr/lib/systemd/system"
 	cp *.service "$pkgdir/usr/lib/systemd/system"
+
+	mkdir -p "$pkgdir/usr/share/kvmd-oled"
+	cp *.ppm "$pkgdir/usr/share/kvmd-oled"
 }
