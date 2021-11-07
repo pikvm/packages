@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.4
+pkgver=0.5
 pkgrel=1
 pkgdesc="Pi-KVM - Small OLED daemon"
 url="https://github.com/pikvm/packages"
@@ -14,9 +14,11 @@ depends=(
 )
 source=(
 	$pkgname.service
+	$pkgname-shutdown.service
+	$pkgname-reboot.service
 	$pkgname.py
 )
-md5sums=(SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP)
 
 
 package() {

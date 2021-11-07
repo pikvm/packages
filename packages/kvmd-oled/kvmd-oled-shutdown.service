@@ -1,0 +1,15 @@
+[Unit]
+Description=Pi-KVM - Display shutdown message on the OLED
+Conflicts=reboot.target
+Before=shutdown.target poweroff.target halt.target
+After=kvmd-oled.service
+DefaultDependencies=no
+ConditionPathExists=/dev/i2c-1
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/kvmd-oled --height=32 --offset-y=6 --interval=0 --text="Shut down"
+TimeoutStartSec=0
+
+[Install]
+WantedBy=shutdown.target

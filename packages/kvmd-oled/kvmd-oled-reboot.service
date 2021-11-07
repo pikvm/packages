@@ -1,0 +1,13 @@
+[Unit]
+Description=Pi-KVM - Display reboot message on the OLED
+After=kvmd-oled.service
+DefaultDependencies=no
+ConditionPathExists=/dev/i2c-1
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/kvmd-oled --height=32 --offset-y=6 --interval=0 --text="Rebooting...\nPlease wait"
+TimeoutStartSec=0
+
+[Install]
+WantedBy=reboot.target

@@ -108,7 +108,7 @@ def main() -> None:
 
     try:
         if options.text:
-            _draw_text(device, font, options.offset_y, options.text)
+            _draw_text(device, font, options.offset_y, options.text.replace("\\n", "\n"))
             time.sleep(options.interval)
 
         elif options.pipe:
