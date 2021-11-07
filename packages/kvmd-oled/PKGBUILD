@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.5
+pkgver=0.6
 pkgrel=1
 pkgdesc="Pi-KVM - Small OLED daemon"
 url="https://github.com/pikvm/packages"
@@ -26,5 +26,5 @@ package() {
 	install -Dm755 $pkgname.py "$pkgdir/usr/bin/$pkgname"
 
 	mkdir -p "$pkgdir/usr/lib/systemd/system"
-	cp $pkgname.service "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+	cp *.service "$pkgdir/usr/lib/systemd/system"
 }
