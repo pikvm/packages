@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.6
+pkgver=0.7
 pkgrel=1
 pkgdesc="Pi-KVM - Small OLED daemon"
 url="https://github.com/pikvm/packages"

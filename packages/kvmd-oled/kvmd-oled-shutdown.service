@@ -8,7 +8,7 @@ ConditionPathExists=/dev/i2c-1
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/kvmd-oled --height=32 --offset-y=6 --interval=0 --text="Shut down"
+ExecStart=/usr/bin/kvmd-oled --height=32 --offset-y=12 --interval=0 --text="Shut down"
 TimeoutStartSec=0
 
 [Install]
