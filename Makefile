@@ -174,6 +174,7 @@ $(_BASE_REPOS_DIR)/rpi:
 
 $(_BASE_REPOS_DIR)/rpi2:
 	mkdir -p $(_BASE_REPOS_DIR)/rpi2
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/zero2w
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
