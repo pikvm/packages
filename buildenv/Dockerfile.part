@@ -37,8 +37,8 @@ RUN pacman --noconfirm -Syy \
 		python \
 		raspberrypi-firmware \
 	&& case "$BOARD" in \
-			rpi|rpi2|rpi3|zero|zerow) pacman --needed --noconfirm -S linux-raspberrypi linux-raspberrypi-headers;; \
-			rpi4) pacman --needed --noconfirm -S linux-raspberrypi4 linux-raspberrypi4-headers;; \
+			rpi|zero|zerow) pacman --needed --noconfirm --ask=4 -S linux-rpi-legacy linux-rpi-legacy-headers;; \
+			rpi2|rpi3|rpi4|zero2w) pacman --needed --noconfirm --ask=4 -S linux-rpi linux-rpi-headers;; \
 			*) echo "Unknown board: $BOARD"; exit 1;; \
 		esac \
 	&& (pacman --noconfirm -Sc || true)
