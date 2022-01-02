@@ -20,6 +20,8 @@
 #                                                                            #
 # ========================================================================== #
 
+import os
+import psutil
 
 import sys
 import socket
@@ -45,6 +47,20 @@ _logger = logging.getLogger("oled")
 
 
 # =====
+def _get_temp() -> str:
+    with open('/sys/class/thermal/thermal_zone0/temp', 'rt') as f:
+        temp = round((int)(f.read() ) / 1000.0, 2)
+    return str(temp) + ' \u00b0C'
+
+def _get_cpu() -> str:
+    load1, load5, load15 = psutil.getloadavg()
+    cpu = round((load15/os.cpu_count()) * 100, 2)
+    return str(cpu)
+
+def _get_ram() -> str:
+    total_memory, used_memory, free_memory = map(int, os.popen('free -t -m').readlines()[-1].split()[1:])
+    return str(round((used_memory/total_memory) * 100, 2))
+
 def _get_ip() -> Tuple[str, str]:
     try:
         gws = netifaces.gateways()
@@ -139,15 +155,17 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
-            summary = True
             while True:
-                if summary:
-                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
-                else:
-                    text = f"Iface: %s\n%s" % (_get_ip())
-                _draw_text(device, font, offset, text)
-                summary = (not summary)
-                time.sleep(max(options.interval, 1))
+                text_a = []
+                text_a.append(f"{socket.getfqdn()}\nUp: {_get_uptime()}")
+                text_a.append(f"Iface: %s\n%s" % (_get_ip()))
+                text_a.append(f"SysTemp: %s" % (_get_temp()))
+                text_a.append("SysCPU: " + (_get_cpu()) + " %\nSysRAM: " + (_get_ram()) + " %")
+
+                for text in text_a:
+                    _draw_text(device, font, offset, text)
+                    time.sleep(max(options.interval, 1))
+
     except (SystemExit, KeyboardInterrupt):
         pass
 
