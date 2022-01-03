@@ -152,22 +152,16 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
-            screen = 0
-            while True:
-                if screen == 0:
-                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
-                    screen += 1
-                elif screen == 1:
-                    text = f"Iface: %s\n%s" % (_get_ip())
-                    screen += 1
-                elif screen == 2:
-                    text = f"           {_get_cputemp()}"
-                    screen = 0
-                else:
-                    screen = 0
+            while True: # Loop code by tecthedark https://github.com/pikvm/packages/pull/4/commits/aab06e4b21edfa557e1077d965f28d6>
+                text_a = []
+                text_a.append(f"{socket.getfqdn()}\nUp: {_get_uptime()}")
+                text_a.append(f"Iface: %s\n%s" % (_get_ip()))
+                text_a.append(f"           {_get_cputemp()}") # positioned to give other pixels a rest
 
-                _draw_text(device, font, offset, text)
-                time.sleep(max(options.interval, 1))
+                for text in text_a:
+                    _draw_text(device, font, offset, text)
+                    time.sleep(max(options.interval, 1))
+
     except (SystemExit, KeyboardInterrupt):
         pass
 
