@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=3
 ExecStartPre=/usr/bin/kvmd-oled --height=32 --interval=3 --clear-on-exit --image=/usr/share/kvmd-oled/hello.ppm
-ExecStart=/usr/bin/kvmd-oled --height=32 --offset-y=6 --clear-on-exit
+ExecStart=/usr/bin/kvmd-oled --height=32 --clear-on-exit
 TimeoutStopSec=3
 
 [Install]

@@ -74,14 +74,60 @@ def _get_uptime() -> str:
     return "{days}d {hours}h {mins}m".format(**pl)
 
 
-def _draw_text(device: luma_device, font: ImageFont.FreeTypeFont, offset: Tuple[int, int], text: str) -> None:
-    with luma_canvas(device) as draw:
-        draw.multiline_text(offset, text, font=font, fill="white")
+def _get_temp() -> str:
+    try:
+        with open("/sys/class/thermal/thermal_zone0/temp") as temp_file:
+            temp = int((temp_file.read().strip())) / 1000
+            return f"{temp:.1f}\u00b0C"
+    except Exception:
+        # _logger.exception("Can't read temp")
+        return "<no-temp>"
 
 
-def _draw_image(device: luma_device, offset: Tuple[int, int], image_path: str) -> None:
-    with luma_canvas(device) as draw:
-        draw.bitmap(offset, Image.open(image_path).convert("1"), fill="white")
+def _get_cpu() -> str:
+    st = psutil.cpu_times_percent()
+    user = st.user - st.guest
+    nice = st.nice - st.guest_nice
+    idle_all = st.idle + st.iowait
+    system_all = st.system + st.irq + st.softirq
+    virtual = st.guest + st.guest_nice
+    total = max(1, user + nice + system_all + idle_all + st.steal + virtual)
+    percent = int(
+        st.nice / total * 100
+        + st.user / total * 100
+        + system_all / total * 100
+        + (st.steal + st.guest) / total * 100
+    )
+    return f"{percent}%"
+
+
+def _get_mem() -> str:
+    return f"{int(psutil.virtual_memory().percent)}%"
+
+
+# =====
+class Screen:
+    def __init__(
+        self,
+        device: luma_device,
+        font: ImageFont.FreeTypeFont,
+        font_spacing: int,
+        offset: Tuple[int, int],
+    ) -> None:
+
+        self.__device = device
+        self.__font = font
+        self.__font_spacing = font_spacing
+        self.__offset = offset
+        
+    def draw_text(self, text: str) -> None:
+        with luma_canvas(self.__device) as draw:
+            draw.multiline_text(self.__offset, text, font=self.__font, spacing=self.__font_spacing, fill="white")
+
+
+    def draw_image(self, image_path: str) -> None:
+        with luma_canvas(self.__device) as draw:
+            draw.bitmap(self.__offset, Image.open(image_path).convert("1"), fill="white")
 
 
 # =====
@@ -92,6 +138,7 @@ def main() -> None:
     parser = luma_cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
     parser.add_argument("--font-size", default=16, type=int, help="Font size")
+    parser.add_argument("--font-spacing", default=2, type=int, help="Font line spacing")
     parser.add_argument("--offset-x", default=0, type=int, help="Horizontal offset")
     parser.add_argument("--offset-y", default=0, type=int, help="Vertical offset")
     parser.add_argument("--interval", default=5, type=int, help="Screens interval")
@@ -107,8 +154,12 @@ def main() -> None:
 
     device = luma_cmdline.create_device(options)
     device.cleanup = (lambda _: None)
-    offset = (options.offset_x, options.offset_y)
-    font = ImageFont.truetype(options.font, options.font_size)
+    screen = Screen(
+        device=device,
+        font=ImageFont.truetype(options.font, options.font_size),
+        font_spacing=options.font_spacing,
+        offset=(options.offset_x, options.offset_y),
+    )
 
     display_types = luma_cmdline.get_display_types()
     if options.display not in luma_cmdline.get_display_types()["emulator"]:
@@ -122,11 +173,11 @@ def main() -> None:
 
     try:
         if options.image:
-            _draw_image(device, offset, options.image)
+            screen.draw_image(options.image)
             time.sleep(options.interval)
 
         elif options.text:
-            _draw_text(device, font, offset, options.text.replace("\\n", "\n"))
+            screen.draw_text(options.text.replace("\\n", "\n"))
             time.sleep(options.interval)
 
         elif options.pipe:
@@ -134,7 +185,7 @@ def main() -> None:
             for line in sys.stdin:
                 text += line
                 if "\0" in text:
-                    _draw_text(device, font, offset, text.replace("\0", ""))
+                    screen.draw_text(text.replace("\0", ""))
                     text = ""
             time.sleep(options.interval)
 
@@ -142,17 +193,17 @@ def main() -> None:
             summary = True
             while True:
                 if summary:
-                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
+                    text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp()}"
                 else:
-                    text = f"Iface: %s\n%s" % (_get_ip())
-                _draw_text(device, font, offset, text)
+                    text = "iface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                screen.draw_text(text)
                 summary = (not summary)
                 time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
 
     if options.clear_on_exit:
-        _draw_text(device, font, offset, "")
+        screen.draw_text("")
 
 
 if __name__ == "__main__":
