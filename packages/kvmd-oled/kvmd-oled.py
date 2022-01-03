@@ -26,6 +26,7 @@ import socket
 import logging
 import datetime
 import time
+import re, subprocess
 
 from typing import Tuple
 
@@ -73,6 +74,18 @@ def _get_uptime() -> str:
     (pl["mins"], pl["secs"]) = divmod(rem, 60)
     return "{days}d {hours}h {mins}m".format(**pl)
 
+def _get_cputemp() -> str:
+    # From https://raspberrypi.stackexchange.com/a/124028
+    temp = None
+    err, msg = subprocess.getstatusoutput('/opt/vc/bin/vcgencmd measure_temp')
+    if not err:
+        m = re.search(r'-?\d\.?\d*', msg)   # a solution with a  regex
+        try:
+            temp = float(m.group())
+        except ValueError: # catch only error needed
+            pass
+    _logger.info(msg)
+    return f"{temp}'C"
 
 def _draw_text(device: luma_device, font: ImageFont.FreeTypeFont, offset: Tuple[int, int], text: str) -> None:
     with luma_canvas(device) as draw:
@@ -139,14 +152,21 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
-            summary = True
+            screen = 0
             while True:
-                if summary:
+                if screen == 0:
                     text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
-                else:
+                    screen += 1
+                elif screen == 1:
                     text = f"Iface: %s\n%s" % (_get_ip())
+                    screen += 1
+                elif screen == 2:
+                    text = f"           {_get_cputemp()}"
+                    screen = 0
+                else:
+                    screen = 0
+
                 _draw_text(device, font, offset, text)
-                summary = (not summary)
                 time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
