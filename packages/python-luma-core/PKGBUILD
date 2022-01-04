@@ -1,13 +1,13 @@
 pkgname=python-luma-core
-pkgver=2.3.1
+pkgver=2.3.2
 pkgrel=1
 pkgdesc="A component library to support SBC display drivers"
 url="https://github.com/rm-hull/luma.core"
 license=(MIT)
 arch=(any)
 depends=(
-	"python>=3.9"
-	"python<3.10"
+	"python>=3.10"
+	"python<3.11"
 	python-deprecated
 	python-pillow
 	python-cbor2
@@ -18,7 +18,7 @@ depends=(
 )
 makedepends=(python-distribute)
 source=("https://github.com/rm-hull/luma.core/archive/${pkgver}.tar.gz")
-sha1sums=(78c75ff3716f96996cf973bfc889d1b393c92551)
+sha1sums=(SKIP)
 
 
 package() {

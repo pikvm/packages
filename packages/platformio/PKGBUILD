@@ -1,13 +1,13 @@
 pkgname=platformio
-pkgver=5.1.1
-pkgrel=1
+pkgver=5.2.4
+pkgrel=2
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
 license=("Apache 2.0")
 arch=(any)
 depends=(
-	"python>=3.9"
-	"python<3.10"
+	"python>=3.10"
+	"python<3.11"
 	python-setuptools
 	python-bottle
 	python-click
@@ -18,10 +18,11 @@ depends=(
 	python-tabulate
 	python-pyelftools
 	python-marshmallow
+	python-zeroconf
 )
 conflicts=(platformio-git)
 source=("https://github.com/platformio/platformio-core/archive/v${pkgver}.tar.gz")
-sha1sums=(9a84cb1694f239c1c81df6e3ba2a699674759e52)
+sha1sums=(SKIP)
 
 
 package() {
