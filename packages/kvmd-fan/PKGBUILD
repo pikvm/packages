@@ -1,16 +1,25 @@
 pkgname=kvmd-fan
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
-pkgdesc="Pi-KVM - The fan control daemon"
+pkgdesc="PiKVM - A small fan controller daemon"
 url="https://github.com/pikvm/packages"
 license=(GPL)
 arch=(any)
-depends=(wiringpi)
-source=($pkgname.service)
-md5sums=(SKIP)
+depends=(
+	python
+	wiringpi
+)
+source=(
+	$pkgname.service
+	$pkgname.py
+)
+md5sums=(SKIP SKIP)
 
 
 package() {
+	mkdir -p "$pkgdir/usr/bin"
+	install -Dm755 $pkgname.py "$pkgdir/usr/bin/$pkgname"
+
 	mkdir -p "$pkgdir/usr/lib/systemd/system"
-	cp $pkgname.service "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+	cp *.service "$pkgdir/usr/lib/systemd/system"
 }
