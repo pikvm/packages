@@ -74,10 +74,13 @@ def _get_uptime() -> str:
     return "{days}d {hours}h {mins}m".format(**pl)
 
 
-def _get_temp() -> str:
+def _get_temp(fahrenheit: bool) -> str:
     try:
         with open("/sys/class/thermal/thermal_zone0/temp") as temp_file:
             temp = int((temp_file.read().strip())) / 1000
+            if fahrenheit:
+                temp = temp * 9 / 5 + 32
+                return f"{temp:.1f}\u00b0F"
             return f"{temp:.1f}\u00b0C"
     except Exception:
         # _logger.exception("Can't read temp")
@@ -147,6 +150,7 @@ def main() -> None:
     parser.add_argument("--pipe", action="store_true", help="Read and display lines from stdin until EOF, wait a single interval and exit")
     parser.add_argument("--clear-on-exit", action="store_true", help="Clear display on exit")
     parser.add_argument("--contrast", default=None, type=int, help="Set OLED contrast, values from 0 to 255")
+    parser.add_argument("--fahrenheit", action="store_true", help="Display temperature in Fahrenheit instead of Celsius")
     options = parser.parse_args(sys.argv[1:])
     if options.config:
         config = luma_cmdline.load_config(options.config)
@@ -193,7 +197,7 @@ def main() -> None:
             summary = True
             while True:
                 if summary:
-                    text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp()}"
+                    text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
                 else:
                     text = "iface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
                 screen.draw_text(text)
