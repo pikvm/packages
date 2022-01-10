@@ -91,10 +91,12 @@ def _run(
     temp_hyst: float,
     speed_idle: float,
     speed_heat: float,
+    speed_spin_up: float,
     interval: float,
 ) -> None:
 
     prev_temp = 0.0
+    prev_speed = 0.0
     while True:
         temp = _get_temp()
         if abs(abs(prev_temp) - abs(temp)) >= temp_hyst:
@@ -104,23 +106,28 @@ def _run(
                 speed = speed_heat
             else:
                 speed = _remap(temp, temp_min, temp_max, speed_min, speed_max)
-            prev_temp = temp
+            if (prev_speed < speed_idle or prev_speed == 0) and speed > 0:
+                fan.set_speed(speed_spin_up)
+                time.sleep(2)
             fan.set_speed(speed)
+            prev_temp = temp
+            prev_speed = speed
         time.sleep(interval)
 
 
 # =====
 def main() -> None:
     parser = argparse.ArgumentParser(prog="kvmd-fan", description="A small fan controller daemon")
-    parser.add_argument("--pwm-pin",    default=12,    type=int, metavar="PIN", help="GPIO pin for PWM DC fan")
-    parser.add_argument("--temp-min",   default=45.0,  type=float, metavar="CELSIUS", help="Lower temp range limit")
-    parser.add_argument("--temp-max",   default=75.0,  type=float, metavar="CELSIUS", help="Upper temp range limit")
-    parser.add_argument("--speed-min",  default=25.0,  type=float, metavar="PERCENT", help="Lower fan speed range limit")
-    parser.add_argument("--speed-max",  default=75.0,  type=float, metavar="PERCENT", help="Upper fan speed range limit")
-    parser.add_argument("--temp-hyst",  default=1.0,   type=float, metavar="CELSIUS", help="Temp hysteresis")
-    parser.add_argument("--speed-idle", default=12.5,  type=float, metavar="PERCENT", help="Fan speed out of range")
-    parser.add_argument("--speed-heat", default=100.0, type=float, metavar="PERCENT", help="Fan speed on overheating")
-    parser.add_argument("--interval",   default=1,     type=float, metavar="SECONDS", help="Temp monitoring interval")
+    parser.add_argument("--pwm-pin",       default=12,    type=int,   metavar="PIN",     help="GPIO pin for PWM DC fan")
+    parser.add_argument("--temp-min",      default=45.0,  type=float, metavar="CELSIUS", help="Lower temp range limit")
+    parser.add_argument("--temp-max",      default=75.0,  type=float, metavar="CELSIUS", help="Upper temp range limit")
+    parser.add_argument("--speed-min",     default=25.0,  type=float, metavar="PERCENT", help="Lower fan speed range limit")
+    parser.add_argument("--speed-max",     default=75.0,  type=float, metavar="PERCENT", help="Upper fan speed range limit")
+    parser.add_argument("--temp-hyst",     default=1.0,   type=float, metavar="CELSIUS", help="Temp hysteresis")
+    parser.add_argument("--speed-idle",    default=12.5,  type=float, metavar="PERCENT", help="Fan speed out of range")
+    parser.add_argument("--speed-heat",    default=100.0, type=float, metavar="PERCENT", help="Fan speed on overheating")
+    parser.add_argument("--speed-spin-up", default=75.0,  type=float, metavar="PERCENT", help="Fan speed for spin-up")
+    parser.add_argument("--interval",      default=1.0,   type=float, metavar="SECONDS", help="Temp monitoring interval")
     options = parser.parse_args()
     assert options.pwm_pin >= 0
     assert 0 <= options.temp_hyst < options.temp_min < options.temp_max <= 85
@@ -136,7 +143,7 @@ def main() -> None:
                 for key in [
                     "temp_min", "temp_max",
                     "speed_min", "speed_max",
-                    "temp_hyst", "speed_idle", "speed_heat",
+                    "temp_hyst", "speed_idle", "speed_heat", "speed_spin_up",
                     "interval",
                 ]
             },
