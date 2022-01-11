@@ -124,7 +124,7 @@ def main() -> None:
     parser.add_argument("--speed-min",     default=25.0,  type=float, metavar="PERCENT", help="Lower fan speed range limit")
     parser.add_argument("--speed-max",     default=75.0,  type=float, metavar="PERCENT", help="Upper fan speed range limit")
     parser.add_argument("--temp-hyst",     default=1.0,   type=float, metavar="CELSIUS", help="Temp hysteresis")
-    parser.add_argument("--speed-idle",    default=12.5,  type=float, metavar="PERCENT", help="Fan speed out of range")
+    parser.add_argument("--speed-idle",    default=25.0,  type=float, metavar="PERCENT", help="Fan speed out of range")
     parser.add_argument("--speed-heat",    default=100.0, type=float, metavar="PERCENT", help="Fan speed on overheating")
     parser.add_argument("--speed-spin-up", default=75.0,  type=float, metavar="PERCENT", help="Fan speed for spin-up")
     parser.add_argument("--interval",      default=1.0,   type=float, metavar="SECONDS", help="Temp monitoring interval")
