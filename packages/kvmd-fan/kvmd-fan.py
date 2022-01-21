@@ -117,7 +117,11 @@ def _run(
 
 # =====
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="kvmd-fan", description="A small fan controller daemon")
+    parser = argparse.ArgumentParser(
+        prog="kvmd-fan",
+        description="A small fan controller daemon",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument("--pwm-pin",       default=12,    type=int,   metavar="PIN",     help="GPIO pin for PWM DC fan")
     parser.add_argument("--temp-min",      default=45.0,  type=float, metavar="CELSIUS", help="Lower temp range limit")
     parser.add_argument("--temp-max",      default=75.0,  type=float, metavar="CELSIUS", help="Upper temp range limit")
