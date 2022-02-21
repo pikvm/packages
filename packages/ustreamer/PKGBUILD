@@ -3,7 +3,7 @@
 
 
 pkgname=ustreamer
-pkgver=4.12
+pkgver=4.13
 pkgrel=1
 pkgdesc="Lightweight and fast MJPG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
@@ -30,6 +30,11 @@ if [ -e /usr/include/janus/plugins/plugin.h ];then
 	depends+=(janus-gateway-pikvm)
 	makedepends+=(janus-gateway-pikvm)
 	_options="$_options WITH_JANUS=1"
+fi
+if [ -e /usr/include/systemd/sd-daemon.h ];then
+	depends+=(systemd)
+	makedepends+=(systemd)
+	_options="$_options WITH_SYSTEMD=1"
 fi
 
 
