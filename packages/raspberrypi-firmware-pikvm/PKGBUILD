@@ -1,16 +1,14 @@
+# Maintainer: graysky <graysky@archlinux.us>
 # Maintainer: Oleg Rakhmanov <oleg [at] archlinuxarm [dot] org>
 # Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
-# Maintainer: graysky <graysky@archlinux.us>
-
-buildarch=28
 
 pkgname=raspberrypi-firmware-pikvm
-pkgver=20211025
-pkgrel=1
-_commitfirmware=8db7ef815b849a8a7cdd8e4cd14f41a07b0b0288
-_commituserland=0093675e4aa6e152a3ffc318b51a124e96eb287b
+pkgver=20220301
+pkgrel=3
+_commitfirmware=231daece7cbf9282736efa7d254b3e4859f8e73b
+_commituserland=8fa944c74085aacd99da3e733af8dc5ac9b04fd9
 pkgdesc="Firmware tools, libraries, and headers for Raspberry Pi"
-arch=('armv6h' 'armv7h' 'aarch64')
+arch=('armv7h' 'aarch64')
 url="https://github.com/raspberrypi/firmware"
 license=('custom')
 makedepends_aarch64=('cmake')
@@ -20,17 +18,15 @@ options=(!strip)
 source=('00-raspberrypi-firmware.conf'
         '10-raspberrypi-firmware.rules'
         'raspberrypi-firmware.sh')
-source_armv6h=("https://github.com/raspberrypi/firmware/archive/$_commitfirmware.tar.gz")
-source_armv7h=("https://github.com/raspberrypi/firmware/archive/$_commitfirmware.tar.gz")
-source_aarch64=("https://github.com/raspberrypi/userland/archive/$_commituserland.tar.gz"
+source_armv7h=("firmware-$pkgver-${_commitfirmware:0:10}.tar.gz::https://github.com/raspberrypi/firmware/archive/$_commitfirmware.tar.gz")
+source_aarch64=("userland-$pkgver-${_commituserland:0:10}.tar.gz::https://github.com/raspberrypi/userland/archive/$_commituserland.tar.gz"
                 "https://raw.githubusercontent.com/raspberrypi/firmware/master/opt/vc/LICENCE")
-md5sums=('72e0d5818fc513ece1b964f25f7e7882'
-         '2ad54baf398afe59ff5a70eb655f1b96'
-         '60919cb17f31b4698b6650bbb46f18ed')
-md5sums_armv6h=('1ec527fd86aa9e89d95d590c8adeac4d')
-md5sums_armv7h=('1ec527fd86aa9e89d95d590c8adeac4d')
-md5sums_aarch64=('375a261b5fa1cd927e8ad3a63b8c87cc'
-                 '86e53f5f5909ee66900418028de11780')
+md5sums=('SKIP'
+         'SKIP'
+         'SKIP')
+md5sums_armv7h=('SKIP')
+md5sums_aarch64=('SKIP'
+                 'SKIP')
 
 conflicts=(raspberrypi-firmware)
 provides+=("raspberrypi-firmware=$pkgver")

@@ -4,56 +4,60 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-buildarch=20
-
-pkgbase=linux-raspberrypi
-_commit=bad3872df40dd9a4ba7ff239c17288a7a84a80f9
+pkgbase=linux-rpi
+_commit=0efbe86e7248ad9b80a42b37a91c44860f91eee4
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
-_desc="RPi 1 and 2"
-pkgver=5.10.76
-pkgrel=4
+pkgver=5.15.25
+pkgrel=10
 pkgdesc='Linux'
 url="http://www.kernel.org/"
-arch=(armv6h armv7h)
+arch=(armv7h aarch64)
 license=(GPL2)
 makedepends=(
   bc kmod inetutils
 )
 options=('!strip')
-source=("https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
+source_armv7h=('config' 'config.txt')
+source_aarch64=('config8' 'config8.txt')
+source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
         cmdline.txt
-        config.txt
-        config
+        0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
         linux.preset
         60-linux.hook
         90-linux.hook
-        1002-usb-gadget-f_hid-optional-SETUP-SET_REPORT-mode.patch
         1003-remote-wakeup.patch
         2001-rename-msd.patch
+        3001-bcm2835-codec-dev-video31-as-interface-to-image_enco.patch
 )
-md5sums=('8f73c064445624da010cdd8b4d74211e'
-         '31c02f4518d46deb5f0c2ad1f8b083cd'
-         '9669d916a5929a2eedbd64477f83d99e'
-         'a6ec4c6ca685309813da9c48d47742f6'
-         '86d4a35722b5410e3b29fc92dae15d4b'
-         '0a5f16bfec6ad982a2f6782724cca8ba'
-         '69e1db90d78f691dc446fe2ab94727eb'
+md5sums=('SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
+         'SKIP'
          SKIP SKIP SKIP)
+md5sums_armv7h=('SKIP'
+                'SKIP')
+md5sums_aarch64=('SKIP'
+                 'SKIP')
 
 # setup vars
-if [[ $CARCH == "armv6h" ]]; then
-  _kernel=kernel.img
-elif [[ $CARCH == "armv7h" ]]; then
-  _kernel=kernel7.img
+if [[ $CARCH == "armv7h" ]]; then
+  _kernel=kernel7.img KARCH=arm _image=zImage _config=config _bconfig=config.txt
+elif [[ $CARCH == "aarch64" ]]; then
+  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8 _bconfig=config8.txt
 fi
-_image=zImage
-_config=config
-_bconfig=config.txt
-KARCH=arm
 
 prepare() {
   cd "${srcdir}/${_srcname}"
+
+  # consistent behavior of lscpu on arm/arm64
+  patch -Np1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
+
+  patch -Np1 -i ../1003-remote-wakeup.patch
+  patch -Np1 -i ../2001-rename-msd.patch
+  patch -Np1 -i ../3001-bcm2835-codec-dev-video31-as-interface-to-image_enco.patch
 
   echo "Setting version..."
   scripts/setlocalversion --save-scmversion
@@ -75,17 +79,18 @@ build() {
 }
 
 _package-pikvm() {
-  pkgdesc="RPi Foundation patched Linux kernel and modules - ${_desc}"
+  pkgdesc="RPi Foundation patched Linux kernel and modules"
   depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7' 'firmware-raspberrypi')
   optdepends=('crda: to set the correct wireless channels of your country')
   provides=('kernel26' "linux=${pkgver}" 'WIREGUARD-MODULE')
-  conflicts=('kernel26' 'linux')
-  install=linux-raspberrypi.install
+  conflicts=('kernel26' 'linux' 'uboot-raspberrypi')
+  install=linux-rpi.install
   backup=('boot/config.txt' 'boot/cmdline.txt')
-  replaces=('linux-raspberrypi-latest')
+  replaces=('linux-raspberrypi-latest' 'linux-raspberrypi4')
 
-  conflicts+=(linux-raspberrypi)
-  provides+=("linux-raspberrypi=$pkgver")
+  conflicts+=(linux-raspberrypi4 linux-raspberrypi linux-rpi)
+  provides+=("linux-raspberrypi4=$pkgver" "linux-raspberrypi=$pkgver" "linux-rpi=$pkgver")
+  replaces+=(linux-raspberrypi4-pikvm linux-raspberrypi-pikvm linux-raspberrypi)
 
   cd "${srcdir}/${_srcname}"
 
@@ -105,16 +110,17 @@ _package-pikvm() {
   mkdir -p "${pkgdir}"/boot
   make INSTALL_DTBS_PATH="${pkgdir}/boot" dtbs_install
 
+  if [[ $CARCH == "aarch64" ]]; then
+    # drop hard-coded devicetree=foo.dtb in /boot/config.txt for
+    # autodetected load of supported of models at boot
+    find "${pkgdir}/boot/broadcom" -type f -print0 | xargs -0 mv -t "${pkgdir}/boot"
+    rmdir "${pkgdir}/boot/broadcom"
+  fi
+
   cp arch/$KARCH/boot/$_image "${pkgdir}/boot/$_kernel"
   cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/overlays"
   install -m644 ../$_bconfig "${pkgdir}/boot/config.txt"
   install -m644 ../cmdline.txt "${pkgdir}/boot"
-
-  if [[ $CARCH == "armv6h" ]]; then
-    rm -f "${pkgdir}"/boot/bcm{2836,2837,2838,2709,2710,2711}*.dtb
-  elif [[ $CARCH == "armv7h" ]]; then
-    rm -f "${pkgdir}"/boot/bcm{2835,2838,2708,2711}*.dtb
-  fi
 
   # sed expression for following substitutions
   local _subst="
@@ -134,13 +140,14 @@ _package-pikvm() {
 }
 
 _package-headers-pikvm() {
-  pkgdesc="RPi Foundation header and scripts for building modules for Linux kernel - ${_desc}"
+  pkgdesc="RPi Foundation header and scripts for building modules for Linux kernel"
   provides=("linux-headers=${pkgver}")
   conflicts=('linux-headers')
-  replaces=('linux-raspberrypi-latest-headers')
+  replaces=('linux-raspberrypi-latest-headers' 'linux-raspberrypi4-headers')
 
-  conflicts+=(linux-raspberrypi-headers)
-  provides+=("linux-raspberrypi-headers=$pkgver")
+  conflicts+=(linux-raspberrypi4-headers linux-raspberrypi-headers linux-rpi-headers)
+  provides+=("linux-raspberrypi4-headers=$pkgver" "linux-raspberrypi-headers=$pkgver" "linux-rpi-headers=$pkgver")
+  replaces+=(linux-raspberrypi4-headers-pikvm linux-raspberrypi-headers-pikvm linux-raspberrypi-headers)
 
   cd ${_srcname}
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
@@ -180,7 +187,11 @@ _package-headers-pikvm() {
   echo "Removing unneeded architectures..."
   local _arch
   for _arch in "$builddir"/arch/*/; do
-    [[ $_arch = */"$KARCH"/ ]] && continue
+    if [[ $CARCH == "aarch64" ]]; then
+      [[ $_arch = */"$KARCH"/ || $_arch == */arm/ ]] && continue
+    else
+      [[ $_arch = */"$KARCH"/ ]] && continue
+    fi
     echo "Removing $(basename "$_arch")"
     rm -r "$_arch"
   done

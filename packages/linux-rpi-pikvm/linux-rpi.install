@@ -11,13 +11,37 @@ correct_fstab() {
   # starting with v5.10.y, fstab requires a padded zero in the path to /boot
   if [[ -f /etc/fstab ]]; then
     if grep -q mmcblk1p1 /etc/fstab; then
-      sed -i 's/mmcblk1p1/mmcblk01p1/' /etc/fstab
+      sed -i 's/mmcblk1p1/mmcblk0p1/' /etc/fstab
+    fi
+  fi
+}
+
+pikvm_move_pacsave() {
+  for name in config cmdline; do
+    if [ -f /boot/$name.txt.pacsave ]; then
+      mv /boot/$name.txt.pacsave /boot/$name.txt
+      echo ">>> PiKVM: /boot/$name.txt.pacsave moved to /boot/$name.txt"
+    fi
+  done
+}
+
+pikvm_enable_startx() {
+  if grep '^dtoverlay=tc358743' /boot/config.txt 2>&1 >/dev/null; then
+    if ! grep '^start_x=1' /boot/config.txt 2>&1 >/dev/null; then
+      echo start_x=1 >> /boot/config.txt
+      echo ">>> PiKVM: added start_x=1 to /boot/config.txt"
     fi
   fi
 }
 
 post_install () {
   disable_cma
+
+  # coming from linux-aarch64 also needs a padded zero in the path to /boot
+  correct_fstab
+
+  pikvm_move_pacsave
+  #pikvm_enable_startx
 }
 
 post_upgrade() {
@@ -43,6 +67,8 @@ post_upgrade() {
   if [ "$(vercmp $2 5.10.0)" -lt 0 ]; then
     correct_fstab
   fi
+
+  #pikvm_enable_startx
 }
 
 post_remove() {

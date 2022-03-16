@@ -1,20 +1,18 @@
-# Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 # Maintainer: graysky <graysky@archlinux.us>
-
-buildarch=28
+# Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 
 pkgbase=raspberrypi-bootloader
 pkgname=('raspberrypi-bootloader-pikvm'
          'raspberrypi-bootloader-x-pikvm')
-pkgver=20211102
-pkgrel=1
-_commit=27f12ea332fa4d94b963f8e0f6e48502684a5343
+pkgver=20220301
+pkgrel=11
+_commit=231daece7cbf9282736efa7d254b3e4859f8e73b
 arch=('any')
 url="https://github.com/raspberrypi/firmware"
 license=('custom')
 options=(!strip)
-source=("https://github.com/raspberrypi/firmware/archive/${_commit}.tar.gz")
-md5sums=('44fc9c2aa625a8cfdfc02101bc629c4c')
+source=("bootloader-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/firmware/archive/${_commit}.tar.gz")
+md5sums=('9a22524808c7980ba1536e4c5238cb00')
 
 package_raspberrypi-bootloader-pikvm() {
   pkgdesc="Bootloader files for Raspberry Pi"

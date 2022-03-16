@@ -3,10 +3,8 @@ linux-firmware-pikvm
 firmware-raspberrypi-pikvm
 raspberrypi-firmware-pikvm
 raspberrypi-bootloader-pikvm
-linux-raspberrypi-pikvm
-linux-raspberrypi4-pikvm
+linux-rpi-pikvm
 pikvm-os-raspberrypi
-pikvm-os-raspberrypi4
 janus-gateway-pikvm
 watchdog
 tailscale-pikvm
@@ -29,3 +27,4 @@ kvmd
 kvmd-webterm
 kvmd-oled
 kvmd-fan
+vi-vim-symlink
