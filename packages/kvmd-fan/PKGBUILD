@@ -1,5 +1,5 @@
 pkgname=kvmd-fan
-pkgver=0.12
+pkgver=0.13
 pkgrel=1
 pkgdesc="PiKVM - A small fan controller daemon"
 url="https://github.com/pikvm/kvmd-fan"
