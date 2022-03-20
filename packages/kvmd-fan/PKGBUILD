@@ -1,11 +1,12 @@
 pkgname=kvmd-fan
-pkgver=0.10
+pkgver=0.11
 pkgrel=1
 pkgdesc="PiKVM - A small fan controller daemon"
 url="https://github.com/pikvm/kvmd-fan"
 license=(GPL)
 arch=(armv6h armv7h aarch64)
 depends=(
+	libmicrohttpd
 	libgpiod
 	wiringpi
 )
