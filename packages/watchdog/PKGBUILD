@@ -1,7 +1,7 @@
-_commit=03d67da
+_commit=20011e
 
 pkgname=watchdog
-pkgver=5.15.$_commit
+pkgver=5.16
 pkgrel=1
 pkgdesc="Software watchdog for Linux"
 url="http://sourceforge.net/projects/watchdog"
