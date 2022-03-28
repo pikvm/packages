@@ -15,6 +15,7 @@ python-pyftdi
 python-smbus2
 python-luma-core
 python-luma-oled
+python-pyrad
 raspberrypi-io-access
 raspberrypi-hdmi
 raspberrypi-bluetooth
