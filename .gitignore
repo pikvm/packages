@@ -1,3 +1,4 @@
 /.pi-builder/
 /.build/
 /repos/
+/config.mk

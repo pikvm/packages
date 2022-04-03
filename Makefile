@@ -1,4 +1,8 @@
+-include config.mk
+
+
 BOARD ?= rpi2
+ARCH_REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 
 
 # =====
@@ -114,15 +118,16 @@ shell:
 
 
 binfmt: buildenv
-	$(MAKE) -C $(_BUILDENV_DIR) binfmt
+	$(MAKE) -C $(_BUILDENV_DIR) binfmt REPO_URL=$(ARCH_REPO_URL)
 
 
 buildenv: $(_BUILDENV_DIR)
 	$(call say,"Ensuring $(BOARD) buildenv")
-	$(MAKE) -C $(_BUILDENV_DIR) binfmt
+	$(MAKE) -C $(_BUILDENV_DIR) binfmt REPO_URL=$(ARCH_REPO_URL)
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
+		REPO_URL=$(ARCH_REPO_URL) \
 		NC=$(NC) \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
