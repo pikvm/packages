@@ -7,7 +7,7 @@ index 4a4703634a2a..cdba48f5ddf8 100644
  	i = get_default_bcdDevice();
  	snprintf(common->inquiry_string, sizeof(common->inquiry_string),
 -		 "%-8s%-16s%04x", vn ?: "Linux",
-+		 "%-8s%-16s%04x", vn ?: "Pi-KVM",
++		 "%-8s%-16s%04x", vn ?: "PiKVM",
  		 /* Assume product name dependent on the first LUN */
  		 pn ?: ((*common->luns)->cdrom
 -		     ? "File-CD Gadget"

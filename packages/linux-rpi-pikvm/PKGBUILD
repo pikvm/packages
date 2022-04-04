@@ -9,7 +9,7 @@ _commit=0efbe86e7248ad9b80a42b37a91c44860f91eee4
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 pkgver=5.15.25
-pkgrel=10
+pkgrel=13
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
@@ -66,6 +66,8 @@ prepare() {
 
   echo "Setting config..."
   cp ../"$_config" .config
+  sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
+  sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
   make olddefconfig
 
   make -s kernelrelease > version

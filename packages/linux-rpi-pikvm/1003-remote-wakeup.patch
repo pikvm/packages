@@ -1,9 +1,9 @@
 diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
-index 3146df6e6510..c64e573af7ca 100644
+index 0909b088a284..31ff5348020c 100644
 --- a/drivers/usb/dwc2/gadget.c
 +++ b/drivers/usb/dwc2/gadget.c
-@@ -4683,6 +4683,52 @@ static int dwc2_hsotg_vbus_draw(struct usb_gadget *gadget, unsigned int mA)
- 	return usb_phy_set_power(hsotg->uphy, mA);
+@@ -4763,6 +4763,78 @@ static void dwc2_gadget_set_speed(struct usb_gadget *g, enum usb_device_speed sp
+ 	spin_unlock_irqrestore(&hsotg->lock, flags);
  }
  
 +/**
@@ -23,27 +23,53 @@ index 3146df6e6510..c64e573af7ca 100644
 +
 +	if (!hsotg->remote_wakeup_allowed) {
 +		dev_dbg(hsotg->dev,
-+			"wakeup signalling skipped: is not allowed by host\n");
++			"wakeup: signalling skipped: is not allowed by host\n");
 +		goto skip;
 +	}
 +	if (hsotg->lx_state != DWC2_L1 && hsotg->lx_state != DWC2_L2) {
 +		dev_dbg(hsotg->dev,
-+			"wakeup signalling skipped: gadget not in L1/L2 state\n");
++			"wakeup: signalling skipped: gadget not in L1/L2 state: %d\n", hsotg->lx_state);
 +		goto skip;
 +	}
 +	if (!dwc2_is_device_mode(hsotg)) {
 +		dev_dbg(hsotg->dev,
-+			"wakeup signalling skipped: gadget not in device mode\n");
++			"wakeup: signalling skipped: gadget not in device mode\n");
 +		goto skip;
 +	}
 +
-+	dev_dbg(hsotg->dev, "sending wakeup signal to the host");
++	/*if (hsotg->in_ppd) {
++		if (dwc2_exit_partial_power_down(hsotg, 1, true))
++			dev_err(hsotg->dev, "wakeup: exit partial_power_down failed\n");
++		call_gadget(hsotg, resume);
++	}*/
++	if (hsotg->params.power_down == DWC2_POWER_DOWN_PARAM_NONE && hsotg->bus_suspended) {
++		u32 pcgctl;
++
++		dev_dbg(hsotg->dev, "wakeup: exiting device clock gating\n");
++
++		/* Clear the Gate hclk. */
++		pcgctl = dwc2_readl(hsotg, PCGCTL);
++		pcgctl &= ~PCGCTL_GATEHCLK;
++		dwc2_writel(hsotg, pcgctl, PCGCTL);
++		udelay(5);
++
++		/* Phy Clock bit. */
++		pcgctl = dwc2_readl(hsotg, PCGCTL);
++		pcgctl &= ~PCGCTL_STOPPCLK;
++		dwc2_writel(hsotg, pcgctl, PCGCTL);
++		udelay(5);
++
++		hsotg->bus_suspended = false;
++	}
++
++	dev_dbg(hsotg->dev, "wakeup: sending signal to the host");
 +
 +	dwc2_set_bit(hsotg, DCTL, DCTL_RMTWKUPSIG);
 +	mdelay(10);
 +	dwc2_clear_bit(hsotg, DCTL, DCTL_RMTWKUPSIG);
 +
 +	/* After the signalling, the USB core wakes up to L0 */
++	call_gadget(hsotg, resume);
 +	hsotg->lx_state = DWC2_L0;
 +
 +	ret = 0;
@@ -55,8 +81,8 @@ index 3146df6e6510..c64e573af7ca 100644
  static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
  	.get_frame	= dwc2_hsotg_gadget_getframe,
  	.set_selfpowered	= dwc2_hsotg_set_selfpowered,
-@@ -4691,6 +4737,7 @@ static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
- 	.pullup                 = dwc2_hsotg_pullup,
+@@ -4772,6 +4844,7 @@ static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
+ 	.udc_set_speed		= dwc2_gadget_set_speed,
  	.vbus_session		= dwc2_hsotg_vbus_session,
  	.vbus_draw		= dwc2_hsotg_vbus_draw,
 +	.wakeup			= dwc2_hsotg_wakeup,
