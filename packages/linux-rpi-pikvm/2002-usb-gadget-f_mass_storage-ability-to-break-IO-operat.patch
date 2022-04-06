@@ -1,0 +1,73 @@
+From bcc40a0555d0637a59319b47f6a2cbab7267c817 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Wed, 6 Apr 2022 06:15:09 +0300
+Subject: [PATCH] usb: gadget: f_mass_storage: ability to break IO operations
+ via configfs
+
+Using the SIGUSR1 signal sent to the "file-storage" thread
+from the userspace, it is possible to break IO operations
+that block the gadget. Thus, it is possible to implement
+"force eject" without stopping the gadget and umounting
+it from the host side.
+
+There are two problems here:
+
+  - In order to send a signal, we need to find the thread
+    in procfs, but if several mass storage gadgets are created
+    in the system, each process has the same name and it is
+    impossible to distinguish one gadget from another.
+
+  - Root privileges are required to send the signal.
+
+The proposed "break_io" interface solves both problems.
+It allows us to get rid of the procfs search and delegate
+sending the signal to a regular user.
+
+Signed-off-by: Maxim Devaev <mdevaev@gmail.com>
+---
+ drivers/usb/gadget/function/f_mass_storage.c | 22 ++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
+index 6ad669dde41c..e9b7c59e1dc4 100644
+--- a/drivers/usb/gadget/function/f_mass_storage.c
++++ b/drivers/usb/gadget/function/f_mass_storage.c
+@@ -3239,6 +3239,27 @@ static ssize_t fsg_opts_stall_store(struct config_item *item, const char *page,
+ 
+ CONFIGFS_ATTR(fsg_opts_, stall);
+ 
++static ssize_t fsg_opts_break_io_store(struct config_item *item,
++				       const char *page, size_t len)
++{
++	struct fsg_opts *opts = to_fsg_opts(item);
++	unsigned long flags;
++
++	mutex_lock(&opts->lock);
++	spin_lock_irqsave(&opts->common->lock, flags);
++
++	if (opts->common->thread_task)
++		send_sig_info(SIGUSR1, SEND_SIG_PRIV,
++			      opts->common->thread_task);
++
++	spin_unlock_irqrestore(&opts->common->lock, flags);
++	mutex_unlock(&opts->lock);
++
++	return len;
++}
++
++CONFIGFS_ATTR_WO(fsg_opts_, break_io);
++
+ #ifdef CONFIG_USB_GADGET_DEBUG_FILES
+ static ssize_t fsg_opts_num_buffers_show(struct config_item *item, char *page)
+ {
+@@ -3283,6 +3304,7 @@ CONFIGFS_ATTR(fsg_opts_, num_buffers);
+ 
+ static struct configfs_attribute *fsg_attrs[] = {
+ 	&fsg_opts_attr_stall,
++	&fsg_opts_attr_break_io,
+ #ifdef CONFIG_USB_GADGET_DEBUG_FILES
+ 	&fsg_opts_attr_num_buffers,
+ #endif
+-- 
+2.35.1
+

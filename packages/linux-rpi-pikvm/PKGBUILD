@@ -9,7 +9,7 @@ _commit=0efbe86e7248ad9b80a42b37a91c44860f91eee4
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 pkgver=5.15.25
-pkgrel=13
+pkgrel=14
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
@@ -28,6 +28,7 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         90-linux.hook
         1003-remote-wakeup.patch
         2001-rename-msd.patch
+        2002-usb-gadget-f_mass_storage-ability-to-break-IO-operat.patch
         3001-bcm2835-codec-dev-video31-as-interface-to-image_enco.patch
 )
 md5sums=('SKIP'
@@ -36,7 +37,7 @@ md5sums=('SKIP'
          'SKIP'
          'SKIP'
          'SKIP'
-         SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP)
 md5sums_armv7h=('SKIP'
                 'SKIP')
 md5sums_aarch64=('SKIP'
@@ -57,6 +58,7 @@ prepare() {
 
   patch -Np1 -i ../1003-remote-wakeup.patch
   patch -Np1 -i ../2001-rename-msd.patch
+  patch -Np1 -i ../2002-usb-gadget-f_mass_storage-ability-to-break-IO-operat.patch
   patch -Np1 -i ../3001-bcm2835-codec-dev-video31-as-interface-to-image_enco.patch
 
   echo "Setting version..."
