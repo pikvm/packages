@@ -34,7 +34,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.80
+pkgver=3.81
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -170,7 +170,7 @@ package_kvmd() {
 	install -Dm644 -t "$pkgdir/etc/kvmd" "$_cfg_default/kvmd"/web.css
 	mkdir -p "$pkgdir/etc/kvmd/override.d"
 
-	mkdir -p "$pkgdir/var/lib/kvmd/msd"
+	mkdir -p "$pkgdir/var/lib/kvmd/"{msd,pst}
 
 	# Avoid dhcp problems
 	install -DTm755 configs/os/netctl-dhcp "$pkgdir/etc/netctl/hooks/pikvm-dhcp"
@@ -185,6 +185,9 @@ for _variant in "${_variants[@]}"; do
 
 		pkgdesc=\"PiKVM platform configs - $_platform for $_board\"
 		depends=(kvmd=$pkgver-$pkgrel)
+		if [ $_board != generic ]; then
+			depends=(\"\${depends[@]}\" \"linux-rpi-pikvm>=5.15.25-16\")
+		fi
 
 		backup=(
 			etc/sysctl.d/99-kvmd.conf
