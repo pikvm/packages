@@ -3,10 +3,10 @@
 # Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 
 pkgname=raspberrypi-firmware-pikvm
-pkgver=20220301
-pkgrel=3
-_commitfirmware=231daece7cbf9282736efa7d254b3e4859f8e73b
-_commituserland=8fa944c74085aacd99da3e733af8dc5ac9b04fd9
+pkgver=20220324
+pkgrel=1
+_commitfirmware=ea4c803c57697aad951a27fcd64c01ef16f9fe7f
+_commituserland=c4fd1b8986c6d6d4ae5cd51e65a8bbeb495dfa4e
 pkgdesc="Firmware tools, libraries, and headers for Raspberry Pi"
 arch=('armv7h' 'aarch64')
 url="https://github.com/raspberrypi/firmware"
@@ -18,15 +18,15 @@ options=(!strip)
 source=('00-raspberrypi-firmware.conf'
         '10-raspberrypi-firmware.rules'
         'raspberrypi-firmware.sh')
-source_armv7h=("firmware-$pkgver-${_commitfirmware:0:10}.tar.gz::https://github.com/raspberrypi/firmware/archive/$_commitfirmware.tar.gz")
-source_aarch64=("userland-$pkgver-${_commituserland:0:10}.tar.gz::https://github.com/raspberrypi/userland/archive/$_commituserland.tar.gz"
+source_armv7h=("firmware-$pkgver-$pkgrel-${_commitfirmware:0:10}.tar.gz::https://github.com/raspberrypi/firmware/archive/$_commitfirmware.tar.gz")
+source_aarch64=("userland-$pkgver-$pkgrel-${_commituserland:0:10}.tar.gz::https://github.com/raspberrypi/userland/archive/$_commituserland.tar.gz"
                 "https://raw.githubusercontent.com/raspberrypi/firmware/master/opt/vc/LICENCE")
-md5sums=('SKIP'
-         'SKIP'
-         'SKIP')
-md5sums_armv7h=('SKIP')
-md5sums_aarch64=('SKIP'
-                 'SKIP')
+md5sums=('72e0d5818fc513ece1b964f25f7e7882'
+         '2ad54baf398afe59ff5a70eb655f1b96'
+         '60919cb17f31b4698b6650bbb46f18ed')
+md5sums_armv7h=('f20977c370d447924e61de6e6b2d702e')
+md5sums_aarch64=('486f5fe428936d32810bf6a346183e9d'
+                 '86e53f5f5909ee66900418028de11780')
 
 conflicts=(raspberrypi-firmware)
 provides+=("raspberrypi-firmware=$pkgver")
