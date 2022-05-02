@@ -1,11 +1,13 @@
 [Unit]
-Description=Pi-KVM - Web terminal (ttyd)
+Description=PiKVM - Web terminal (ttyd)
 After=network.target
 
 [Service]
 User=kvmd-webterm
 Group=kvmd-webterm
 WorkingDirectory=/home/kvmd-webterm
+Restart=always
+RestartSec=1
 
 # Crutch for UNIX socket perms
 UMask=0117
@@ -13,7 +15,7 @@ UMask=0117
 ExecStart=/usr/bin/ttyd \
 		--interface=/run/kvmd/ttyd.sock \
 		--port=0 \
-	/bin/bash -c 'echo -ne "\033]0;Pi-KVM Terminal: `hostname -f` (ttyd)\007"; cat /etc/motd; export TERM=linux; umask 0022; bash'
+	/bin/bash -c 'echo -ne "\033]0;PiKVM Terminal: `hostname -f` (ttyd)\007"; cat /etc/motd; export TERM=linux; umask 0022; bash'
 
 [Install]
 WantedBy=multi-user.target
