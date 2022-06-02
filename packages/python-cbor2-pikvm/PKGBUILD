@@ -1,0 +1,39 @@
+# Maintainer: David Runge <dvzrv@archlinux.org>
+
+_name=cbor2
+_ver=5.4.2.post1
+pkgname=python-cbor2-pikvm
+pkgver=5.4.3
+pkgrel=2
+pkgdesc="Pure Python CBOR (de)serializer with extensive tag support"
+arch=(armv7h)
+url="https://github.com/agronholm/cbor2"
+license=(MIT)
+depends=(python)
+makedepends=(python-setuptools-scm python-toml python-pip)
+checkdepends=(python-pytest)
+options=(debug)
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${_ver}.tar.gz")
+sha256sums=('9cf21d59604b9529d7877c8e0342a2ebaae1a07fe8ff5683dc75fec15847c797')
+b2sums=('6d82ba6b99828615a3f93d8958f759fdc838a7c324ebbe82cda7d46ab8a450db95b626eac83df24d874725f99a141864d97e1077cdc9f2b177cc3d5019eab429')
+
+provides=(python-cbor2)
+conflicts=(python-cbor2)
+
+build() {
+  cd "${_name}-$_ver"
+  python setup.py build
+}
+
+check() {
+  cd "${_name}-$_ver"
+  export PYTHONPATH="build:${PYTHONPATH}"
+  pytest -v -c /dev/null tests
+}
+
+package() {
+  cd "${_name}-$_ver"
+  python setup.py install --optimize=1 --root="${pkgdir}"
+  install -vDm 644 README.rst -t "${pkgdir}/usr/share/doc/${pkgname}"
+  install -vDm 644 LICENSE.txt -t "${pkgdir}/usr/share/licenses/${pkgname}"
+}
