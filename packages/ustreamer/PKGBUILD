@@ -3,13 +3,13 @@
 
 
 pkgname=ustreamer
-pkgver=5.5
+pkgver=5.6
 pkgrel=1
 pkgdesc="Lightweight and fast MJPEG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
 license=(GPL)
 arch=(i686 x86_64 armv6h armv7h aarch64)
-depends=(raspberrypi-firmware janus-gateway-pikvm libjpeg libevent libbsd libgpiod systemd)
+depends=(raspberrypi-firmware janus-gateway-pikvm alsa-lib opus libjpeg libevent libbsd libgpiod systemd)
 makedepends=(gcc make systemd)
 source=(${pkgname}::"git+https://github.com/pikvm/ustreamer#commit=v${pkgver}")
 md5sums=(SKIP)
@@ -22,8 +22,8 @@ if [ -e /usr/bin/python3 ]; then
 	makedepends+=(python-setuptools)
 fi
 if [ -e /usr/include/janus/plugins/plugin.h ];then
-	depends+=(janus-gateway-pikvm)
-	makedepends+=(janus-gateway-pikvm)
+	depends+=(janus-gateway-pikvm alsa-lib opus)
+	makedepends+=(janus-gateway-pikvm alsa-lib opus)
 	_options="$_options WITH_JANUS=1"
 fi
 
