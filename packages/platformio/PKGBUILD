@@ -1,6 +1,6 @@
 pkgname=platformio
-pkgver=5.2.4
-pkgrel=2
+pkgver=6.0.1
+pkgrel=1
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
 license=("Apache 2.0")
