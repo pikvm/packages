@@ -1,0 +1,49 @@
+From 9fb2a3fdac86f8b0327b590ab3e1f5dcd937c86a Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Tue, 5 Jul 2022 01:54:18 +0300
+Subject: [PATCH] bcm2835-v4l2-codec: support H.264 5.0 and 5.1 levels
+
+---
+ .../vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+index 6df12827713a..ca063a25ab12 100644
+--- a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
++++ b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+@@ -2189,6 +2189,12 @@ static int bcm2835_codec_set_level_profile(struct bcm2835_codec_ctx *ctx,
+ 		case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
+ 			param.level = MMAL_VIDEO_LEVEL_H264_42;
+ 			break;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_5_0:
++			param.level = MMAL_VIDEO_LEVEL_H264_5;
++			break;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_5_1:
++			param.level = MMAL_VIDEO_LEVEL_H264_51;
++			break;
+ 		default:
+ 			/* Should never get here */
+ 			break;
+@@ -3276,7 +3282,7 @@ static int bcm2835_codec_open(struct file *file)
+ 				  1, 60);
+ 		v4l2_ctrl_new_std_menu(hdl, &bcm2835_codec_ctrl_ops,
+ 				       V4L2_CID_MPEG_VIDEO_H264_LEVEL,
+-				       V4L2_MPEG_VIDEO_H264_LEVEL_4_2,
++				       V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
+ 				       ~(BIT(V4L2_MPEG_VIDEO_H264_LEVEL_1_0) |
+ 					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_1B) |
+ 					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_1_1) |
+@@ -3290,7 +3296,9 @@ static int bcm2835_codec_open(struct file *file)
+ 					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_3_2) |
+ 					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_4_0) |
+ 					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_4_1) |
+-					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_4_2)),
++					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_4_2) |
++					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_5_0) |
++					 BIT(V4L2_MPEG_VIDEO_H264_LEVEL_5_1)),
+ 				       V4L2_MPEG_VIDEO_H264_LEVEL_4_0);
+ 		v4l2_ctrl_new_std_menu(hdl, &bcm2835_codec_ctrl_ops,
+ 				       V4L2_CID_MPEG_VIDEO_H264_PROFILE,
+-- 
+2.37.0
+
