@@ -20,7 +20,7 @@ _REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
 _MAKE_J = 13
 
 _UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := rpi rpi2
+_KNOWN_BOARDS := rpi2
 
 
 # =====
@@ -170,12 +170,6 @@ $(_BUILDENV_DIR):
 
 $(_BUILD_DIR):
 	mkdir -p $(_BUILD_DIR)
-
-
-$(_BASE_REPOS_DIR)/rpi:
-	mkdir -p $(_BASE_REPOS_DIR)/rpi
-	ln -sf rpi $(_BASE_REPOS_DIR)/zerow
-	ln -sf rpi $(_BASE_REPOS_DIR)/rpi-arm
 
 
 $(_BASE_REPOS_DIR)/rpi2:
