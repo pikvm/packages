@@ -1,0 +1,21 @@
+pkgname=python-pyserial-asyncio
+pkgver=0.6
+pkgrel=2
+pkgdesc="Asyncio extension package for pyserial"
+url="https://github.com/pyserial/pyserial-asyncio"
+license=(MIT)
+arch=(any)
+depends=(
+	"python>=3.10"
+	"python<3.11"
+	python-pyserial
+)
+makedepends=(python-setuptools)
+source=("https://github.com/pyserial/pyserial-asyncio/archive/v${pkgver}.tar.gz")
+sha1sums=(SKIP)
+
+
+package() {
+	cd "$srcdir/pyserial-asyncio-$pkgver"
+	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
+}
