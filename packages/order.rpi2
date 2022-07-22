@@ -8,6 +8,7 @@ pikvm-os-raspberrypi
 janus-gateway-pikvm
 watchdog
 tailscale-pikvm
+python-ajsonrpc
 python-pyserial-asyncio
 python-pyghmi
 python-spidev

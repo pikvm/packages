@@ -1,0 +1,21 @@
+pkgname=python-ajsonrpc
+pkgver=1.2.0
+pkgrel=2
+pkgdesc="Async JSON-RPC 2.0 protocol + server"
+url="https://github.com/pavlov99/ajsonrpc"
+license=(MIT)
+arch=(any)
+depends=(
+	"python>=3.10"
+	"python<3.11"
+)
+makedepends=(python-setuptools)
+options=(!emptydirs)
+source=("https://github.com/pavlov99/ajsonrpc/archive/${pkgver}.tar.gz")
+md5sums=(SKIP)
+
+
+package() {
+	cd "$srcdir/ajsonrpc-$pkgver"
+	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
+}
