@@ -1,7 +1,7 @@
 #_commit=7b784c40ac9e8d1fa07c403c013c8559692b7e1c
 pkgname=janus-gateway-pikvm
 pkgver=0.12.3
-pkgrel=1
+pkgrel=2
 pkgdesc="An open source, general purpose, WebRTC server (Pi-KVM build)"
 url='https://janus.conf.meetecho.com'
 license=(GPL3)
@@ -25,6 +25,9 @@ makedepends=(
 conflicts=(
 	janus-gateway
 	janus-gateway-git
+)
+provides=(
+	janus-gateway
 )
 source=(
 	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
