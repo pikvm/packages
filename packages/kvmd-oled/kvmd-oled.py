@@ -27,8 +27,6 @@ import logging
 import datetime
 import time
 
-from typing import Tuple
-
 import netifaces
 import psutil
 
@@ -45,7 +43,7 @@ _logger = logging.getLogger("oled")
 
 
 # =====
-def _get_ip() -> Tuple[str, str]:
+def _get_ip() -> tuple[str, str]:
     try:
         gws = netifaces.gateways()
         if "default" not in gws:
@@ -115,7 +113,7 @@ class Screen:
         device: luma_device,
         font: ImageFont.FreeTypeFont,
         font_spacing: int,
-        offset: Tuple[int, int],
+        offset: tuple[int, int],
     ) -> None:
 
         self.__device = device
