@@ -1,16 +1,17 @@
 pkgname=tailscale-pikvm
-pkgver=0.4
+pkgver=0.5
 pkgrel=1
 pkgdesc="Pi-KVM fixes for Tailscale"
 url="https://tailscale.com"
 license=(GPL)
 arch=(any)
-depends=("tailscale>=1.14.6")
-source=()
-md5sums=()
+depends=("tailscale>=1.30.1")
+source=(pikvm-logs-dir.conf)
+md5sums=(SKIP)
 install=tailscale-pikvm.install
 
 
 package() {
-	echo stub
+	mkdir -p "$pkgdir/etc/systemd/system/tailscaled.service.d"
+	install -m644 pikvm-logs-dir.conf "$pkgdir/etc/systemd/system/tailscaled.service.d/pikvm-logs-dir.conf"
 }
