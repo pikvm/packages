@@ -5,11 +5,11 @@
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-rpi
-_commit=42e3206162247e3848aef22e7a384ea60f3ebb5c
+_commit=b11af53ca3d52a4eb4599167dce2b2c35ec9c7eb
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
-pkgver=5.15.34
-pkgrel=4
+pkgver=5.15.68
+pkgrel=2
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
@@ -29,19 +29,12 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         1003-remote-wakeup.patch
         2001-rename-msd.patch
         2002-usb-gadget-f_mass_storage-forced-eject.patch
-        3001-bcm2835-v4l2-codec-support-H.264-5.0-and-5.1-levels.patch
 )
-md5sums=('07e6bfc7ded97af8e785266a02e9b78d'
-         '31c02f4518d46deb5f0c2ad1f8b083cd'
-         'f66a7ea3feb708d398ef57e4da4815e9'
-         '86d4a35722b5410e3b29fc92dae15d4b'
-         '0a5f16bfec6ad982a2f6782724cca8ba'
-         '441ec084c47cddc53e592fb0cbce4edf'
-         SKIP SKIP SKIP SKIP)
-md5sums_armv7h=('3de87143205e382006c160c7922b40c1'
-                'a9a05a9e8487584b10a0191dd53e5170')
-md5sums_aarch64=('a392c1390e70fc3d0ef1ccb2b31cd762'
-                 'a9a05a9e8487584b10a0191dd53e5170')
+md5sums=('9d4b3eebd22b9b922b1150dec5aeaccf'
+         SKIP SKIP SKIP SKIP SKIP
+         SKIP SKIP SKIP)
+md5sums_armv7h=(SKIP SKIP)
+md5sums_aarch64=(SKIP SKIP)
 
 # setup vars
 if [[ $CARCH == "armv7h" ]]; then
@@ -59,7 +52,6 @@ prepare() {
   patch -Np1 -i ../1003-remote-wakeup.patch
   patch -Np1 -i ../2001-rename-msd.patch
   patch -Np1 -i ../2002-usb-gadget-f_mass_storage-forced-eject.patch
-  patch -Np1 -i ../3001-bcm2835-v4l2-codec-support-H.264-5.0-and-5.1-levels.patch
 
   echo "Setting version..."
   scripts/setlocalversion --save-scmversion
@@ -85,7 +77,7 @@ build() {
 _package-pikvm() {
   pkgdesc="RPi Foundation patched Linux kernel and modules"
   depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7' 'firmware-raspberrypi')
-  optdepends=('crda: to set the correct wireless channels of your country')
+  optdepends=('wireless-regdb: to set the correct wireless channels of your country')
   provides=('kernel26' "linux=${pkgver}" 'WIREGUARD-MODULE')
   conflicts=('kernel26' 'linux' 'uboot-raspberrypi')
   install=linux-rpi.install
@@ -105,7 +97,8 @@ _package-pikvm() {
   echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
   echo "Installing modules..."
-  make INSTALL_MOD_PATH="$pkgdir/usr" modules_install
+  make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+    DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
   # remove build and source links
   rm "$modulesdir"/{source,build}
