@@ -70,7 +70,6 @@ prepare_build_dir() {
 	local pkg_dir="$1"
 	local build_dir="$2"
 	say "Preparing build directory ..."
-	[ -d "$build_dir" ] || die "Missing build dir" $build_dir
 	find "$build_dir" -mindepth 1 -delete
 	cp "$pkg_dir"/* "$build_dir"
 }
@@ -87,7 +86,7 @@ install_deps() {
 }
 
 sign_piped() {
-	sudo -u alarm xargs -n1 -L1 bash -c "gpg \
+	sudo -u alarm xargs -L1 bash -c "gpg \
 			--verbose \
 			--pinentry-mode loopback \
 			--local-user $REPO_KEY \
@@ -111,9 +110,15 @@ test_sign() {
 
 build() {
 	local build_dir="$1"
+	local noextract="$2"
 	pushd "$build_dir" >/dev/null
-	say "Building package ..."
-	sudo -u alarm makepkg
+	if [ -n "$noextract" ]; then
+		say "Building package with NOEXTRACT ..."
+		sudo -u alarm makepkg --noextract --force
+	else
+		say "Building package ..."
+		sudo -u alarm makepkg
+	fi
 	say "Signing package(s) ..."
 	ls *.pkg.tar.xz | sign_piped
 	popd >/dev/null
@@ -150,6 +155,7 @@ main() {
 	local pkg_name="$1"; [ -n "$pkg_name" ] || die "Missing package name"
 	local force="$2"
 	local norepo="$3"
+	local noextract="$4"
 
 	[ -n "$REPO_NAME" ] || die "Missing REPO_NAME variable"
 	[ -n "$REPO_KEY" ] || die "Missing REPO_KEY variable"
@@ -157,6 +163,9 @@ main() {
 	[ -n "$BUILD_DIR" ] || die "Missing BUILD_DIR variable"
 	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
 	[ -n "$MAKE_J" ] || die "Missing MAKE_J variable"
+
+	BUILD_DIR="$BUILD_DIR/$pkg_name"
+	sudo -u alarm mkdir -p "$BUILD_DIR"
 
 	# =====
 
@@ -186,7 +195,9 @@ main() {
 		sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j$MAKE_J/g" /etc/makepkg.conf
 		say "Using MAKE_J=$MAKE_J"
 		append_repo "$REPO_NAME" "$REPO_DIR"
-		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+		if [ -z "$noextract" ]; then
+			prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+		fi
 		test_sign "$BUILD_DIR"
 # FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
 #		if [ -n "$keys" ]; then
@@ -197,7 +208,7 @@ main() {
 #			done
 #		fi
 		install_deps "$deps"
-		build "$BUILD_DIR"
+		build "$BUILD_DIR" "$noextract"
 		if [ -z "$norepo" ]; then
 			if [ -n "$old_version" ]; then
 				for sub_pkg_name in $pkgs; do
@@ -214,4 +225,4 @@ main() {
 	fi
 }
 
-main "$1" "$2" "$3"
+main "$1" "$2" "$3" "$4"

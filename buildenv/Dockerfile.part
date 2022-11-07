@@ -31,9 +31,10 @@ RUN pacman --noconfirm -Syy \
 		base \
 		base-devel \
 		devtools \
+		bc \
+		inetutils \
 		vim \
 		wget \
-		git \
 		python \
 		raspberrypi-firmware \
 	&& case "$BOARD" in \
