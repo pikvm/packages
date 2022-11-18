@@ -15,9 +15,13 @@ RUN echo "Server = $REPO_URL/\$arch/\$repo" > /etc/pacman.d/mirrorlist \
 	&& pacman-key --init \
 	&& pacman-key --populate archlinuxarm
 
-RUN pacman --noconfirm -Syy \
-	&& pacman --needed --noconfirm -S \
+RUN pacman --noconfirm --ask=4 -Syy \
+	&& pacman --needed --noconfirm --ask=4 -S \
 		glibc \
+		openssl \
+		openssl-1.0 \
+		openssl-1.1 \
+	&& pacman --needed --noconfirm --ask=4 -S \
 		pacman \
 	&& pacman-db-upgrade \
 	&& pacman --noconfirm -Syu \
