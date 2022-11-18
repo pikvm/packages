@@ -29,7 +29,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.173
+pkgver=3.175
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -93,7 +93,7 @@ depends=(
 
 	# Possible hotfix for the new os update
 	openssl-1.0
-	# openssl-1.1
+	openssl-1.1
 
 	# Bootconfig
 	dos2unix
