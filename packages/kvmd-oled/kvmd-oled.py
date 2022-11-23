@@ -45,45 +45,20 @@ _logger = logging.getLogger("oled")
 # =====
 def _get_ip() -> tuple[str, str]:
     try:
-        iface=None
-        proto=None
-        try:
-            gws = netifaces.gateways()
-            if "default" not in gws:
-                raise RuntimeError(f"No default gateway: {gws}")
-
-            iface = ""
+        gws = netifaces.gateways()
+        if "default" in gws:
             for proto in [socket.AF_INET, socket.AF_INET6]:
                 if proto in gws["default"]:
                     iface = gws["default"][proto][1]
-                    break
-            else:
-                raise RuntimeError(f"No iface for the gateway {gws['default']}")
-        except RuntimeError as e:
-            # no default gateway - but we may have link-local networking
-            for i in netifaces.interfaces():
-                if i != "lo":
-                    addrs = netifaces.ifaddresses(i)
+                    addrs = netifaces.ifaddresses(iface)
+                    return (iface, addrs[proto][0]["addr"])
 
-                    if socket.AF_INET in addrs:
-                        for addr in addrs[socket.AF_INET]:
-                            if "addr" in addr:
-                                iface = i
-                                proto = socket.AF_INET
-                                break
-                        else:
-                            if socket.AF_INET6 in addrs:
-                                for addr in addrs[socket.AF_INET6]:
-                                    if "addr" in addr:
-                                        iface = i
-                                        proto = socket.AF_INET6
-                                        break
-
-            if iface is None or proto is None:
-                raise RuntimeError(f"No link-local addresses: {str(e)}")
-
-        for addr in netifaces.ifaddresses(iface).get(proto, []):
-            return (iface, addr["addr"])
+        for iface in netifaces.interfaces():
+            if not iface.startswith(("lo", "docker")):
+                addrs = netifaces.ifaddresses(iface)
+                for proto in [socket.AF_INET, socket.AF_INET6]:
+                    if proto in addrs:
+                        return (iface, addrs[proto][0]["addr"])
     except Exception:
         # _logger.exception("Can't get iface/IP")
         return ("<no-iface>", "<no-ip>")
