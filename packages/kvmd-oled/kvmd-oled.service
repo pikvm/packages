@@ -1,5 +1,5 @@
 [Unit]
-Description=Pi-KVM - Small OLED daemon
+Description=PiKVM - A small OLED daemon
 After=systemd-modules-load.service
 ConditionPathExists=/dev/i2c-1
 
@@ -7,8 +7,8 @@ ConditionPathExists=/dev/i2c-1
 Type=simple
 Restart=always
 RestartSec=3
-ExecStartPre=/usr/bin/kvmd-oled --height=32 --interval=3 --clear-on-exit --image=/usr/share/kvmd-oled/hello.ppm
-ExecStart=/usr/bin/kvmd-oled --height=32 --clear-on-exit
+ExecStartPre=/usr/bin/kvmd-oled --interval=3 --clear-on-exit --image=/usr/share/kvmd-oled/hello.ppm
+ExecStart=/usr/bin/kvmd-oled --clear-on-exit
 TimeoutStopSec=3
 
 [Install]
