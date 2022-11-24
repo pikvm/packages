@@ -192,15 +192,22 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
-            summary = True
-            while True:
-                if summary:
+            if device.height >= 64:
+                while True:
                     text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
-                else:
-                    text = "iface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
-                screen.draw_text(text)
-                summary = (not summary)
-                time.sleep(max(options.interval, 1))
+                    text += "\niface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                    screen.draw_text(text)
+                    time.sleep(max(options.interval, 1))
+            else:
+                summary = True
+                while True:
+                    if summary:
+                        text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
+                    else:
+                        text = "iface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                    screen.draw_text(text)
+                    summary = (not summary)
+                    time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
 
