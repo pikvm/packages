@@ -134,7 +134,7 @@ class Screen:
 
 def _detect_geometry() -> dict:
     with open("/proc/device-tree/model") as file:
-        is_cm4 = ("Compute Module 4" in file.readall())
+        is_cm4 = ("Compute Module 4" in file.read())
     has_usb = bool(list(usb.core.find(find_all=True)))
     if is_cm4 and has_usb:
         return {"height": 64, "rotate": 2}
