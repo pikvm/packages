@@ -132,13 +132,13 @@ class Screen:
             draw.bitmap(self.__offset, Image.open(image_path).convert("1"), fill="white")
 
 
-def _detect_height() -> int:
+def _detect_geometry() -> dict:
     with open("/proc/device-tree/model") as file:
         is_cm4 = ("Compute Module 4" in file.readall())
     has_usb = bool(list(usb.core.find(find_all=True)))
     if is_cm4 and has_usb:
-        return 64
-    return 32
+        return {"height": 64, "rotate": 2}
+    return {"height": 32, "rotate": 0}
 
 
 # =====
@@ -147,7 +147,7 @@ def main() -> None:
     logging.getLogger("PIL").setLevel(logging.ERROR)
 
     parser = luma_cmdline.create_parser(description="Display FQDN and IP on the OLED")
-    parser.set_defaults(height=_detect_height())
+    parser.set_defaults(**_detect_geometry())
 
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
     parser.add_argument("--font-size", default=16, type=int, help="Font size")
