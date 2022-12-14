@@ -62,7 +62,8 @@ def _get_ip() -> tuple[str, str]:
                         return (iface, addrs[proto][0]["addr"])
     except Exception:
         # _logger.exception("Can't get iface/IP")
-        return ("<no-iface>", "<no-ip>")
+        pass
+    return ("<no-iface>", "<no-ip>")
 
 
 def _get_uptime() -> str:
