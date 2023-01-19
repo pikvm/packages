@@ -29,4 +29,5 @@ kvmd
 kvmd-webterm
 kvmd-oled
 kvmd-fan
+kvmd-cloud
 vi-vim-symlink

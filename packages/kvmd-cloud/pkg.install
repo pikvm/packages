@@ -1,0 +1,19 @@
+post_install() {
+	post_upgrade
+}
+
+post_upgrade() {
+	echo "==> Ensuring KVMD-Cloud users and groups ..."
+	systemd-sysusers /usr/lib/sysusers.d/kvmd-cloud.conf
+
+	# https://github.com/systemd/systemd/issues/13522
+	# shellcheck disable=SC2013
+	for user in $(grep '^u ' /usr/lib/sysusers.d/kvmd-cloud.conf | awk '{print $2}'); do
+		usermod --expiredate= "$user" >/dev/null
+	done
+
+	chown root:root /etc/kvmd/cloud/ssl  2>/dev/null || true
+	chown root:kvmd-nginx /etc/kvmd/cloud/ssl/* 2>/dev/null || true
+	chmod 440 /etc/kvmd/cloud/ssl/server.key 2>/dev/null || true
+	chmod 444 /etc/kvmd/cloud/ssl/server.crt 2>/dev/null || true
+}
