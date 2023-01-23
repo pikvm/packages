@@ -1,5 +1,5 @@
 pkgname=kvmd-cloud
-pkgver=0.14
+pkgver=0.15
 pkgrel=1
 pkgdesc="PiKVM cloud agent"
 url="https://github.com/pikvm/kvmd-cloud"
@@ -35,6 +35,7 @@ package() {
 
 	mkdir -p "$pkgdir/usr/share/kvmd/extras/kvmd-cloud"
 	cp configs/nginx.ctx-http.share.conf "$pkgdir/usr/share/kvmd/extras/kvmd-cloud/nginx.ctx-http.conf"
+	cp configs/manifest.yaml "$pkgdir/usr/share/kvmd/extras/kvmd-cloud"
 
 	mkdir -p "$pkgdir/etc/kvmd/cloud/ssl"
 	chmod 755 "$pkgdir/etc/kvmd/cloud/ssl"
