@@ -22,7 +22,7 @@ raspberrypi-io-access
 raspberrypi-hdmi
 raspberrypi-bluetooth
 platformio
-avrdude-svn
+avrdude-pikvm
 ustreamer
 kvmd
 kvmd-webterm

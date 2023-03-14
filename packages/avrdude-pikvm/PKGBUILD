@@ -1,7 +1,7 @@
 _commit=7.1
 
-pkgname=avrdude-svn
-pkgver=20230304
+pkgname=avrdude-pikvm
+pkgver=20230314
 pkgrel=1
 pkgdesc="Download/upload/manipulate the ROM and EEPROM contents of AVR microcontrollers"
 url="http://www.nongnu.org/avrdude"
@@ -9,8 +9,9 @@ arch=(armv6h armv7h)
 license=(GPL)
 depends=(readline libftdi libusb-compat hidapi elfutils)
 makedepends=(cmake)
-provides=(avrdude)
-conflicts=(avrdude)
+provides=(avrdude avrdude-svn)
+conflicts=(avrdude avrdude-svn)
+replaces=(avrdude avrdude-svn)
 source=(${pkgname}::"git+https://github.com/avrdudes/avrdude#commit=v${_commit}")
 md5sums=(SKIP)
 
