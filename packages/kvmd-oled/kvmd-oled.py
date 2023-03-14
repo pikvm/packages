@@ -226,7 +226,8 @@ def main() -> None:
                     if summary:
                         text = f"{socket.getfqdn()}\n(__hb__) {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
                     else:
-                        text = "iface: %s\n(__hb__) %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                        (iface, ip) = _get_ip()
+                        text = "%s\n(__hb__) iface: %s\ncpu: %s mem: %s" % (ip, iface, _get_cpu(), _get_mem())
                     draw(text)
                     summary = (not summary)
     except (SystemExit, KeyboardInterrupt):
