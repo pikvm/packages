@@ -21,7 +21,6 @@ python-pyrad
 raspberrypi-io-access
 raspberrypi-hdmi
 raspberrypi-bluetooth
-ttyd
 platformio
 avrdude-svn
 ustreamer
