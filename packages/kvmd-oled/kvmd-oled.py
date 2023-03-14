@@ -23,6 +23,7 @@
 
 import sys
 import socket
+import itertools
 import logging
 import datetime
 import time
@@ -122,11 +123,10 @@ class Screen:
         self.__font = font
         self.__font_spacing = font_spacing
         self.__offset = offset
-        
+
     def draw_text(self, text: str) -> None:
         with luma_canvas(self.__device) as draw:
             draw.multiline_text(self.__offset, text, font=self.__font, spacing=self.__font_spacing, fill="white")
-
 
     def draw_image(self, image_path: str) -> None:
         with luma_canvas(self.__device) as draw:
@@ -205,22 +205,30 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
+
+            hb = itertools.cycle(r"/-\|")
+
+            def draw(text: str) -> None:
+                count = 0
+                while count < max(options.interval, 1) * 2:
+                    screen.draw_text(text.replace("__hb__", next(hb)))
+                    count += 1
+                    time.sleep(0.5)
+
             if device.height >= 64:
                 while True:
-                    text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
+                    text = f"{socket.getfqdn()}\n(__hb__) {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
                     text += "\niface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
-                    screen.draw_text(text)
-                    time.sleep(max(options.interval, 1))
+                    draw(text)
             else:
                 summary = True
                 while True:
                     if summary:
-                        text = f"{socket.getfqdn()}\nup: {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
+                        text = f"{socket.getfqdn()}\n(__hb__) {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
                     else:
-                        text = "iface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
-                    screen.draw_text(text)
+                        text = "iface: %s\n(__hb__) %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                    draw(text)
                     summary = (not summary)
-                    time.sleep(max(options.interval, 1))
     except (SystemExit, KeyboardInterrupt):
         pass
 
