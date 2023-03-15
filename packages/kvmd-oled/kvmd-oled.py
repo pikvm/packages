@@ -217,8 +217,9 @@ def main() -> None:
 
             if device.height >= 64:
                 while True:
-                    text = f"{socket.getfqdn()}\n(__hb__) {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
-                    text += "\niface: %s\n~ %s\ncpu: %s mem: %s" % (*_get_ip(), _get_cpu(), _get_mem())
+                    (iface, ip) = _get_ip()
+                    text = f"{socket.getfqdn()}\n{ip}\niface: {iface}\ntemp: {_get_temp(options.fahrenheit)}"
+                    text += f"\ncpu: {_get_cpu()} mem: {_get_mem()}\n(__hb__) {_get_uptime()}"
                     draw(text)
             else:
                 summary = True
