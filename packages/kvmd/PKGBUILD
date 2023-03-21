@@ -32,7 +32,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.205
+pkgver=3.206
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -43,7 +43,7 @@ depends=(
 	"python<3.11"
 	python-yaml
 	"python-aiohttp>=3.7.4.post0-1.1"
-	python-aiofiles
+	"python-aiofiles>=23.1.0-1"
 	python-passlib
 	python-pyotp
 	python-qrcode
