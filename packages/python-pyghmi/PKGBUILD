@@ -1,5 +1,5 @@
 pkgname=python-pyghmi
-pkgver=1.5.31
+pkgver=1.5.60
 pkgrel=1
 pkgdesc="A Pure python IPMI library"
 url="https://opendev.org/x/pyghmi"
