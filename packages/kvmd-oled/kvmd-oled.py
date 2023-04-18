@@ -160,7 +160,7 @@ def main() -> None:
     parser.add_argument("--text", default="", help="Display some text, wait a single interval and exit")
     parser.add_argument("--pipe", action="store_true", help="Read and display lines from stdin until EOF, wait a single interval and exit")
     parser.add_argument("--clear-on-exit", action="store_true", help="Clear display on exit")
-    parser.add_argument("--contrast", default=None, type=int, help="Set OLED contrast, values from 0 to 255")
+    parser.add_argument("--contrast", default=64, type=int, help="Set OLED contrast, values from 0 to 255")
     parser.add_argument("--fahrenheit", action="store_true", help="Display temperature in Fahrenheit instead of Celsius")
     options = parser.parse_args(sys.argv[1:])
     if options.config:
@@ -181,10 +181,9 @@ def main() -> None:
         _logger.info("Iface: %s", options.interface)
     _logger.info("Display: %s", options.display)
     _logger.info("Size: %dx%d", device.width, device.height)
-    if options.contrast is not None:
-        options.contrast = min(max(options.contrast, 0), 255)
-        _logger.info("Contrast: %d", options.contrast)
-        device.contrast(options.contrast)
+    options.contrast = min(max(options.contrast, 0), 255)
+    _logger.info("Contrast: %d", options.contrast)
+    device.contrast(options.contrast)
 
     try:
         if options.image:
