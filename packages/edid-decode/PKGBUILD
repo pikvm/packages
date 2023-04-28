@@ -1,0 +1,22 @@
+_commit=2d44e1b01c7ed7d65b20ecdce62d354841832201
+pkgname=edid-decode
+pkgver=20230427
+pkgrel=1
+pkgdesc="EDID decoder and conformance tester"
+license=(MIT)
+arch=(i686 x86_64 armv6h armv7h aarch64)
+depends=(gcc-libs)
+makedepends=(gcc make git)
+source=("git+https://git.linuxtv.org/edid-decode.git#commit=$_commit")
+md5sums=(SKIP)
+
+
+build() {
+	cd $pkgname
+	make -j PREFIX=/usr
+}
+
+package() {
+	cd $pkgname
+	make DESTDIR="$pkgdir" PREFIX=/usr install
+}
