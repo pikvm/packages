@@ -1,20 +1,20 @@
 pkgname=platformio
-pkgver=6.1.3
-pkgrel=1
+pkgver=6.1.6
+pkgrel=2
 pkgdesc="An open source ecosystem for IoT development"
 url="https://github.com/platformio/platformio-core"
 license=("Apache 2.0")
 arch=(any)
 depends=(
-	"python>=3.10"
-	"python<3.11"
+	"python>=3.11"
+	"python<3.12"
 	python-setuptools
 	python-bottle
 	python-click
 	python-click-completion
 	python-shellingham
 	python-colorama
-	"python-pyserial>=3.4"
+	python-pyserial
 	python-requests
 	python-semantic-version
 	python-tabulate

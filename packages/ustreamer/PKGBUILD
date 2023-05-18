@@ -4,7 +4,7 @@
 
 pkgname=ustreamer
 pkgver=5.38
-pkgrel=1
+pkgrel=3
 pkgdesc="Lightweight and fast MJPEG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
 license=(GPL)

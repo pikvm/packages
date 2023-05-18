@@ -1,11 +1,11 @@
 pkgname=python-smbus2
 pkgver=0.4.2
-pkgrel=1
+pkgrel=3
 pkgdesc="A drop-in replacement for smbus-cffi/smbus-python in pure Python"
 url="https://github.com/kplindegaard/smbus2"
 license=(MIT)
 arch=(any)
-depends=("python>=3.10" "python<3.11")
+depends=("python>=3.11" "python<3.12")
 makedepends=(python-distribute)
 source=("https://github.com/kplindegaard/smbus2/archive/${pkgver}.tar.gz")
 md5sums=(e3e24fd4c18b6788103ad8f9b38a3ff4)
