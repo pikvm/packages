@@ -1,0 +1,60 @@
+# FIXME: https://bugs.archlinux.org/task/78539
+_commit=03b14083c751727ee14256fe027706338182ce50
+#_commit=001c87d9014b5b2dbb8adc9f64ab7023359a38b4
+pkgname=flashrom-pikvm
+pkgver=20230521
+pkgrel=2
+pkgdesc="A utility for identifying, reading, writing, verifying and erasing flash chips"
+url="https://github.com/flashrom/flashrom"
+license=(GPL)
+arch=(i686 x86_64 armv6h armv7h)
+depends=(
+	libusb
+	libftdi
+	pciutils
+)
+makedepends=(
+	make
+	gcc
+	pkg-config
+	meson
+	cmocka
+	python-sphinx
+)
+conflicts=(
+	flashrom
+	flashrom-git
+)
+provides=(
+	flashrom
+)
+source=(
+	"$pkgname-$_commit.tar.gz::https://github.com/mdevaev/flashrom/archive/$_commit.tar.gz"
+	flashrom-vl805.sh
+	default.bin
+	usb3.bin
+)
+md5sums=(SKIP SKIP SKIP SKIP)
+#source=(
+#	"$pkgname-$_commit.tar.gz::https://github.com/flashrom/flashrom/archive/$_commit.tar.gz"
+#	vl805.patch
+#)
+#md5sums=(SKIP SKIP)
+
+
+build() {
+	cd "flashrom-$_commit"
+#	patch -Np1 -i ../vl805.patch
+#	make PREFIX=/usr $MAKEFLAGS
+	arch-meson -Dtests=disabled build
+	ninja -v -C build
+}
+
+package() {
+	cd "flashrom-$_commit"
+	#make PREFIX=/usr DESTDIR="$pkgdir" install
+	DESTDIR="$pkgdir" ninja -C build install
+	mkdir -p "$pkgdir/usr/lib/flashrom-pikvm" "$pkgdir/usr/bin"
+	cp ../*.bin "$pkgdir/usr/lib/flashrom-pikvm"
+	install -Dm755 ../flashrom-vl805.sh "$pkgdir/usr/bin/flashrom-vl805"
+}

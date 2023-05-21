@@ -1,0 +1,309 @@
+diff --git a/Makefile b/Makefile
+index a8df91f..c19aa57 100644
+--- a/Makefile
++++ b/Makefile
+@@ -152,6 +152,7 @@ DEPENDS_ON_LIBPCI := \
+ 	CONFIG_OGP_SPI \
+ 	CONFIG_SATAMV \
+ 	CONFIG_SATASII \
++	CONFIG_VL805 \
+ 
+ DEPENDS_ON_LIBUSB1 := \
+ 	CONFIG_CH341A_SPI \
+@@ -531,6 +532,9 @@ CONFIG_JLINK_SPI ?= no
+ # National Instruments USB-845x is Windows only and needs a proprietary library.
+ CONFIG_NI845X_SPI ?= no
+ 
++# Enable VIA VL805 programmer for now.
++CONFIG_VL805 ?= yes
++
+ # Disable wiki printing by default. It is only useful if you have wiki access.
+ CONFIG_PRINT_WIKI ?= no
+ 
+@@ -765,6 +769,12 @@ FEATURE_FLAGS += -D'CONFIG_MSTARDDC_SPI=1'
+ PROGRAMMER_OBJS += mstarddc_spi.o
+ endif
+ 
++ifeq ($(CONFIG_VL805), yes)
++FEATURE_CFLAGS += -D'CONFIG_VL805=1'
++PROGRAMMER_OBJS += vl805.o
++NEED_PCI := yes
++endif
++
+ ifeq ($(CONFIG_CH341A_SPI), yes)
+ FEATURE_FLAGS += -D'CONFIG_CH341A_SPI=1'
+ PROGRAMMER_OBJS += ch341a_spi.o
+@@ -790,6 +800,11 @@ FEATURE_FLAGS += -D'CONFIG_NI845X_SPI=1'
+ PROGRAMMER_OBJS += ni845x_spi.o
+ endif
+ 
++ifeq ($(CONFIG_VL805), yes)
++FEATURE_FLAGS += -D'CONFIG_VL805=1'
++PROGRAMMER_OBJS += vl805.o
++endif
++
+ USE_BITBANG_SPI := $(if $(call filter_deps,$(DEPENDS_ON_BITBANG_SPI)),yes,no)
+ ifeq ($(USE_BITBANG_SPI), yes)
+ LIB_OBJS += bitbang_spi.o
+diff --git a/flashrom.8.tmpl b/flashrom.8.tmpl
+index e672869..a4d3b9b 100644
+--- a/flashrom.8.tmpl
++++ b/flashrom.8.tmpl
+@@ -433,6 +433,8 @@ bitbanging adapter)
+ .sp
+ .BR "* dirtyjtag_spi" " (for SPI flash ROMs attached to DirtyJTAG-compatible devices)"
+ .sp
++.BR "* vl805" " (for SPI flash ROMs attached to the VIA VL805 PCIe USB 3.0 Host controller)"
++.sp
+ Some programmers have optional or mandatory parameters which are described
+ in detail in the
+ .B PROGRAMMER-SPECIFIC INFORMATION
+@@ -1616,6 +1618,11 @@ previously. \fBallow_brick\fP defaults to no, and must explicitly be set to
+ no mechanism in the driver to positively identify that a given I2C bus is
+ actually connected to a supported device.
+ 
++.SS
++.BR "vl805 " programmer
++This module supports SPI flash programming through the VL805/VL806 PCIe-USB 3.0
++Host controller.
++
+ .SH EXAMPLES
+ To back up and update your BIOS, run
+ .sp
+@@ -1699,6 +1706,9 @@ needs PCI configuration space read access and raw memory access.
+ .BR realtek_mst_i2c_spi " and " parade_lspcon
+ need userspace access to the selected I2C bus.
+ .sp
++.B vl805
++needs PCI configuration space read access and raw memory access.
++.sp
+ On OpenBSD, you can obtain raw access permission by setting
+ .B "securelevel=-1"
+ in
+diff --git a/include/programmer.h b/include/programmer.h
+index 9603443..21ae68f 100644
+--- a/include/programmer.h
++++ b/include/programmer.h
+@@ -96,6 +96,7 @@ extern const struct programmer_entry programmer_serprog;
+ extern const struct programmer_entry programmer_stlinkv3_spi;
+ extern const struct programmer_entry programmer_usbblaster_spi;
+ extern const struct programmer_entry programmer_dirtyjtag_spi;
++extern const struct programmer_entry programmer_vl805;
+ 
+ int programmer_init(const struct programmer_entry *prog, const char *param);
+ int programmer_shutdown(void);
+diff --git a/meson.build b/meson.build
+index 3a6cc41..530972d 100644
+--- a/meson.build
++++ b/meson.build
+@@ -437,6 +437,13 @@ programmer = {
+     'srcs'    : files('usbblaster_spi.c'),
+     'flags'   : [ '-DCONFIG_USBBLASTER_SPI=1' ],
+   },
++  'vl805' : {
++    'systems' : systems_hwaccess,
++    'deps'    : [ libpci ],
++    'groups'  : [ group_pci, group_internal ],
++    'srcs'    : files('vl805.c', 'pcidev.c'),
++    'flags'   : [ '-DCONFIG_VL805=1' ],
++  },
+ }
+ 
+ active_programmer_count = 0
+diff --git a/meson_options.txt b/meson_options.txt
+index 8c04029..9bc780f 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -14,5 +14,5 @@ option('programmer', type : 'array', value : ['auto'], choices : [
+         'jlink_spi', 'linux_mtd', 'linux_spi', 'mediatek_i2c_spi', 'mstarddc_spi', 'nic3com', 'nicintel',
+         'nicintel_eeprom', 'nicintel_spi', 'nicnatsemi', 'nicrealtek', 'ogp_spi', 'parade_lspcon',
+         'pickit2_spi', 'pony_spi', 'raiden_debug_spi', 'rayer_spi', 'realtek_mst_i2c_spi', 'satamv',
+-        'satasii', 'serprog',  'stlinkv3_spi', 'usbblaster_spi',
++        'satasii', 'serprog',  'stlinkv3_spi', 'usbblaster_spi', 'vl805',
+ ], description: 'Active programmers')
+diff --git a/programmer_table.c b/programmer_table.c
+index d58a155..63c9e6b 100644
+--- a/programmer_table.c
++++ b/programmer_table.c
+@@ -171,6 +171,10 @@ const struct programmer_entry *const programmer_table[] = {
+ #if CONFIG_DIRTYJTAG_SPI == 1
+     &programmer_dirtyjtag_spi,
+ #endif
++
++#if CONFIG_VL805 == 1
++	&programmer_vl805,
++#endif
+ };
+ 
+ const size_t programmer_table_size = ARRAY_SIZE(programmer_table);
+diff --git a/vl805.c b/vl805.c
+new file mode 100644
+index 0000000..29e40ae
+--- /dev/null
++++ b/vl805.c
+@@ -0,0 +1,165 @@
++/*
++ * This file is part of the flashrom project.
++ *
++ * Copyright (C) 2019, 2020 Carl-Daniel Hailfinger
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
++ */
++
++/* Driver for the VIA VL805 programmer hardware by VIA.
++ * See http://www.via.com/ for more info.
++ */
++
++#include "programmer.h"
++#include "spi.h"
++#include "flash.h"
++#include "platform/pci.h"
++
++const struct dev_entry devs_vl805[] = {
++	{0x1106, 0x3483, OK, "VIA", "VL805"},
++	{0},
++};
++
++static void vl805_setregval(struct pci_dev *dev, int reg, uint32_t val)
++{
++	pci_write_long(dev, 0x78, reg);
++	pci_write_long(dev, 0x7c, val);
++}
++
++static uint32_t vl805_getregval(struct pci_dev *dev, int reg)
++{
++	pci_write_long(dev, 0x78, reg);
++	return pci_read_long(dev, 0x7c);
++}
++
++/* Some of the registers have unknown purpose and are just used inside the init sequence replay. */
++#define VL805_REG_0x30004		0x00030004
++#define VL805_REG_STOP_POLLING		0x0004000c
++#define VL805_REG_WB_EN			0x00040020
++#define VL805_REG_SPI_OUTDATA		0x000400d0
++#define VL805_REG_SPI_INDATA		0x000400e0
++#define VL805_REG_SPI_TRANSACTION	0x000400f0
++#define VL805_REG_CLK_DIV		0x000400f8
++#define VL805_REG_SPI_CHIP_ENABLE_LEVEL	0x000400fc
++
++/* Send a SPI command to the flash chip. */
++static int vl805_spi_send_command(const struct flashctx *flash,
++				  unsigned int writecnt,
++				  unsigned int readcnt,
++				  const unsigned char *writearr,
++				  unsigned char *readarr)
++{
++	struct pci_dev *dev = flash->mst->spi.data;
++
++	vl805_setregval(dev, VL805_REG_SPI_CHIP_ENABLE_LEVEL, 0x00000000);
++
++	for (unsigned int j = 0; j < writecnt; j += 4) {
++		unsigned int curwritecnt = min(4, writecnt - j);
++		uint32_t data = 0;
++		for (unsigned int i = 0; i < curwritecnt; i++) {
++			data <<= 8;
++			data |= writearr[j + i];
++		}
++		vl805_setregval(dev, VL805_REG_SPI_OUTDATA, data);
++		vl805_setregval(dev, VL805_REG_SPI_TRANSACTION, 0x00000580 | (curwritecnt << 3));
++	}
++
++	/* Superfluous, the original driver doesn't do that, but we want to have a quiet bus during read. */
++	vl805_setregval(dev, VL805_REG_SPI_OUTDATA, 0);
++
++	for (unsigned int j = 0; j < readcnt; j += 4) {
++		unsigned int curreadcnt = min(4, readcnt - j);
++		vl805_setregval(dev, VL805_REG_SPI_TRANSACTION, 0x00000580 | (curreadcnt << 3));
++		uint32_t data = vl805_getregval(dev, VL805_REG_SPI_INDATA);
++		for (unsigned int i = 0; i < curreadcnt; i++) {
++			unsigned int pos = curreadcnt - (i + 1);
++			readarr[j + i] = (data >> (8 * pos)) & 0xff;
++		}
++	}
++
++	vl805_setregval(dev, VL805_REG_SPI_CHIP_ENABLE_LEVEL, 0x00000001);
++
++	return 0;
++}
++
++static const struct spi_master spi_master_vl805 = {
++	.max_data_read	= 64 * 1024, /* Maximum data read size in one go (excluding opcode+address). */
++	.max_data_write	= 256, /* Maximum data write size in one go (excluding opcode+address). */
++	.command	= vl805_spi_send_command,
++	.multicommand	= default_spi_send_multicommand,
++	.read		= default_spi_read,
++	.write_256	= default_spi_write_256,
++	.write_aai	= default_spi_write_aai,
++	.probe_opcode	= default_spi_probe_opcode,
++};
++
++static void vl805_programmer_active(struct pci_dev *dev, uint8_t val)
++{
++	pci_write_byte(dev, 0x43, val);
++}
++
++static int vl805_shutdown(void *data)
++{
++	struct pci_dev *dev = data;
++
++	vl805_programmer_active(dev, 0x0);
++	return 0;
++}
++
++static int vl805_init(const struct programmer_cfg *cfg)
++{
++	struct pci_dev *dev = pcidev_init(cfg, devs_vl805, PCI_BASE_ADDRESS_0); /* Actually no BAR setup needed at all. */
++	if (!dev)
++		return 1;
++
++	vl805_programmer_active(dev, 0x1);
++	msg_pinfo("VL805 active firmware version: 0x%08x\n", pci_read_long(dev, 0x50));
++	vl805_programmer_active(dev, 0x0);
++
++	/* Some sort of init sequence, just copied from the logs. */
++	vl805_programmer_active(dev, 0x1);
++
++	vl805_setregval(dev, VL805_REG_SPI_CHIP_ENABLE_LEVEL, 0x00000001);
++	vl805_setregval(dev, VL805_REG_0x30004, 0x00000200);
++	vl805_setregval(dev, VL805_REG_WB_EN, 0xffffff01);
++	vl805_setregval(dev, VL805_REG_STOP_POLLING, 0x00000001);
++
++	/* We send 4 uninitialized(?) bytes to the flash chip here. */
++	vl805_setregval(dev, VL805_REG_SPI_TRANSACTION, 0x000005a0);
++	vl805_setregval(dev, VL805_REG_CLK_DIV, 0x0000000a);
++
++	/* Some sort of cleanup sequence, just copied from the logs.
++	 *
++	 * XXX: The commented line below was present in the original patch,
++	 * however, it breaks the state of the chip, as a result of which the next command
++	 * for the chip will be unsuccessful. I don't know why we need this line,
++	 * but everything works fine without it.
++	 */
++	// vl805_setregval(dev, VL805_REG_SPI_TRANSACTION, 0x00000000);
++	vl805_programmer_active(dev, 0x0);
++	vl805_programmer_active(dev, 0x1);
++
++	register_shutdown(vl805_shutdown, dev);
++	register_spi_master(&spi_master_vl805, dev);
++
++	return 0;
++}
++
++const struct programmer_entry programmer_vl805 = {
++	.name		= "vl805",
++	.type		= PCI,
++	.devs.dev	= devs_vl805,
++	.init		= vl805_init,
++	.delay		= internal_delay,
++};

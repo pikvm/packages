@@ -23,6 +23,7 @@ raspberrypi-hdmi
 raspberrypi-bluetooth
 platformio
 avrdude-pikvm
+flashrom-pikvm
 ustreamer
 kvmd
 kvmd-webterm
