@@ -1,0 +1,10 @@
+run_hook() {
+	x_rootdelay_post_mount_handler="${mount_handler:-default_mount_handler}"
+	mount_handler=x_rootdelay_mount_handler
+}
+
+x_rootdelay_mount_handler() {
+	# resolve_device() polls the given device internally using the rootdelay value
+	resolve_device "$root" >/dev/null || true
+	$x_rootdelay_post_mount_handler "$1"
+}

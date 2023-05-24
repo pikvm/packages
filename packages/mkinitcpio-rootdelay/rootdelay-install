@@ -1,0 +1,9 @@
+build() {
+	add_runscript
+}
+
+help() {
+cat<<HELP
+  Delay until the rootfs device to appear
+HELP
+}

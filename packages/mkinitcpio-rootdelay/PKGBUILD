@@ -1,0 +1,19 @@
+pkgname=mkinitcpio-rootdelay
+pkgver=0.1
+pkgrel=1
+pkgdesc="Hook with rootdelay parameter for mkinitcpio"
+license=(GPL)
+arch=(any)
+depends=(mkinitcpio)
+source=(rootdelay-hook rootdelay-install)
+md5sums=(SKIP SKIP)
+
+
+build() {
+	true
+}
+
+package() {
+	install -Dm644 "$srcdir/rootdelay-hook" "$pkgdir/usr/lib/initcpio/hooks/rootdelay"
+	install -Dm644 "$srcdir/rootdelay-install" "$pkgdir/usr/lib/initcpio/install/rootdelay"
+}
