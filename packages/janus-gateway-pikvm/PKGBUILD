@@ -1,6 +1,6 @@
-#_commit=7b784c40ac9e8d1fa07c403c013c8559692b7e1c
+_commit=10679142d6bd0f0ddce192dadbcdc479bf4b4689
 pkgname=janus-gateway-pikvm
-pkgver=0.13.3
+pkgver=0.14.0
 pkgrel=1
 pkgdesc="An open source, general purpose, WebRTC server (PiKVM build)"
 url='https://janus.conf.meetecho.com'
@@ -30,16 +30,16 @@ provides=(
 	janus-gateway
 )
 source=(
-	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
-#	"$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz"
+#	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
+	"$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz"
 	"https://webrtc.github.io/adapter/adapter-latest.js"
 )
 md5sums=(SKIP SKIP)
 
 
 build() {
-	cd "janus-gateway-$pkgver"
-#	cd "janus-gateway-$_commit"
+#	cd "janus-gateway-$pkgver"
+	cd "janus-gateway-$_commit"
 	./autogen.sh
 	./configure \
 		--prefix=/usr \
@@ -58,8 +58,8 @@ build() {
 }
 
 package() {
-	cd "janus-gateway-$pkgver"
-#	cd "janus-gateway-$_commit"
+#	cd "janus-gateway-$pkgver"
+	cd "janus-gateway-$_commit"
 	make DESTDIR="$pkgdir" install
 	mkdir "$pkgdir/usr/lib/janus/loggers"
 	sed -i -e 's|^#include "refcount.h"$|#include "../refcount.h"|g' "$pkgdir/usr/include/janus/plugins/plugin.h"
