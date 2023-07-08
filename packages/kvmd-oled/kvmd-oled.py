@@ -23,6 +23,7 @@
 
 import sys
 import socket
+import signal
 import itertools
 import logging
 import datetime
@@ -176,7 +177,6 @@ def main() -> None:
         offset=(options.offset_x, options.offset_y),
     )
 
-    display_types = luma_cmdline.get_display_types()
     if options.display not in luma_cmdline.get_display_types()["emulator"]:
         _logger.info("Iface: %s", options.interface)
     _logger.info("Display: %s", options.display)
@@ -205,24 +205,38 @@ def main() -> None:
 
         else:
 
-            hb = itertools.cycle(r"/-\|")
+            stop_reason: (str | None) = None
+
+            def sigusr_handler(signum: int, _) -> None:  # type: ignore
+                nonlocal stop_reason
+                if signum in (signal.SIGINT, signal.SIGTERM):
+                    stop_reason = ""
+                elif signum == signal.SIGUSR1:
+                    stop_reason = "Rebooting...\nPlease wait"
+                elif signum == signal.SIGUSR2:
+                    stop_reason = "Halted"
+
+            for signum in [signal.SIGTERM, signal.SIGINT, signal.SIGUSR1, signal.SIGUSR2]:
+                signal.signal(signum, sigusr_handler)
+
+            hb = itertools.cycle(r"/-\|")  # Heartbeat
 
             def draw(text: str) -> None:
                 count = 0
-                while count < max(options.interval, 1) * 2:
+                while (count < max(options.interval, 1) * 2) and stop_reason is None:
                     screen.draw_text(text.replace("__hb__", next(hb)))
                     count += 1
                     time.sleep(0.5)
 
             if device.height >= 64:
-                while True:
+                while stop_reason is None:
                     (iface, ip) = _get_ip()
                     text = f"{socket.getfqdn()}\n{ip}\niface: {iface}\ntemp: {_get_temp(options.fahrenheit)}"
                     text += f"\ncpu: {_get_cpu()} mem: {_get_mem()}\n(__hb__) {_get_uptime()}"
                     draw(text)
             else:
                 summary = True
-                while True:
+                while stop_reason is None:
                     if summary:
                         text = f"{socket.getfqdn()}\n(__hb__) {_get_uptime()}\ntemp: {_get_temp(options.fahrenheit)}"
                     else:
@@ -230,6 +244,14 @@ def main() -> None:
                         text = "%s\n(__hb__) iface: %s\ncpu: %s mem: %s" % (ip, iface, _get_cpu(), _get_mem())
                     draw(text)
                     summary = (not summary)
+
+            if stop_reason is not None:
+                if len(stop_reason) > 0:
+                    options.clear_on_exit = False
+                    screen.draw_text(stop_reason)
+                while len(stop_reason) > 0:
+                    time.sleep(0.1)
+
     except (SystemExit, KeyboardInterrupt):
         pass
 

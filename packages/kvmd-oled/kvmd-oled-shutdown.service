@@ -2,14 +2,13 @@
 Description=PiKVM - Display shutdown message on the OLED
 Conflicts=reboot.target
 Before=shutdown.target poweroff.target halt.target
-After=kvmd-oled.service
 DefaultDependencies=no
-ConditionPathExists=/dev/i2c-1
 
 [Service]
-Type=simple
-ExecStart=/usr/bin/kvmd-oled --offset-y=12 --interval=0 --text="Halted"
-TimeoutStartSec=0
+Type=oneshot
+ExecStart=/bin/bash -c "kill -USR2 `systemctl show -P MainPID kvmd-oled`"
+ExecStop=/bin/true
+RemainsAfterExit=yes
 
 [Install]
 WantedBy=shutdown.target
