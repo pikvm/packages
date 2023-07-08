@@ -1,5 +1,5 @@
 pkgname=kvmd-oled
-pkgver=0.23
+pkgver=0.24
 pkgrel=1
 pkgdesc="PiKVM - A small OLED daemon"
 url="https://github.com/pikvm/packages"
@@ -10,7 +10,7 @@ depends=(
 	python-netifaces
 	python-psutil
 	python-pyusb
-	"python-pillow>=8.3.1-1"
+	python-pillow
 	ttf-proggy-clean
 )
 source=(
