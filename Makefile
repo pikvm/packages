@@ -104,7 +104,7 @@ _build:
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
 		BOARD=$(BOARD) \
 		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
-		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))' '$(call optbool,$(NOEXTRACT))'"
+		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))' '$(call optbool,$(NOEXTRACT))' '$(call optbool,$(NOSIGN))'"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
 

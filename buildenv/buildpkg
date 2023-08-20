@@ -111,6 +111,7 @@ test_sign() {
 build() {
 	local build_dir="$1"
 	local noextract="$2"
+	local nosign="$3"
 	pushd "$build_dir" >/dev/null
 	if [ -n "$noextract" ]; then
 		say "Building package with NOEXTRACT ..."
@@ -119,8 +120,10 @@ build() {
 		say "Building package ..."
 		sudo -u alarm makepkg
 	fi
-	say "Signing package(s) ..."
-	ls *.pkg.tar.xz | sign_piped
+	if [ -z "$nosign" ]; then
+		say "Signing package(s) ..."
+		ls *.pkg.tar.xz | sign_piped
+	fi
 	popd >/dev/null
 }
 
@@ -156,6 +159,7 @@ main() {
 	local force="$2"
 	local norepo="$3"
 	local noextract="$4"
+	local nosign="$5"
 
 	[ -n "$REPO_NAME" ] || die "Missing REPO_NAME variable"
 	[ -n "$REPO_KEY" ] || die "Missing REPO_KEY variable"
@@ -198,7 +202,9 @@ main() {
 		if [ -z "$noextract" ]; then
 			prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
 		fi
-		test_sign "$BUILD_DIR"
+		if [ -z "$nosign" ]; then
+			test_sign "$BUILD_DIR"
+		fi
 # FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
 #		if [ -n "$keys" ]; then
 #			for key in $keys; do
@@ -208,7 +214,7 @@ main() {
 #			done
 #		fi
 		install_deps "$deps"
-		build "$BUILD_DIR" "$noextract"
+		build "$BUILD_DIR" "$noextract" "$nosign"
 		if [ -z "$norepo" ]; then
 			if [ -n "$old_version" ]; then
 				for sub_pkg_name in $pkgs; do
@@ -225,4 +231,4 @@ main() {
 	fi
 }
 
-main "$1" "$2" "$3" "$4"
+main "$1" "$2" "$3" "$4" "$5"
