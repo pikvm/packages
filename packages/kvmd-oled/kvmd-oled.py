@@ -125,9 +125,11 @@ class Screen:
         self.__font_spacing = font_spacing
         self.__offset = offset
 
-    def draw_text(self, text: str) -> None:
+    def draw_text(self, text: str, offset_x: int=0) -> None:
         with luma_canvas(self.__device) as draw:
-            draw.multiline_text(self.__offset, text, font=self.__font, spacing=self.__font_spacing, fill="white")
+            offset = list(self.__offset)
+            offset[0] += offset_x
+            draw.multiline_text(offset, text, font=self.__font, spacing=self.__font_spacing, fill="white")
 
     def draw_image(self, image_path: str) -> None:
         with luma_canvas(self.__device) as draw:
@@ -204,7 +206,6 @@ def main() -> None:
             time.sleep(options.interval)
 
         else:
-
             stop_reason: (str | None) = None
 
             def sigusr_handler(signum: int, _) -> None:  # type: ignore
@@ -220,12 +221,21 @@ def main() -> None:
                 signal.signal(signum, sigusr_handler)
 
             hb = itertools.cycle(r"/-\|")  # Heartbeat
+            swim = 0
 
             def draw(text: str) -> None:
+                nonlocal swim
                 count = 0
                 while (count < max(options.interval, 1) * 2) and stop_reason is None:
-                    screen.draw_text(text.replace("__hb__", next(hb)))
+                    screen.draw_text(
+                        text=text.replace("__hb__", next(hb)),
+                        offset_x=(3 if swim < 0 else 0),
+                    )
                     count += 1
+                    if swim >= 1200:
+                        swim = -1200
+                    else:
+                        swim += 1
                     time.sleep(0.5)
 
             if device.height >= 64:
