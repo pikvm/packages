@@ -95,7 +95,7 @@ binfmt: $(_BUILDENV_DIR)
 
 buildenv: binfmt
 	$(call say,"Ensuring $(BOARD) buildenv")
-	rm -rf $(_BUILDENV_DIR)/stages/buildenv
+	rm -rf $(_BUILDENV_DIR)/stages/arch/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
 		PASS_ENSURE_TOOLBOX=1 \
