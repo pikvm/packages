@@ -6,6 +6,8 @@ export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 
+DEPLOY_USER ?= root
+
 export J ?= 13
 export NC ?=
 export NOINT ?=
@@ -44,13 +46,13 @@ all:
 
 
 upload:
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing
+	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
+	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing
 
 
 download:
 	rm -rf $(_BASE_REPOS_DIR)
-	rsync -rl --progress root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
+	rsync -rl --progress $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
 
 
 __UPDATABLE := $(addprefix __update__,$(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))

@@ -32,7 +32,7 @@ jobs:
 
       - name: Fetching current repo
         run: |
-          make download
+          make download DEPLOY_USER=data
 
       - name: Building environment
         run: make buildenv BOARD=$BOARD NC=1
