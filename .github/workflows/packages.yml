@@ -21,18 +21,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-#      - name: Configuring SSH
-#        run: |
-#          mkdir ~/.ssh
-#          chmod 700 ~/.ssh
-#          ssh-keyscan -H files.pikvm.org > ~/.ssh/known_hosts
-#          echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
-#          chmod 600 ~/.ssh/id_rsa
+      - name: Configuring SSH
+        run: |
+          test -n "$DEPLOY_KEY"
+          mkdir ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H files.pikvm.org > ~/.ssh/known_hosts
+          echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-#      - name: Fetching current packages
-#        run: |
-#          make "repos/$BOARD"
-#          rsync -rl --progress "data@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$BOARD" repos/
+      - name: Fetching current repo
+        run: |
+          make download
 
       - name: Building environment
         run: make buildenv BOARD=$BOARD NC=1
