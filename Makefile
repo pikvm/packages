@@ -6,6 +6,10 @@ export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 
+export J ?= 13
+export NC ?=
+export NOINT ?=
+
 
 # =====
 _TARGET_REPO_NAME = pikvm
@@ -13,26 +17,15 @@ _TARGET_REPO_KEY = 912C773ABBD1B584
 
 _ALARM_UID := $(shell id -u)
 _ALARM_GID := $(shell id -g)
+
 _BUILDENV_IMAGE = $(PROJECT).$(BOARD).$(_ALARM_UID)-$(_ALARM_GID)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
 _BASE_REPOS_DIR = ./repos
 _TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
 
-_MAKE_J = 13
-
-_UPDATABLE_PACKAGES := $(sort $(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-_KNOWN_BOARDS := rpi2
-
 
 # =====
-_NULL :=
-_SPACE := $(_NULL) $(_NULL)
-
-define join_spaced
-$(subst $(_SPACE),|,$1)
-endef
-
 define optbool
 $(filter $(shell echo $(1) | tr A-Z a-z),yes on 1)
 endef
@@ -44,30 +37,10 @@ define say
 @ tput sgr0
 endef
 
-define die
-@ tput bold
-@ tput setaf 1
-@ echo "===== $1 ====="
-@ tput sgr0
-@ exit 1
-endef
-
 
 # =====
 all:
-	@ echo "Available commands:"
-	@ echo "    make binfmt BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
-	@ echo "    make shell BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))>"
-	@ echo "    make buildenv BOARD=<$(call join_spaced,$(_KNOWN_BOARDS))> NC=<1|0>"
-	@ echo
-	@ echo "    make update"
-	@ for target in $(_UPDATABLE_PACKAGES); do echo "    make update-$$target"; done
-	@ echo
-	@ for board in $(_KNOWN_BOARDS); do echo "    make packages-$$board"; done
-	@ echo
-	@ for board in $(_KNOWN_BOARDS); do echo "    make buildenv-$$board NC=<1|0>"; done
-	@ echo
-	@ echo "    make upload"
+	true
 
 
 upload:
@@ -80,49 +53,46 @@ download:
 	rsync -rl --progress root@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
 
 
-define make_update_package_target
-update-$1:
-	$(MAKE) -C packages/$1 -f update.mk update
-endef
-$(foreach pkg,$(_UPDATABLE_PACKAGES),$(eval $(call make_update_package_target,$(pkg))))
-update: $(addprefix update-,$(_UPDATABLE_PACKAGES))
+__UPDATABLE := $(addprefix __update__,$(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
+update: $(__UPDATABLE)
+$(__UPDATABLE):
+	$(MAKE) -C packages/$(subst __update__,,$@) -f update.mk update
 
 
-define make_board_target
-packages-$1:
-	$(MAKE) binfmt BOARD=$1
-	for pkg in `cat packages/order.$1`; do \
-		$(MAKE) _build BOARD=$1 PKG=$$$$pkg NOINT=$$$$NOINT J=$$$$J || exit 1; \
-	done
-buildenv-$1:
-	$(MAKE) buildenv BOARD=$1
-endef
-$(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
+__ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)))
+build: buildenv $(__ORDER)
+$(__ORDER):
+	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@) J=$(J)
+# XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
+.NOTPARALLEL: build
 
 
 _build:
+	test -n "$(PKG)"
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	$(MAKE) _run \
-		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
 		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
-		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))' '$(call optbool,$(NOEXTRACT))' '$(call optbool,$(NOSIGN))'"
+		CMD="/tools/buildpkg \
+			$(PKG) \
+			'$(call optbool,$(FORCE))' \
+			'$(call optbool,$(NOREPO))' \
+			'$(call optbool,$(NOEXTRACT))' \
+			'$(call optbool,$(NOSIGN))' \
+		"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
 
-shell:
+shell: buildenv
 	$(MAKE) _run \
-		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
-		OPTS="--tty --interactive" \
-		CMD=/bin/bash
+		OPTS="--tty --interactive"
 
 
-binfmt: buildenv
-	$(MAKE) -C $(_BUILDENV_DIR)
-
-
-buildenv: $(_BUILDENV_DIR)
-	$(call say,"Ensuring $(BOARD) buildenv")
+binfmt: $(_BUILDENV_DIR)
 	$(MAKE) -C $(_BUILDENV_DIR) binfmt
+
+
+buildenv: binfmt
+	$(call say,"Ensuring $(BOARD) buildenv")
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
@@ -149,7 +119,7 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 			--env TARGET_REPO_DIR=/repo \
 			--env PKG_BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
-			--env MAKE_J=$(_MAKE_J) \
+			--env MAKE_J=$(J) \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/$(_ALARM_UID)/gnupg:/run/user/$(_ALARM_UID)/gnupg:rw \
 			$(OPTS) \
@@ -176,4 +146,4 @@ $(_BASE_REPOS_DIR)/rpi2:
 
 
 # =====
-.PHONY: buildenv packages repos
+.PHONY: buildenv
