@@ -89,7 +89,7 @@ sign_piped() {
 	sudo -u alarm xargs -L1 bash -c "gpg \
 			--verbose \
 			--pinentry-mode loopback \
-			--local-user $REPO_KEY \
+			--local-user $TARGET_REPO_KEY \
 			--detach-sign \
 			--use-agent \
 			--no-autostart \
@@ -161,15 +161,15 @@ main() {
 	local noextract="$4"
 	local nosign="$5"
 
-	[ -n "$REPO_NAME" ] || die "Missing REPO_NAME variable"
-	[ -n "$REPO_KEY" ] || die "Missing REPO_KEY variable"
-	[ -n "$REPO_DIR" ] || die "Missing REPO_DIR variable"
-	[ -n "$BUILD_DIR" ] || die "Missing BUILD_DIR variable"
+	[ -n "$TARGET_REPO_NAME" ] || die "Missing TARGET_REPO_NAME variable"
+	[ -n "$TARGET_REPO_KEY" ] || die "Missing TARGET_REPO_KEY variable"
+	[ -n "$TARGET_REPO_DIR" ] || die "Missing TARGET_REPO_DIR variable"
+	[ -n "$PKG_BUILD_DIR" ] || die "Missing PKG_BUILD_DIR variable"
 	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
 	[ -n "$MAKE_J" ] || die "Missing MAKE_J variable"
 
-	BUILD_DIR="$BUILD_DIR/$pkg_name"
-	sudo -u alarm mkdir -p "$BUILD_DIR"
+	PKG_BUILD_DIR="$PKG_BUILD_DIR/$pkg_name"
+	sudo -u alarm mkdir -p "$PKG_BUILD_DIR"
 
 	# =====
 
@@ -179,7 +179,7 @@ main() {
 	local deps="$_RET_DEPS"; unset _RET_DEPS
 	local keys="$_RET_KEYS"; unset _RET_KEYS
 
-	get_latest_version "$REPO_DIR" "$pkg_name"
+	get_latest_version "$TARGET_REPO_DIR" "$pkg_name"
 	local old_version="$_RET_VERSION"; unset _RET_VERSION
 
 	if [ "$version" != "$old_version" ]; then
@@ -198,12 +198,12 @@ main() {
 	if [ -n "$build" ]; then
 		sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j$MAKE_J/g" /etc/makepkg.conf
 		say "Using MAKE_J=$MAKE_J"
-		append_repo "$REPO_NAME" "$REPO_DIR"
+		append_repo "$TARGET_REPO_NAME" "$TARGET_REPO_DIR"
 		if [ -z "$noextract" ]; then
-			prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+			prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$PKG_BUILD_DIR"
 		fi
 		if [ -z "$nosign" ]; then
-			test_sign "$BUILD_DIR"
+			test_sign "$PKG_BUILD_DIR"
 		fi
 # FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
 #		if [ -n "$keys" ]; then
@@ -214,18 +214,18 @@ main() {
 #			done
 #		fi
 		install_deps "$deps"
-		build "$BUILD_DIR" "$noextract" "$nosign"
+		build "$PKG_BUILD_DIR" "$noextract" "$nosign"
 		if [ -z "$norepo" ]; then
 			if [ -n "$old_version" ]; then
 				for sub_pkg_name in $pkgs; do
-					remove_from_repo "$REPO_DIR" "$sub_pkg_name" "$old_version"
+					remove_from_repo "$TARGET_REPO_DIR" "$sub_pkg_name" "$old_version"
 				done
-				unset_latest_version "$REPO_DIR" "$pkg_name"
+				unset_latest_version "$TARGET_REPO_DIR" "$pkg_name"
 			fi
-			copy_to_repo "$BUILD_DIR" "$REPO_DIR"
-			rebuild_repo "$REPO_NAME" "$REPO_DIR"
-			set_latest_version "$REPO_DIR" "$pkg_name" "$version"
-			chown -R alarm:alarm "$REPO_DIR"/*
+			copy_to_repo "$PKG_BUILD_DIR" "$TARGET_REPO_DIR"
+			rebuild_repo "$TARGET_REPO_NAME" "$TARGET_REPO_DIR"
+			set_latest_version "$TARGET_REPO_DIR" "$pkg_name" "$version"
+			chown -R alarm:alarm "$TARGET_REPO_DIR"/*
 		fi
 		say "Done!"
 	fi

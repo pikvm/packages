@@ -1,21 +1,23 @@
 -include config.mk
 
-
-BOARD ?= rpi2
-ARCH_REPO_URL ?= http://de3.mirror.archlinuxarm.org/
+export PROJECT ?= pikvm-packages
+export BOARD ?= rpi2
+export STAGES ?= __init__ buildenv
+export HOSTNAME = buildenv
+export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 
 
 # =====
-_REPO_NAME = pikvm
-_REPO_KEY = 912C773ABBD1B584
+_TARGET_REPO_NAME = pikvm
+_TARGET_REPO_KEY = 912C773ABBD1B584
 
 _ALARM_UID := $(shell id -u)
 _ALARM_GID := $(shell id -g)
-_BUILDENV_IMAGE = pikvm/packages-buildenv-$(BOARD)-$(_ALARM_UID)-$(_ALARM_GID)
+_BUILDENV_IMAGE = $(PROJECT).$(BOARD).$(_ALARM_UID)-$(_ALARM_GID)
 _BUILDENV_DIR = ./.pi-builder/$(BOARD)
 _BUILD_DIR = ./.build/$(BOARD)
 _BASE_REPOS_DIR = ./repos
-_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
+_TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
 
 _MAKE_J = 13
 
@@ -102,7 +104,6 @@ _build:
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	$(MAKE) _run \
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
-		BOARD=$(BOARD) \
 		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg $(PKG) '$(call optbool,$(FORCE))' '$(call optbool,$(NOREPO))' '$(call optbool,$(NOEXTRACT))' '$(call optbool,$(NOSIGN))'"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
@@ -111,49 +112,43 @@ _build:
 shell:
 	$(MAKE) _run \
 		_MAKE_J=$(if $(J),$(J),$(_MAKE_J)) \
-		BOARD=$(BOARD) \
 		OPTS="--tty --interactive" \
 		CMD=/bin/bash
 
 
 binfmt: buildenv
-	$(MAKE) -C $(_BUILDENV_DIR) binfmt REPO_URL=$(ARCH_REPO_URL)
+	$(MAKE) -C $(_BUILDENV_DIR)
 
 
 buildenv: $(_BUILDENV_DIR)
 	$(call say,"Ensuring $(BOARD) buildenv")
-	$(MAKE) -C $(_BUILDENV_DIR) binfmt REPO_URL=$(ARCH_REPO_URL)
+	$(MAKE) -C $(_BUILDENV_DIR) binfmt
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
-	cp -a buildenv $(_BUILDENV_DIR)/stages/buildenv
+	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
-		REPO_URL=$(ARCH_REPO_URL) \
 		NC=$(NC) \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
+		TAG=$(_BUILDENV_IMAGE) \
 		BUILD_OPTS=" \
-			--build-arg REPO_NAME=$(_REPO_NAME) \
-			--build-arg REPO_KEY=$(_REPO_KEY) \
+			--build-arg TARGET_REPO_NAME=$(_TARGET_REPO_NAME) \
+			--build-arg TARGET_REPO_KEY=$(_TARGET_REPO_KEY) \
 			--build-arg ALARM_UID=$(_ALARM_UID) \
 			--build-arg ALARM_GID=$(_ALARM_GID) \
-			--tag $(_BUILDENV_IMAGE) \
-		" \
-		PROJECT=pikvm-packages \
-		BOARD=$(BOARD) \
-		STAGES="__init__ buildenv" \
-		HOSTNAME=buildenv
+		"
 	$(call say,"Buildenv $(BOARD) is ready")
 
 
 # =====
-_run: $(_BUILD_DIR) $(_REPO_DIR)
+_run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 	docker run \
 			--rm \
 			--privileged \
-			--volume `pwd`/$(_REPO_DIR):/repo:rw \
+			--volume `pwd`/$(_TARGET_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
 			--volume `pwd`/packages:/packages:ro \
-			--env REPO_DIR=/repo \
-			--env BUILD_DIR=/build \
+			--env TARGET_REPO_DIR=/repo \
+			--env PKG_BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
 			--env MAKE_J=$(_MAKE_J) \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
@@ -181,4 +176,5 @@ $(_BASE_REPOS_DIR)/rpi2:
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
 
 
+# =====
 .PHONY: buildenv packages repos

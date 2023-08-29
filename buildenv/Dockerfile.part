@@ -52,18 +52,18 @@ COPY stages/buildenv/semop-wrapper.c /tmp
 RUN gcc -fPIC -shared -o /usr/local/lib/libpreload-semop.so /tmp/semop-wrapper.c \
 	&& echo /usr/local/lib/libpreload-semop.so >> /etc/ld.so.preload
 
-ARG REPO_NAME
-ENV REPO_NAME $REPO_NAME
-RUN echo $REPO_NAME
+ARG TARGET_REPO_NAME
+ENV TARGET_REPO_NAME $TARGET_REPO_NAME
+RUN echo $TARGET_REPO_NAME
 
-ARG REPO_KEY
-ENV REPO_KEY $REPO_KEY
+ARG TARGET_REPO_KEY
+ENV TARGET_REPO_KEY $TARGET_REPO_KEY
 RUN ( \
-		pacman-key --keyserver hkps://keyserver.ubuntu.com:443 -r $REPO_KEY \
-		|| pacman-key --keyserver hkps://keys.gnupg.net:443 -r $REPO_KEY \
-		|| pacman-key --keyserver hkps://pgp.mit.edu:443 -r $REPO_KEY \
+		pacman-key --keyserver hkps://keyserver.ubuntu.com:443 -r $TARGET_REPO_KEY \
+		|| pacman-key --keyserver hkps://keys.gnupg.net:443 -r $TARGET_REPO_KEY \
+		|| pacman-key --keyserver hkps://pgp.mit.edu:443 -r $TARGET_REPO_KEY \
 	) \
-	&& pacman-key --lsign-key $REPO_KEY
+	&& pacman-key --lsign-key $TARGET_REPO_KEY
 
 ARG ALARM_UID
 ENV ALARM_UID $ALARM_UID
