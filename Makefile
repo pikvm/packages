@@ -95,7 +95,7 @@ packages-$1:
 		$(MAKE) _build BOARD=$1 PKG=$$$$pkg NOINT=$$$$NOINT J=$$$$J || exit 1; \
 	done
 buildenv-$1:
-	$(MAKE) buildenv BOARD=$1 NC=$$(NC)
+	$(MAKE) buildenv BOARD=$1
 endef
 $(foreach board,$(_KNOWN_BOARDS),$(eval $(call make_board_target,$(board))))
 
@@ -126,7 +126,6 @@ buildenv: $(_BUILDENV_DIR)
 	rm -rf $(_BUILDENV_DIR)/stages/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
-		NC=$(NC) \
 		PASS_ENSURE_TOOLBOX=1 \
 		PASS_ENSURE_BINFMT=1 \
 		TAG=$(_BUILDENV_IMAGE) \
