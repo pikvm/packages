@@ -65,9 +65,11 @@ ARG ALARM_UID
 ENV ALARM_UID $ALARM_UID
 ARG ALARM_GID
 ENV ALARM_GID $ALARM_GID
-RUN usermod -u $ALARM_UID alarm \
-	&& groupmod -g $ALARM_GID alarm \
-	&& chown -R $ALARM_UID:$ALARM_GID /home/alarm \
+RUN userdel -r -f alarm \
+	&& (g=$(getent group $ALARM_GID | cut -d: -f1); [ -z "$g" ] || groupdel "$g") \
+	&& (u=$(getent passwd $ALARM_UID | cut -d: -f1); [ -z "$u" ] || userdel "$u") \
+	&& groupadd -g $ALARM_GID alarm \
+	&& useradd -u $ALARM_UID -g $ALARM_GID alarm \
 	&& mkdir -p /run/user/$ALARM_UID \
 	&& chown alarm:alarm /run/user/$ALARM_UID
 
