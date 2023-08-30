@@ -5,6 +5,7 @@ export BOARD ?= rpi2
 export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
+export DOCKER ?= docker
 
 DEPLOY_USER ?= root
 
@@ -112,9 +113,10 @@ buildenv: binfmt
 
 # =====
 _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
-	docker run \
+	$(DOCKER) run \
 			--rm \
 			--privileged \
+			--ulimit "nofile=1024:1048576" \
 			--volume `pwd`/$(_TARGET_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
 			--volume `pwd`/packages:/packages:ro \
