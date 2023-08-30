@@ -9,7 +9,7 @@ export DOCKER ?= docker
 
 DEPLOY_USER ?= root
 
-export J ?= 13
+export J ?= $(shell nproc)
 export NC ?=
 export NOINT ?=
 
