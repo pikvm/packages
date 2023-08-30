@@ -69,7 +69,7 @@ RUN userdel -r -f alarm \
 	&& (g=$(getent group $ALARM_GID | cut -d: -f1); [ -z "$g" ] || groupdel "$g") \
 	&& (u=$(getent passwd $ALARM_UID | cut -d: -f1); [ -z "$u" ] || userdel "$u") \
 	&& groupadd -g $ALARM_GID alarm \
-	&& useradd -u $ALARM_UID -g $ALARM_GID alarm \
+	&& useradd -u $ALARM_UID -g $ALARM_GID -m alarm \
 	&& mkdir -p /run/user/$ALARM_UID \
 	&& chown alarm:alarm /run/user/$ALARM_UID
 
