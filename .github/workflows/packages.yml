@@ -36,11 +36,7 @@ jobs:
 
       - name: Setting up limits
         run: |
-          sudo prlimit --pid $$ --nofile=1048576:1048576
-          ulimit -Sa
-          ulimit -Ha
-          ulimit -Sn 1024
-          ulimit -Hn 1048576
+          sudo prlimit --pid $$ --nofile=65536:1048576
 
       - name: Building environment
         run: make buildenv BOARD=$BOARD NC=1

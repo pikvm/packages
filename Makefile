@@ -116,7 +116,7 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 	$(DOCKER) run \
 			--rm \
 			--privileged \
-			--ulimit "nofile=1024:1048576" \
+			--ulimit "nofile=65536:1048576" \
 			--volume `pwd`/$(_TARGET_REPO_DIR):/repo:rw \
 			--volume `pwd`/$(_BUILD_DIR):/build:rw \
 			--volume `pwd`/packages:/packages:ro \
