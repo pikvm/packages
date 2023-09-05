@@ -67,7 +67,6 @@ build: buildenv $(__ORDER)
 $(__ORDER):
 	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@) J=$(J)
 # XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
-.NOTPARALLEL: build
 
 
 _build:
@@ -117,9 +116,9 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 			--rm \
 			--privileged \
 			--ulimit "nofile=65536:1048576" \
-			--volume `pwd`/$(_TARGET_REPO_DIR):/repo:rw \
-			--volume `pwd`/$(_BUILD_DIR):/build:rw \
-			--volume `pwd`/packages:/packages:ro \
+			--volume $(shell pwd)/$(_TARGET_REPO_DIR):/repo:rw \
+			--volume $(shell pwd)/$(_BUILD_DIR):/build:rw \
+			--volume $(shell pwd)/packages:/packages:ro \
 			--env TARGET_REPO_DIR=/repo \
 			--env PKG_BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
@@ -128,7 +127,7 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 			--volume /run/user/$(_ALARM_UID)/gnupg:/run/user/$(_ALARM_UID)/gnupg:rw \
 			$(OPTS) \
 		$(_BUILDENV_IMAGE) \
-		$(if $(CMD),$(CMD),/bin/bash)
+			$(if $(CMD),$(CMD),/bin/bash)
 
 
 $(_BUILDENV_DIR):
@@ -151,3 +150,4 @@ $(_BASE_REPOS_DIR)/rpi2:
 
 # =====
 .PHONY: buildenv
+.NOTPARALLEL:
