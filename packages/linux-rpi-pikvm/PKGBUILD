@@ -5,11 +5,11 @@
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-rpi
-_commit=b11af53ca3d52a4eb4599167dce2b2c35ec9c7eb
+_commit=14b35093ca68bf2c81bbc90aace5007142b40b40
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
-pkgver=5.15.68
-pkgrel=3
+pkgver=5.15.92
+pkgrel=1
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
@@ -30,10 +30,11 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         2001-rename-msd.patch
         2002-usb-gadget-f_mass_storage-forced-eject.patch
         3001-h264-buf-size.patch
+        4001-cve-2023-4273.patch
 )
-md5sums=('9d4b3eebd22b9b922b1150dec5aeaccf'
+md5sums=(SKIP
          SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP SKIP)
 md5sums_aarch64=(SKIP SKIP)
 
@@ -54,6 +55,7 @@ prepare() {
   patch -Np1 -i ../2001-rename-msd.patch
   patch -Np1 -i ../2002-usb-gadget-f_mass_storage-forced-eject.patch
   patch -Np1 -i ../3001-h264-buf-size.patch
+  patch -Np1 -i ../4001-cve-2023-4273.patch
 
   echo "Setting version..."
   scripts/setlocalversion --save-scmversion
