@@ -6,6 +6,7 @@ export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 export DOCKER ?= docker
+export DISTCC_HOSTS ?=
 
 DEPLOY_USER ?= root
 
@@ -75,11 +76,13 @@ _build:
 	$(MAKE) _run \
 		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg \
+			--make-j $(J) \
+			$(if $(DISTCC_HOSTS),--distcc-hosts $(DISTCC_HOSTS),) \
+			$(if $(call optbool,$(FORCE)),--force,) \
+			$(if $(call optbool,$(NOREPO)),--no-repo,) \
+			$(if $(call optbool,$(NOEXTRACT)),--no-extract,) \
+			$(if $(call optbool,$(NOSIGN)),--no-sign,) \
 			$(PKG) \
-			'$(call optbool,$(FORCE))' \
-			'$(call optbool,$(NOREPO))' \
-			'$(call optbool,$(NOEXTRACT))' \
-			'$(call optbool,$(NOSIGN))' \
 		"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
 
@@ -119,10 +122,10 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 			--volume $(shell pwd)/$(_TARGET_REPO_DIR):/repo:rw \
 			--volume $(shell pwd)/$(_BUILD_DIR):/build:rw \
 			--volume $(shell pwd)/packages:/packages:ro \
+			--volume $(shell pwd)/distcc:/distcc:rw \
 			--env TARGET_REPO_DIR=/repo \
-			--env PKG_BUILD_DIR=/build \
+			--env BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
-			--env MAKE_J=$(J) \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/$(_ALARM_UID)/gnupg:/run/user/$(_ALARM_UID)/gnupg:rw \
 			$(OPTS) \

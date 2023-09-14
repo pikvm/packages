@@ -1,234 +1,279 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env python
+
+
+import sys
+import os
+from os.path import join
+from os.path import exists
+import shutil
+import glob
+import json
+import subprocess
+import dataclasses
+import contextlib
+import textwrap
+import argparse
+
+from typing import Generator
 
 
 # =====
-say() {
-	tput bold
-	tput setaf 3
-	echo "----- $@"
-	tput sgr0
-}
-
-die() {
-	tput bold
-	tput setaf 1
-	echo "----- $@"
-	tput sgr0
-	exit 1
-}
-
-get_pkgbuild_info() {
-	local pkgbuild_path="$1"
-	source <( \
-		source "$pkgbuild_path" \
-		; [ -z "$epoch" ] || epoch_prefix="$epoch:" \
-		; deps=("${depends[@]}" "${makedepends[@]}" "${checkdepends[@]}") \
-		; printf %s\\n \
-			"_RET_PKGNAMES=\"${pkgname[*]}\"" \
-			"_RET_VERSION=\"$epoch_prefix$pkgver-$pkgrel\"" \
-			"_RET_DEPS=\"${deps[*]}\"" \
-			"_RET_KEYS=\"${validpgpkeys[*]}\"" \
-	)
-	[ -n "$_RET_VERSION" ] || die "Missing or incorrect PKGBUILD"
-}
-
-append_repo() {
-	local repo_name="$1"
-	local repo_dir="$2"
-	if [ -f "$repo_dir/$repo_name.db.tar.gz" ]; then
-		say "Appending repo $repo_name to /etc/pacman.conf ..."
-		cat <<-EOF>>/etc/pacman.conf
-			[$repo_name]
-			Server = file://$repo_dir
-			SigLevel = Required DatabaseOptional
-			EOF
-	fi
-}
-
-get_latest_version() {
-	local repo_dir="$1"
-	local pkg_name="$2"
-	_RET_VERSION=$(cat "$repo_dir/latest/$pkg_name" 2>/dev/null || true)
-}
-
-set_latest_version() {
-	local repo_dir="$1"
-	local pkg_name="$2"
-	local version="$3"
-	mkdir -p "$repo_dir/latest"
-	echo "$version" > "$repo_dir/latest/$pkg_name"
-}
-
-unset_latest_version() {
-	local repo_dir="$1"
-	local pkg_name="$2"
-	rm -f "$repo_dir/latest/$pkg_name"
-}
-
-prepare_build_dir() {
-	local pkg_dir="$1"
-	local build_dir="$2"
-	say "Preparing build directory ..."
-	find "$build_dir" -mindepth 1 -delete
-	cp "$pkg_dir"/* "$build_dir"
-}
-
-install_deps() {
-	local deps="$1"
-	if [ -n "$deps" ]; then
-		say "Installing dependencies ..."
-		# https://unix.stackexchange.com/questions/274727/how-to-force-pacman-to-answer-yes-to-all-questions
-		# https://bugs.archlinux.org/task/48835
-		pacman --noconfirm --ask=4 -Syu
-		pacman --noconfirm --ask=4 --needed -S $deps
-	fi
-}
-
-sign_piped() {
-	sudo -u alarm xargs -L1 bash -c "gpg \
-			--verbose \
-			--pinentry-mode loopback \
-			--local-user $TARGET_REPO_KEY \
-			--detach-sign \
-			--use-agent \
-			--no-autostart \
-			\$0 \
-		|| exit 255"
-}
-
-test_sign() {
-	local build_dir="$1"
-	pushd "$build_dir" >/dev/null
-	say "Testing sign ..."
-	rm -f .testsign{,.sig}
-	echo "test" > .testsign
-	echo .testsign | sign_piped
-	rm .testsign{,.sig}
-	popd >/dev/null
-}
-
-build() {
-	local build_dir="$1"
-	local noextract="$2"
-	local nosign="$3"
-	pushd "$build_dir" >/dev/null
-	if [ -n "$noextract" ]; then
-		say "Building package with NOEXTRACT ..."
-		sudo -u alarm makepkg --noextract --force
-	else
-		say "Building package ..."
-		sudo -u alarm makepkg
-	fi
-	if [ -z "$nosign" ]; then
-		say "Signing package(s) ..."
-		ls *.pkg.tar.xz | sign_piped
-	fi
-	popd >/dev/null
-}
-
-remove_from_repo() {
-	local repo_dir="$1"
-	local pkg_name="$2"
-	local version="$3"
-	say "Removing old package(s) from repo ..."
-	rm -f "$repo_dir/$pkg_name"{,-*}-"$version"-*.pkg.tar.xz{,.sig}
-}
-
-copy_to_repo() {
-	local build_dir="$1"
-	local repo_dir="$2"
-	say "Placing package(s) to repo ..."
-	cp "$build_dir"/*.pkg.tar.xz{,.sig} "$repo_dir"
-}
-
-rebuild_repo() {
-	local repo_name="$1"
-	local repo_dir="$2"
-	say "Rebuilding repo ..."
-	pushd "$repo_dir" >/dev/null
-	rm -f "$repo_name".*
-	repo-add "$repo_name.db.tar.gz" *.pkg.tar.xz
-	popd >/dev/null
-}
+def _say(text: str) -> None:
+    print(f"\033[33;1m----- {text}\033[0m", file=sys.stderr)
 
 
-# ===== Main =====
-main() {
-	local pkg_name="$1"; [ -n "$pkg_name" ] || die "Missing package name"
-	local force="$2"
-	local norepo="$3"
-	local noextract="$4"
-	local nosign="$5"
+def _remove_exists(*paths: str) -> None:
+    for path in paths:
+        if exists(path):
+            os.remove(path)
 
-	[ -n "$TARGET_REPO_NAME" ] || die "Missing TARGET_REPO_NAME variable"
-	[ -n "$TARGET_REPO_KEY" ] || die "Missing TARGET_REPO_KEY variable"
-	[ -n "$TARGET_REPO_DIR" ] || die "Missing TARGET_REPO_DIR variable"
-	[ -n "$PKG_BUILD_DIR" ] || die "Missing PKG_BUILD_DIR variable"
-	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
-	[ -n "$MAKE_J" ] || die "Missing MAKE_J variable"
 
-	PKG_BUILD_DIR="$PKG_BUILD_DIR/$pkg_name"
-	sudo -u alarm mkdir -p "$PKG_BUILD_DIR"
+def _add_to_file(path: str, text: str) -> None:
+    with open(path, "a") as file:
+        file.write("\n" + text)
 
-	# =====
 
-	get_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
-	local pkgs="$_RET_PKGNAMES"; unset _RET_PKGNAMES
-	local version="$_RET_VERSION"; unset _RET_VERSION
-	local deps="$_RET_DEPS"; unset _RET_DEPS
-	local keys="$_RET_KEYS"; unset _RET_KEYS
+@contextlib.contextmanager
+def _pushd(path: str) -> Generator[None, None, None]:
+    old_path = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_path)
 
-	get_latest_version "$TARGET_REPO_DIR" "$pkg_name"
-	local old_version="$_RET_VERSION"; unset _RET_VERSION
 
-	if [ "$version" != "$old_version" ]; then
-		local old="$old_version"
-		[ -n "$old" ] || old="<none>"
-		say "Found new $pkg_name ($old -> $version)"
-		local build=1
-	elif [ -n "$force" ]; then
-		say "Forced rebuild of $pkg_name"
-		local build=1
-	else
-		say "Passed $pkg_name"
-		return
-	fi
+def _run(*cmd: str) -> None:
+    subprocess.run(cmd, check=True)
 
-	if [ -n "$build" ]; then
-		sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j$MAKE_J/g" /etc/makepkg.conf
-		say "Using MAKE_J=$MAKE_J"
-		append_repo "$TARGET_REPO_NAME" "$TARGET_REPO_DIR"
-		if [ -z "$noextract" ]; then
-			prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$PKG_BUILD_DIR"
-		fi
-		if [ -z "$nosign" ]; then
-			test_sign "$PKG_BUILD_DIR"
-		fi
-# FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
-#		if [ -n "$keys" ]; then
-#			for key in $keys; do
-#				sudo -u alarm gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv-key $key \
-#				|| sudo -u alarm gpg --keyserver hkps://keys.gnupg.net:443 --recv-key $key \
-#				|| sudo -u alarm gpg --keyserver hkps://pgp.mit.edu:443 --recv-key $key
-#			done
-#		fi
-		install_deps "$deps"
-		build "$PKG_BUILD_DIR" "$noextract" "$nosign"
-		if [ -z "$norepo" ]; then
-			if [ -n "$old_version" ]; then
-				for sub_pkg_name in $pkgs; do
-					remove_from_repo "$TARGET_REPO_DIR" "$sub_pkg_name" "$old_version"
-				done
-				unset_latest_version "$TARGET_REPO_DIR" "$pkg_name"
-			fi
-			copy_to_repo "$PKG_BUILD_DIR" "$TARGET_REPO_DIR"
-			rebuild_repo "$TARGET_REPO_NAME" "$TARGET_REPO_DIR"
-			set_latest_version "$TARGET_REPO_DIR" "$pkg_name" "$version"
-			chown -R alarm:alarm "$TARGET_REPO_DIR"/*
-		fi
-		say "Done!"
-	fi
-}
 
-main "$1" "$2" "$3" "$4" "$5"
+# =====
+@dataclasses.dataclass(frozen=True)
+class _Pkg:
+    names: set[str]
+    version: str
+    deps: set[str]
+    keys: set[str]
+    use_distcc: bool
+
+
+def _read_pkgbuild(pkg_path: str) -> _Pkg:
+    _say("Reading PKGBUILD ...")
+    with _pushd(pkg_path):
+        params: dict = json.loads(subprocess.check_output(r"""
+            . ./PKGBUILD
+            ; [ -z "$epoch" ] || epoch_prefix="$epoch:"
+            ; echo "{
+                \"names\": `echo \"${pkgname[*]}\" | jq -R .`
+                , \"version\": `echo \"$epoch_prefix$pkgver-$pkgrel\" | jq -R .`
+                , \"deps\": `echo \"${depends[*]} ${makedepends[*]} ${checkdepends[*]}\" | jq -R .`
+                , \"keys\": `echo \"${validpgpkeys[*]}\" | jq -R .`
+                , \"use_distcc\": `echo \"$_pikvm_use_distcc\" | jq -R .`
+            }"
+        """.replace("\n", " "), shell=True).decode())
+    make_set = (lambda key: set(filter(None, map(str.strip, params[key].split()))))
+    pkg = _Pkg(
+        names=make_set("names"),
+        version=params["version"].strip(),
+        deps=make_set("deps"),
+        keys=make_set("keys"),
+        use_distcc=bool(int(params["use_distcc"].strip() or "0"))
+    )
+    assert pkg.names
+    assert pkg.version
+    _say(f"PKGBUILD: {pkg}")
+    return pkg
+
+
+def _append_repo(name: str, path: str) -> None:
+    _say("Appending the local repository {name!r} in {path!r}")
+    assert exists(join(path, name + ".db"))
+    _add_to_file("/etc/pacman.conf", textwrap.dedent(f"""
+        [{name}]
+            Server = file://{path}
+            SigLevel = Required DatabaseOptional
+    """))
+
+
+def _get_latest_version(repo_path: str, pkg_name: str) -> str:
+    _say("Reading old version from the repo ...")
+    path = join(repo_path, "latest", pkg_name)
+    if exists(path):
+        with open(path) as file:
+            return file.read().strip()
+    return ""
+
+
+def _set_latest_version(repo_path: str, pkg_name: str, version: str) -> None:
+    _say("Saving new version to the repo ...")
+    path = join(repo_path, "latest")
+    if not exists(path):
+        os.mkdir(path)
+    with open(join(path, pkg_name), "w") as file:
+        file.write(version)
+
+
+def _unset_latest_version(repo_path: str, pkg_name: str) -> None:
+    _say("Unsetting current version in the repo ...")
+    _remove_exists(join(repo_path, "latest", pkg_name))
+
+
+def _prepare_build_dir(pkg_path: str, build_path: str) -> None:
+    _say("Preparing the build directory ...")
+    _run("find", build_path, "-mindepth", "1", "-delete")
+    for name in os.listdir(pkg_path):
+        path = join(pkg_path, name)
+        shutil.copy(path, build_path)
+
+
+def _install_deps(deps: set[str]) -> None:
+    assert deps
+    _say("Installing dependencies ...")
+    # https://unix.stackexchange.com/questions/274727/how-to-force-pacman-to-answer-yes-to-all-questions
+    # https://bugs.archlinux.org/task/48835
+    _run("pacman", "--noconfirm", "--ask=4", "-Syu")
+    _run("pacman", "--noconfirm", "--ask=4", "--needed", "-S", *sorted(deps))
+
+
+def _sign_files(paths: set[str], key: str) -> None:
+    for path in sorted(paths):
+        _run(
+            "gpg", "--verbose", "--pinentry-mode", "loopback",
+            "--local-user", key, "--detach-sign", "--use-agent",
+            "--no-autostart", path,
+        )
+
+
+def _test_sign(build_path: str, key: str) -> None:
+    _say("Testing sign ...")
+    test = ".testsign"
+    test_sig = test + ".sig"
+    with _pushd(build_path):
+        _remove_exists(test, test_sig)
+        with open(".testsign", "w") as file:
+            file.write("test\n")
+        _sign_files(set([test]), key)
+        _remove_exists(test, test_sig)
+
+
+def _build(build_path: str, key: str, use_distcc: bool, no_extract: bool) -> None:
+    _say("Building package ...")
+    with _pushd(build_path):
+        cmd = ["sudo", "-u", "alarm"]
+        if use_distcc:
+            cmd += ["pump"]
+            _say("... With DISTCC-PUMP")
+        cmd += ["makepkg"]
+        if no_extract:
+            cmd += ["--noextract", "--force"]
+            _say("... With NOEXTRACT")
+        _run(*cmd)
+        if key:
+            _sign_files(set(sorted(glob.glob(".pkg.tar.xz"))), key)
+
+
+def _remove_from_repo(repo_path: str, pkg_name: str, version: str) -> None:
+    with _pushd(repo_path):
+        for pattern in [f"{pkg_name}-{version}-*.pkg.tar.xz*", f"{pkg_name}-*-{version}-*.pkg.tar.xz*"]:
+            for name in glob.iglob(pattern):
+                _say(f"Removing old {name} ...")
+                os.remove(name)
+
+
+def _copy_to_repo(build_path: str, repo_path: str) -> None:
+    _say("Placing package(s) in the repo ...")
+    with _pushd(build_path):
+        for name in glob.iglob("*.pkg.tar.xz*"):
+            shutil.copy(name, repo_path)
+
+
+def _rebuild_repo(repo_name: str, repo_path: str) -> None:
+    _say("Rebuilding the repo ...")
+    with _pushd(repo_path):
+        for name in glob.iglob(f"{repo_name}.*"):
+            os.remove(name)
+        names = sorted(glob.iglob("*.pkg.tar.xz"))
+        _run("repo-add", f"{repo_name}.db.tar.gz", *names)
+
+
+# =====
+def main() -> None:  # pylint: disable=too-many-statements
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--target-repo-name", default=os.getenv("TARGET_REPO_NAME"))
+    parser.add_argument("--target-repo-key", default=os.getenv("TARGET_REPO_KEY"))
+    parser.add_argument("--target-repo-dir", default=os.getenv("TARGET_REPO_DIR"))
+    parser.add_argument("--build-dir", default=os.getenv("BUILD_DIR"))
+    parser.add_argument("--packages-dir", default=os.getenv("PACKAGES_DIR"))
+    parser.add_argument("--make-j", type=int, required=True)
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--distcc-hosts", nargs="+")
+    parser.add_argument("--no-sign", action="store_true")
+    parser.add_argument("--no-repo", action="store_true")
+    parser.add_argument("--no-extract", action="store_true")
+    parser.add_argument("pkg_name")
+    o = parser.parse_args()  # pylint: disable=invalid-name
+    assert o.target_repo_name
+    assert o.target_repo_key
+    assert o.target_repo_dir
+    assert o.build_dir
+    assert o.packages_dir
+
+    o.build_dir = join(o.build_dir, o.pkg_name)
+    _run("sudo", "-u", "alarm", "mkdir", "-p", o.build_dir)
+
+    pkg = _read_pkgbuild(join(o.packages_dir, o.pkg_name))
+    use_distcc = (pkg.use_distcc and bool(o.distcc_hosts))
+    old_version = _get_latest_version(o.target_repo_dir, o.pkg_name)
+
+    if pkg.version != old_version:
+        old = (old_version or "<none>")
+        _say(f"Found new {o.pkg_name} ({old} -> {pkg.version})")
+    elif o.force:
+        _say(f"Forced rebuild of {o.pkg_name}")
+    else:
+        _say("Passed {o.pkg_name}")
+        return
+
+    _say(f"Using MAKE_J={o.make_j}")
+    _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")
+    if use_distcc:
+        _say(f"Using DISTCC-PUMP: {o.distcc_hosts} ...")
+        _run("sed", "-i", "-e", "s/!distcc/distcc/g", "/etc/makepkg.conf")
+        distcc_hosts = " ".join(host + ",cpp,lzo" for host in o.distcc_hosts)
+        _add_to_file("/etc/makepkg.conf", f"DISTCC_HOSTS=\"{distcc_hosts}\"")
+        _add_to_file("/etc/makepkg.conf", "DISTCC_DIR=\"/distcc\"")
+
+    if exists(join(o.target_repo_dir, o.target_repo_name + ".db")):
+        _append_repo(o.target_repo_name, o.target_repo_dir)
+
+    if not o.no_extract:
+        _prepare_build_dir(join(o.packages_dir, o.pkg_name), o.build_dir)
+    if not o.no_sign:
+        _test_sign(o.build_dir, o.target_repo_key)
+    if pkg.deps:
+        _install_deps(pkg.deps)
+
+    _build(
+        build_path=o.build_dir,
+        key=("" if o.no_sign else o.target_repo_key),
+        use_distcc=use_distcc,
+        no_extract=o.no_extract,
+    )
+
+    if not o.no_repo:
+        if old_version:
+            for name in pkg.names:
+                _remove_from_repo(o.target_repo_dir, name, old_version)
+            _unset_latest_version(o.target_repo_dir, o.pkg_name)
+        _copy_to_repo(o.build_dir, o.target_repo_dir)
+        _rebuild_repo(o.target_repo_name, o.target_repo_dir)
+        _set_latest_version(o.target_repo_dir, o.pkg_name, pkg.version)
+        with _pushd(o.target_repo_dir):
+            _run("chown", "-R", "alarm:alarm", *sorted(os.listdir(".")))
+
+    _say("Done!")
+
+
+# =====
+if __name__ == "__main__":
+    main()
