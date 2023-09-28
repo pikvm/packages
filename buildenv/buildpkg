@@ -170,7 +170,8 @@ def _build(build_path: str, key: str, distcc_hosts: str, no_extract: bool) -> No
             _say("... With NOEXTRACT")
         _run(*cmd)
         if key:
-            _sign_files(set(sorted(glob.glob(".pkg.tar.xz"))), key)
+            _say("Signing package(s) ...")
+            _sign_files(set(sorted(glob.glob("*.pkg.tar.xz"))), key)
 
 
 def _remove_from_repo(repo_path: str, pkg_name: str, version: str) -> None:
