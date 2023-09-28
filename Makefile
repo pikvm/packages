@@ -66,7 +66,7 @@ $(__UPDATABLE):
 __ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)))
 build: buildenv $(__ORDER)
 $(__ORDER):
-	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@) J=$(J)
+	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@)
 # XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
 
 
@@ -76,12 +76,12 @@ _build:
 	$(MAKE) _run \
 		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg \
-			--make-j $(J) \
-			$(if $(DISTCC_HOSTS),--distcc-hosts $(DISTCC_HOSTS),) \
 			$(if $(call optbool,$(FORCE)),--force,) \
 			$(if $(call optbool,$(NOREPO)),--no-repo,) \
 			$(if $(call optbool,$(NOEXTRACT)),--no-extract,) \
 			$(if $(call optbool,$(NOSIGN)),--no-sign,) \
+			$(if $(DISTCC_HOSTS),--distcc-hosts $(DISTCC_HOSTS),) \
+			--make-j $(J) \
 			$(PKG) \
 		"
 	$(call say,"Complete package $(PKG) for $(BOARD)")
@@ -122,12 +122,12 @@ _run: $(_BUILD_DIR) $(_TARGET_REPO_DIR)
 			--volume $(shell pwd)/$(_TARGET_REPO_DIR):/repo:rw \
 			--volume $(shell pwd)/$(_BUILD_DIR):/build:rw \
 			--volume $(shell pwd)/packages:/packages:ro \
-			--volume $(shell pwd)/distcc:/distcc:rw \
 			--env TARGET_REPO_DIR=/repo \
 			--env BUILD_DIR=/build \
 			--env PACKAGES_DIR=/packages \
 			--volume $$HOME/.gnupg/:/home/alarm/.gnupg/:rw \
 			--volume /run/user/$(_ALARM_UID)/gnupg:/run/user/$(_ALARM_UID)/gnupg:rw \
+			--mount type=tmpfs,destination=/tmp \
 			$(OPTS) \
 		$(_BUILDENV_IMAGE) \
 			$(if $(CMD),$(CMD),/bin/bash)

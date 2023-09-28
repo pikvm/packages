@@ -70,7 +70,7 @@ def _read_pkgbuild(pkg_path: str) -> _Pkg:
                 , \"keys\": `echo \"${validpgpkeys[*]}\" | jq -R .`
                 , \"use_distcc\": `echo \"$_pikvm_use_distcc\" | jq -R .`
             }"
-        """.replace("\n", " "), shell=True).decode())
+        """.replace("\n", " "), shell=True, executable="/bin/bash").decode())
     make_set = (lambda key: set(filter(None, map(str.strip, params[key].split()))))
     pkg = _Pkg(
         names=make_set("names"),
@@ -86,7 +86,7 @@ def _read_pkgbuild(pkg_path: str) -> _Pkg:
 
 
 def _append_repo(name: str, path: str) -> None:
-    _say("Appending the local repository {name!r} in {path!r}")
+    _say(f"Appending the local repository {name!r} in {path!r}")
     assert exists(join(path, name + ".db"))
     _add_to_file("/etc/pacman.conf", textwrap.dedent(f"""
         [{name}]
@@ -138,6 +138,7 @@ def _install_deps(deps: set[str]) -> None:
 def _sign_files(paths: set[str], key: str) -> None:
     for path in sorted(paths):
         _run(
+            "sudo", "-u", "alarm",
             "gpg", "--verbose", "--pinentry-mode", "loopback",
             "--local-user", key, "--detach-sign", "--use-agent",
             "--no-autostart", path,
@@ -156,12 +157,12 @@ def _test_sign(build_path: str, key: str) -> None:
         _remove_exists(test, test_sig)
 
 
-def _build(build_path: str, key: str, use_distcc: bool, no_extract: bool) -> None:
+def _build(build_path: str, key: str, distcc_hosts: str, no_extract: bool) -> None:
     _say("Building package ...")
     with _pushd(build_path):
         cmd = ["sudo", "-u", "alarm"]
-        if use_distcc:
-            cmd += ["pump"]
+        if distcc_hosts:
+            cmd += ["env", f"DISTCC_HOSTS={distcc_hosts}", "pump"]
             _say("... With DISTCC-PUMP")
         cmd += ["makepkg"]
         if no_extract:
@@ -222,7 +223,6 @@ def main() -> None:  # pylint: disable=too-many-statements
     _run("sudo", "-u", "alarm", "mkdir", "-p", o.build_dir)
 
     pkg = _read_pkgbuild(join(o.packages_dir, o.pkg_name))
-    use_distcc = (pkg.use_distcc and bool(o.distcc_hosts))
     old_version = _get_latest_version(o.target_repo_dir, o.pkg_name)
 
     if pkg.version != old_version:
@@ -231,17 +231,18 @@ def main() -> None:  # pylint: disable=too-many-statements
     elif o.force:
         _say(f"Forced rebuild of {o.pkg_name}")
     else:
-        _say("Passed {o.pkg_name}")
+        _say(f"Passed {o.pkg_name}")
         return
 
+    distcc_hosts = ""
     _say(f"Using MAKE_J={o.make_j}")
     _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")
-    if use_distcc:
-        _say(f"Using DISTCC-PUMP: {o.distcc_hosts} ...")
-        _run("sed", "-i", "-e", "s/!distcc/distcc/g", "/etc/makepkg.conf")
+    if pkg.use_distcc and bool(o.distcc_hosts):
         distcc_hosts = " ".join(host + ",cpp,lzo" for host in o.distcc_hosts)
+        _say(f"Using DISTCC-PUMP: {distcc_hosts} ...")
         _add_to_file("/etc/makepkg.conf", f"DISTCC_HOSTS=\"{distcc_hosts}\"")
         _add_to_file("/etc/makepkg.conf", "DISTCC_DIR=\"/distcc\"")
+        _run("sed", "-i", "-e", "s/!distcc/distcc/g", "/etc/makepkg.conf")
 
     if exists(join(o.target_repo_dir, o.target_repo_name + ".db")):
         _append_repo(o.target_repo_name, o.target_repo_dir)
@@ -256,7 +257,7 @@ def main() -> None:  # pylint: disable=too-many-statements
     _build(
         build_path=o.build_dir,
         key=("" if o.no_sign else o.target_repo_key),
-        use_distcc=use_distcc,
+        distcc_hosts=distcc_hosts,
         no_extract=o.no_extract,
     )
 
