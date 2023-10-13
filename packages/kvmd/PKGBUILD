@@ -40,7 +40,7 @@ for _variant in "${_variants[@]}"; do
 done
 pkgbase=kvmd
 pkgver=3.258
-pkgrel=1
+pkgrel=2
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
 license=(GPL)
