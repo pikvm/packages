@@ -244,6 +244,7 @@ def main() -> None:  # pylint: disable=too-many-statements
         _add_to_file("/etc/makepkg.conf", f"DISTCC_HOSTS=\"{distcc_hosts}\"")
         _add_to_file("/etc/makepkg.conf", "DISTCC_DIR=\"/distcc\"")
         _run("sed", "-i", "-e", "s/!distcc/distcc/g", "/etc/makepkg.conf")
+        _run("sed", "-i", "-e", r"s/^ShutDown() {/ShutDown() {\nexit 0/g", "/usr/bin/pump")  # FIXME: pump hanging on exit
         _say(f"Using MAKE_J={o.distcc_make_j} (distcc)")
         _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.distcc_make_j}/g", "/etc/makepkg.conf")
     else:
