@@ -209,11 +209,13 @@ def main() -> None:  # pylint: disable=too-many-statements
     parser.add_argument("--make-j", type=int, required=True)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--distcc-hosts", nargs="+")
+    parser.add_argument("--distcc-make-j", type=int, default=0)
     parser.add_argument("--no-sign", action="store_true")
     parser.add_argument("--no-repo", action="store_true")
     parser.add_argument("--no-extract", action="store_true")
     parser.add_argument("pkg_name")
     o = parser.parse_args()  # pylint: disable=invalid-name
+    o.distcc_make_j = (o.distcc_make_j or o.make_j)
     assert o.target_repo_name
     assert o.target_repo_key
     assert o.target_repo_dir
@@ -236,14 +238,17 @@ def main() -> None:  # pylint: disable=too-many-statements
         return
 
     distcc_hosts = ""
-    _say(f"Using MAKE_J={o.make_j}")
-    _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")
     if pkg.use_distcc and bool(o.distcc_hosts):
         distcc_hosts = " ".join(host + ",cpp,lzo" for host in o.distcc_hosts)
         _say(f"Using DISTCC-PUMP: {distcc_hosts} ...")
         _add_to_file("/etc/makepkg.conf", f"DISTCC_HOSTS=\"{distcc_hosts}\"")
         _add_to_file("/etc/makepkg.conf", "DISTCC_DIR=\"/distcc\"")
         _run("sed", "-i", "-e", "s/!distcc/distcc/g", "/etc/makepkg.conf")
+        _say(f"Using MAKE_J={o.distcc_make_j} (distcc)")
+        _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.distcc_make_j}/g", "/etc/makepkg.conf")
+    else:
+        _say(f"Using MAKE_J={o.make_j} (local)")
+        _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")
 
     if exists(join(o.target_repo_dir, o.target_repo_name + ".db")):
         _append_repo(o.target_repo_name, o.target_repo_dir)
