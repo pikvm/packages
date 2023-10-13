@@ -7,7 +7,7 @@ export HOSTNAME = buildenv
 export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 export DOCKER ?= docker
 export DISTCC_HOSTS ?=
-export DISTCC_MAKE_J ?=
+export DISTCC_J ?=
 
 DEPLOY_USER ?= root
 
@@ -82,7 +82,7 @@ _build:
 			$(if $(call optbool,$(NOEXTRACT)),--no-extract,) \
 			$(if $(call optbool,$(NOSIGN)),--no-sign,) \
 			$(if $(DISTCC_HOSTS),--distcc-hosts $(DISTCC_HOSTS),) \
-			$(if $(DISTCC_MAKE_J),--distcc-make-j $(DISTCC_MAKE_J),) \
+			$(if $(DISTCC_J),--distcc-make-j $(DISTCC_J),) \
 			--make-j $(J) \
 			$(PKG) \
 		"
