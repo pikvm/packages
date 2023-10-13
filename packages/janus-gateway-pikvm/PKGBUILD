@@ -1,6 +1,6 @@
-_commit=10679142d6bd0f0ddce192dadbcdc479bf4b4689
+_commit=bd9b8e44e61b4c847b33a8fbbe9fab5290ba0cf5
 pkgname=janus-gateway-pikvm
-pkgver=0.14.0
+pkgver=0.14.1
 pkgrel=1
 pkgdesc="An open source, general purpose, WebRTC server (PiKVM build)"
 url='https://janus.conf.meetecho.com'
@@ -54,7 +54,7 @@ build() {
 		--disable-sample-event-handler \
 		--disable-websockets-event-handler \
 		--disable-gelf-event-handler
-	make $MAKEFLAGS
+	make
 }
 
 package() {
