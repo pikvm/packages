@@ -1,6 +1,6 @@
 pkgname=python-luma-oled
-pkgver=3.12.0
-pkgrel=3
+pkgver=3.13.0
+pkgrel=1
 pkgdesc="Python module to drive OLED displays"
 url="https://github.com/rm-hull/luma.oled"
 license=(MIT)
