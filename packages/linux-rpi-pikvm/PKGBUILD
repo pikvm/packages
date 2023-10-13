@@ -4,6 +4,8 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
+_pikvm_use_distcc=1
+
 pkgbase=linux-rpi
 _commit=14b35093ca68bf2c81bbc90aace5007142b40b40
 _srcname=linux-${_commit}
@@ -57,6 +59,8 @@ prepare() {
   patch -Np1 -i ../3001-h264-buf-size.patch
   patch -Np1 -i ../4001-cve-2023-4273.patch
 
+  sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
+
   echo "Setting version..."
   scripts/setlocalversion --save-scmversion
   echo "-$pkgrel" > localversion.10-pkgrel
@@ -75,7 +79,11 @@ prepare() {
 build() {
   cd "${srcdir}/${_srcname}"
 
-  make "$_image" modules dtbs
+  if [ "$_pikvm_use_distcc" -eq 1 ]; then
+    make "$_image" modules dtbs CC=distcc CXX=distcc V=1
+  else
+    make "$_image" modules dtbs
+  fi
 }
 
 _package-pikvm() {
