@@ -121,9 +121,7 @@ def _unset_latest_version(repo_path: str, pkg_name: str) -> None:
 def _prepare_build_dir(pkg_path: str, build_path: str) -> None:
     _say("Preparing the build directory ...")
     _run("find", build_path, "-mindepth", "1", "-delete")
-    for name in os.listdir(pkg_path):
-        path = join(pkg_path, name)
-        shutil.copy(path, build_path)
+    _run("cp", "-a", pkg_path + "/.", build_path)
 
 
 def _install_deps(deps: set[str]) -> None:
