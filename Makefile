@@ -8,6 +8,7 @@ export REPO_URL ?= http://de3.mirror.archlinuxarm.org/
 export DOCKER ?= docker
 export DISTCC_HOSTS ?=
 export DISTCC_J ?=
+UPLOAD ?= testing stable
 
 DEPLOY_USER ?= root
 
@@ -48,9 +49,11 @@ all:
 	true
 
 
-upload:
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
+__upload__testing:
 	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing
+__upload__stable:
+	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
+upload: $(addprefix __upload__,$(UPLOAD))
 
 
 download:
@@ -64,9 +67,9 @@ $(__UPDATABLE):
 	$(MAKE) -C packages/$(subst __update__,,$@) -f update.mk update
 
 
-__ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)))
-build: buildenv $(__ORDER)
-$(__ORDER):
+__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)))
+build: buildenv $(__BUILD_ORDER)
+$(__BUILD_ORDER):
 	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@)
 # XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
 
