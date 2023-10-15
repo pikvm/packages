@@ -78,7 +78,7 @@ _build:
 	test -n "$(PKG)"
 	$(call say,"Ensuring package $(PKG) for $(BOARD)")
 	$(MAKE) _run \
-		OPTS="--tty $(if $(call optbool,$(NOINT)),,--interactive)" \
+		OPTS="--shm-size=4gb --tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg \
 			$(if $(call optbool,$(FORCE)),--force,) \
 			$(if $(call optbool,$(NOREPO)),--no-repo,) \
