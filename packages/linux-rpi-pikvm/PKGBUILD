@@ -7,17 +7,20 @@
 _pikvm_use_distcc=1
 
 pkgbase=linux-rpi
-_commit=14b35093ca68bf2c81bbc90aace5007142b40b40
+_commit=5f95ac33baaa478982e881b0ad9d5747deb5f5b3
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
-pkgver=5.15.92
-pkgrel=1
+_regen=
+pkgver=6.1.57
+pkgrel=2
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
 license=(GPL2)
 makedepends=(
-  bc kmod inetutils
+  bc
+  kmod
+  inetutils
 )
 options=('!strip')
 source_armv7h=('config' 'config.txt')
@@ -28,15 +31,13 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         linux.preset
         60-linux.hook
         90-linux.hook
+        archarm.diffconfig
         1003-remote-wakeup.patch
         2001-rename-msd.patch
-        2002-usb-gadget-f_mass_storage-forced-eject.patch
-        3001-h264-buf-size.patch
-        4001-cve-2023-4273.patch
 )
-md5sums=(SKIP
-         SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP
+         SKIP SKIP SKIP
+         SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP SKIP)
 md5sums_aarch64=(SKIP SKIP)
 
@@ -47,54 +48,100 @@ elif [[ $CARCH == "aarch64" ]]; then
   _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8 _bconfig=config8.txt
 fi
 
+_make() {
+  test -s version
+  make KERNELRELEASE="$(<version)" "$@"
+}
+
 prepare() {
   cd "${srcdir}/${_srcname}"
 
   # consistent behavior of lscpu on arm/arm64
-  patch -Np1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
+  patch -p1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
 
-  patch -Np1 -i ../1003-remote-wakeup.patch
-  patch -Np1 -i ../2001-rename-msd.patch
-  patch -Np1 -i ../2002-usb-gadget-f_mass_storage-forced-eject.patch
-  patch -Np1 -i ../3001-h264-buf-size.patch
-  patch -Np1 -i ../4001-cve-2023-4273.patch
+  patch -p1 -i ../1003-remote-wakeup.patch
+  patch -p1 -i ../2001-rename-msd.patch
 
-  sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
+  if [ "$_pikvm_use_distcc" -eq 1 ]; then
+    sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
+  fi
 
   echo "Setting version..."
-  scripts/setlocalversion --save-scmversion
   echo "-$pkgrel" > localversion.10-pkgrel
   echo "${pkgbase#linux}" > localversion.20-pkgname
 
-  echo "Setting config..."
-  cp ../"$_config" .config
-  sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
-  sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
-  make olddefconfig
-
-  make -s kernelrelease > version
-  echo "Prepared $pkgbase version $(<version)"
+  if [[ $_regen -eq 1 ]]; then
+    # useful on two point releases to keep shit straight
+    echo "Applying custom shit to bcm2711_defconfig"
+    make bcm2711_defconfig
+    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
+    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
+    cat ../archarm.diffconfig >> .config
+    make oldconfig
+    if [[ $CARCH == "armv7h" ]]; then
+      # https://archlinuxarm.org/forum/viewtopic.php?f=23&t=16373
+      scripts/config --enable CONFIG_BCM2835_THERMAL
+      # workaround OOM killer issue
+      # https://github.com/raspberrypi/linux/issues/5395
+      # https://archlinuxarm.org/forum/viewtopic.php?f=23&t=16377
+      scripts/config --disable CONFIG_LRU_GEN_ENABLED
+    fi
+    sed '/^CONFIG_LOCALVERSION=/s,.*$,CONFIG_LOCALVERSION="-ARCH",' .config >$startdir/newconfig.$_config
+    echo "verify that newconfig.$_config is fit for purpose then redefine $_config"
+    exit
+  else
+    make bcm2711_defconfig
+    make -s kernelrelease | sed 's/rpi-.*$/rpi-ARCH/' > version
+    make mrproper
+    echo "Setting config..."
+    cp ../"$_config" .config
+    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
+    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
+    _make olddefconfig
+    diff -u ../"$_config" .config || :
+    echo "Prepared $pkgbase version $(<version)"
+  fi
 }
 
 build() {
   cd "${srcdir}/${_srcname}"
 
   if [ "$_pikvm_use_distcc" -eq 1 ]; then
-    make "$_image" modules dtbs CC=distcc CXX=distcc V=1
+    _make "$_image" modules dtbs CC=distcc CXX=distcc
   else
-    make "$_image" modules dtbs
+    _make "$_image" modules dtbs
   fi
 }
 
 _package-pikvm() {
   pkgdesc="RPi Foundation patched Linux kernel and modules"
-  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7' 'firmware-raspberrypi')
-  optdepends=('wireless-regdb: to set the correct wireless channels of your country')
-  provides=('kernel26' "linux=${pkgver}" 'WIREGUARD-MODULE')
-  conflicts=('kernel26' 'linux' 'uboot-raspberrypi')
+  depends=(
+    coreutils
+    firmware-raspberrypi
+    kmod
+    linux-firmware
+    'mkinitcpio>=0.7'
+  )
+  optdepends=(
+    'wireless-regdb: to set the correct wireless channels of your country'
+  )
+  provides=(
+    linux="${pkgver}"
+    WIREGUARD-MODULE
+  )
+  conflicts=(
+    linux
+    uboot-raspberrypi
+  )
+  replaces=(
+    linux-raspberrypi-latest
+    linux-raspberrypi4
+  )
   install=linux-rpi.install
-  backup=('boot/config.txt' 'boot/cmdline.txt')
-  replaces=('linux-raspberrypi-latest' 'linux-raspberrypi4')
+  backup=(
+    boot/config.txt
+    boot/cmdline.txt
+  )
 
   conflicts+=(linux-raspberrypi4 linux-raspberrypi linux-rpi)
   provides+=("linux-raspberrypi4=$pkgver" "linux-raspberrypi=$pkgver" "linux-rpi=$pkgver")
@@ -102,14 +149,13 @@ _package-pikvm() {
 
   cd "${srcdir}/${_srcname}"
 
-  local kernver="$(<version)"
-  local modulesdir="$pkgdir/usr/lib/modules/$kernver"
+  local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
 
   # Used by mkinitcpio to name the kernel
   echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
   echo "Installing modules..."
-  make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+  _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
     DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
   # remove build and source links
@@ -134,7 +180,7 @@ _package-pikvm() {
   # sed expression for following substitutions
   local _subst="
     s|%PKGBASE%|${pkgbase}|g
-    s|%KERNVER%|${kernver}|g
+    s|%KERNVER%|$(<version)|g
   "
 
   # install mkinitcpio preset file
@@ -205,6 +251,12 @@ _package-headers-pikvm() {
     rm -r "$_arch"
   done
 
+  echo "Symlinking common aliases..."
+  # https://archlinuxarm.org/forum/viewtopic.php?f=60&t=16354
+  ln -sr arm "$builddir/arch/armv7h"
+  ln -sr arm "$builddir/arch/armv7l"
+  ln -sr arm64 "$builddir/arch/aarch64"
+
   echo "Removing documentation..."
   rm -r "$builddir/Documentation"
 
@@ -217,7 +269,7 @@ _package-headers-pikvm() {
   echo "Stripping build tools..."
   local file
   while read -rd '' file; do
-    case "$(file -bi "$file")" in
+    case "$(file -Sib "$file")" in
       application/x-sharedlib\;*)      # Libraries (.so)
         strip -v $STRIP_SHARED "$file" ;;
       application/x-archive\;*)        # Libraries (.a)

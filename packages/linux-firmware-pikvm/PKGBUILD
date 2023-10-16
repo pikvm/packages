@@ -7,32 +7,21 @@ pkgbase=linux-firmware
 pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
          linux-firmware-{nfp,mellanox,marvell,qcom,liquidio,qlogic,bnx2x}-pikvm
 )
-_tag=20220815
-pkgver=20220815.8413c63
-pkgrel=1
+_tag=20230804
+pkgver=20230804.7be2766d
+pkgrel=2
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
 arch=('any')
 makedepends=('git')
 options=(!strip)
-source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git#tag=${_tag}"
-         0001-Add-support-for-compressing-firmware-in-copy-firmware.patch)
-sha256sums=(SKIP SKIP)
+source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git#tag=${_tag}")
+sha256sums=('SKIP')
 
 _backports=(
+  f2eb058afc57348cde66852272d6bf11da1eef8f  # fixes for "inception": https://www.amd.com/en/resources/product-security/bulletin/amd-sb-7005.html
 )
-
-
-_pick() {
-  local p="$1" f d; shift
-  for f; do
-    d="$srcdir/$p/${f#$pkgdir/}"
-    mkdir -p "$(dirname "$d")"
-    mv "$f" "$d"
-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
-  done
-}
 
 prepare() {
   cd ${pkgbase}
@@ -42,9 +31,6 @@ prepare() {
     git log --oneline -1 "${_c}"
     git cherry-pick -n "${_c}"
   done
-
-  # add firmware compression support - patch taken from Fedora
-  patch -Np1 -i ../0001-Add-support-for-compressing-firmware-in-copy-firmware.patch
 }
 
 pkgver() {
@@ -59,7 +45,7 @@ build() {
   cat ${pkgbase}/amd-ucode/microcode_amd*.bin > kernel/x86/microcode/AuthenticAMD.bin
 
   # Reproducibility: set the timestamp on the bin file
-  if [[ -n ${SOURCE_DATE_EPOCH} ]]; then 
+  if [[ -n ${SOURCE_DATE_EPOCH} ]]; then
     touch -d @${SOURCE_DATE_EPOCH} kernel/x86/microcode/AuthenticAMD.bin
   fi
 
@@ -69,11 +55,22 @@ build() {
     bsdtar --null -cf - --format=newc @- > amd-ucode.img
 }
 
+_pick() {
+  local p="$1" f d; shift
+  for f; do
+    d="$srcdir/$p/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+  done
+}
+
 package_linux-firmware-whence-pikvm() {
   conflicts=(linux-firmware-whence)
   provides=("linux-firmware-whence=$pkgver")
-  cd "$pkgbase"
-  install -Dt "${pkgdir}/usr/share/licenses/linux-firmware-whence" -m644 WHENCE
+  pkgdesc+=" - contains the WHENCE license file which documents the vendor license details"
+
+  install -Dt "${pkgdir}/usr/share/licenses/linux-firmware-whence" -m644 ${pkgbase}/WHENCE
 }
 
 package_linux-firmware-pikvm() {
@@ -81,35 +78,39 @@ package_linux-firmware-pikvm() {
   provides=("linux-firmware=$pkgver")
   depends=('linux-firmware-whence-pikvm')
   
-  cd linux-firmware
+  cd ${pkgbase}
 
   make DESTDIR="${pkgdir}" FIRMWAREDIR=/usr/lib/firmware install
 
-  # Trigger a microcode reload for configurations not using early updates
-  echo 'w /sys/devices/system/cpu/microcode/reload - - - - 1' |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/lib/tmpfiles.d/linux-firmware.conf"
+  # useless without CONFIG_MICROCODE_LATE_LOADING
+  # https://bugs.archlinux.org/task/46591
+  #
+  # # Trigger a microcode reload for configurations not using early updates
+  # echo 'w /sys/devices/system/cpu/microcode/reload - - - - 1' |
+  #   install -Dm644 /dev/stdin "${pkgdir}/usr/lib/tmpfiles.d/linux-firmware.conf"
 
   install -Dt "${pkgdir}/usr/share/licenses/linux-firmware" -m644 LICEN*
 
+  cd "${pkgdir}"
+
   # split
-  cd "$pkgdir"
   _pick linux-firmware-nfp usr/lib/firmware/netronome
   _pick linux-firmware-nfp usr/share/licenses/linux-firmware/LICENCE.Netronome
-   
+
   _pick linux-firmware-mellanox usr/lib/firmware/mellanox
-  
+
   _pick linux-firmware-marvell usr/lib/firmware/{libertas,mwl8k,mwlwifi,mrvl}
   _pick linux-firmware-marvell usr/share/licenses/linux-firmware/LICENCE.{Marvell,NXP}
-  
+
   _pick linux-firmware-qcom usr/lib/firmware/{qcom,a300_*}
   _pick linux-firmware-qcom usr/share/licenses/linux-firmware/LICENSE.qcom
-  
+
   _pick linux-firmware-liquidio usr/lib/firmware/liquidio
   _pick linux-firmware-liquidio usr/share/licenses/linux-firmware/LICENCE.cavium_liquidio
-  
+
   _pick linux-firmware-qlogic usr/lib/firmware/{qlogic,qed,ql2???_*,c{b,t,t2}fw-*}
   _pick linux-firmware-qlogic usr/share/licenses/linux-firmware/LICENCE.{qla1280,qla2xxx}
-  
+
   _pick linux-firmware-bnx2x usr/lib/firmware/bnx2x*
 }
 

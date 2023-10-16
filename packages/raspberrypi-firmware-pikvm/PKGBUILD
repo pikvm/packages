@@ -3,10 +3,10 @@
 # Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 
 pkgname=raspberrypi-firmware-pikvm
-pkgver=20220723
+pkgver=20231014
 pkgrel=1
-_commitfirmware=a75a129d59320b5828791ecc4c1b422fc110d3f1
-_commituserland=54fd97ae4066a10b6b02089bc769ceed328737e0
+_commitfirmware=7f14c6192dd536392efbad2280e990285447591a
+_commituserland=44a3953fd13d5f0b9b0cd120b904aa7db370244e
 pkgdesc="Firmware tools, libraries, and headers for Raspberry Pi"
 arch=('armv7h' 'aarch64')
 url="https://github.com/raspberrypi/firmware"
@@ -22,10 +22,10 @@ source_armv7h=("firmware-$pkgver-$pkgrel-${_commitfirmware:0:10}.tar.gz::https:/
 source_aarch64=("userland-$pkgver-$pkgrel-${_commituserland:0:10}.tar.gz::https://github.com/raspberrypi/userland/archive/$_commituserland.tar.gz"
                 "https://raw.githubusercontent.com/raspberrypi/firmware/master/opt/vc/LICENCE")
 md5sums=('72e0d5818fc513ece1b964f25f7e7882'
-         '2ad54baf398afe59ff5a70eb655f1b96'
+         '4fd5a77d254c62a259edf8ff5194db6f'
          '60919cb17f31b4698b6650bbb46f18ed')
-md5sums_armv7h=('8da36b92411dbe34eafc7e1a893e4138')
-md5sums_aarch64=('9ce7f475fd3f38800d361cad7f3852c2'
+md5sums_armv7h=('27a6097cf92e60cf68739713521ca338')
+md5sums_aarch64=('239130e772546bb2b43ecc2d69d7d2c0'
                  '86e53f5f5909ee66900418028de11780')
 
 conflicts=(raspberrypi-firmware)
