@@ -1,5 +1,5 @@
 pkgname=pikvm-os-raspberrypi
-pkgver=0.2
+pkgver=0.5
 pkgrel=1
 pkgdesc="Pi-KVM OS Metapackage"
 url="https://pikvm.org"
@@ -9,10 +9,10 @@ depends=(
 	linux-api-headers-pikvm
 	linux-firmware-pikvm
 	firmware-raspberrypi-pikvm
-	raspberrypi-firmware-pikvm
 	raspberrypi-bootloader-pikvm
 	linux-rpi-pikvm
 	linux-rpi-headers-pikvm
+	raspberrypi-utils
 )
 replaces=(pikvm-os-raspberrypi4)
 source=()
@@ -20,5 +20,5 @@ md5sums=()
 
 
 package() {
-	echo stub
+	echo stub >/dev/null
 }

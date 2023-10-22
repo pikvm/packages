@@ -1,7 +1,6 @@
 linux-api-headers-pikvm
 linux-firmware-pikvm
 firmware-raspberrypi-pikvm
-raspberrypi-firmware-pikvm
 raspberrypi-bootloader-pikvm
 linux-rpi-pikvm
 pikvm-os-raspberrypi
@@ -9,7 +8,6 @@ mkinitcpio-rootdelay
 janus-gateway-pikvm
 watchdog
 tailscale-pikvm
-python-ajsonrpc
 python-pyserial-asyncio
 python-pyghmi
 python-spidev
