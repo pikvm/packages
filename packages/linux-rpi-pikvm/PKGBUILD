@@ -1,4 +1,4 @@
-# Maintainer: graysky <graysky@archlinux.us>
+# Maintainer: graysky <therealgraysky AT proton DOT me>
 # Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 # Maintainer: Oleg Rakhmanov <oleg@archlinuxarm.org>
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
@@ -7,12 +7,12 @@
 _pikvm_use_distcc=1
 
 pkgbase=linux-rpi
-_commit=5f95ac33baaa478982e881b0ad9d5747deb5f5b3
+_commit=17f135b742c4edb340afb365873c3a574f7e16cb
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.1.57
-pkgrel=2
+pkgver=6.1.61
+pkgrel=1
 pkgdesc='Linux'
 url="http://www.kernel.org/"
 arch=(armv7h aarch64)
@@ -74,8 +74,8 @@ prepare() {
     # useful on two point releases to keep shit straight
     echo "Applying custom shit to bcm2711_defconfig"
     make bcm2711_defconfig
-    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
-    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
+    scripts/config --enable CONFIG_DYNAMIC_DEBUG
+    scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
     cat ../archarm.diffconfig >> .config
     make oldconfig
     if [[ $CARCH == "armv7h" ]]; then
@@ -95,8 +95,8 @@ prepare() {
     make mrproper
     echo "Setting config..."
     cp ../"$_config" .config
-    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG is not set$/CONFIG_DYNAMIC_DEBUG=y/g' .config
-    sed -i -e 's/^# CONFIG_DYNAMIC_DEBUG_CORE is not set$/CONFIG_DYNAMIC_DEBUG_CORE=y/g' .config
+    scripts/config --enable CONFIG_DYNAMIC_DEBUG
+    scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
     _make olddefconfig
     diff -u ../"$_config" .config || :
     echo "Prepared $pkgbase version $(<version)"
