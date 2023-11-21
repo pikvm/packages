@@ -6,6 +6,7 @@ linux-rpi-pikvm
 pikvm-os-raspberrypi
 mkinitcpio-rootdelay
 janus-gateway-pikvm
+pistat
 watchdog
 tailscale-pikvm
 python-pyserial-asyncio
