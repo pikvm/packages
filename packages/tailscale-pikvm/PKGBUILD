@@ -1,5 +1,5 @@
 pkgname=tailscale-pikvm
-pkgver=0.6
+pkgver=0.7
 pkgrel=1
 pkgdesc="PiKVM fixes for Tailscale"
 url="https://tailscale.com"
