@@ -11,6 +11,5 @@ post_upgrade() {
 	chmod 700 /var/lib/tailscale || true
 	if [ "$service_enabled" == "enabled" ]; then
 		systemctl enable --now tailscaled
-		tailscale up
 	fi
 }
