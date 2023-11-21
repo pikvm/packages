@@ -1,3 +1,7 @@
+pre_upgrade() {
+	service_enabled=$(systemctl is-enabled tailscaled)
+}
+
 post_install() {
 	post_upgrade
 }
@@ -5,4 +9,8 @@ post_install() {
 post_upgrade() {
 	mkdir -p /var/lib/tailscale || true
 	chmod 700 /var/lib/tailscale || true
+	if [ "$service_enabled" == "enabled" ]; then
+		systemctl enable --now tailscaled
+		tailscale up
+	fi
 }
