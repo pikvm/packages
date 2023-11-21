@@ -10,6 +10,6 @@ post_upgrade() {
 	mkdir -p /var/lib/tailscale || true
 	chmod 700 /var/lib/tailscale || true
 	if [ "$service_enabled" == "enabled" ]; then
-		systemctl enable tailscaled || true
+		systemctl enable --now tailscaled || true
 	fi
 }
