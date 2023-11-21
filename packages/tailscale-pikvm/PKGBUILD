@@ -1,7 +1,7 @@
 pkgname=tailscale-pikvm
-pkgver=0.5
+pkgver=0.6
 pkgrel=1
-pkgdesc="Pi-KVM fixes for Tailscale"
+pkgdesc="PiKVM fixes for Tailscale"
 url="https://tailscale.com"
 license=(GPL)
 arch=(any)
