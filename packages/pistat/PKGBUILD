@@ -1,11 +1,11 @@
 pkgname=pistat
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
 pkgdesc="A small hardware status utility for Raspberry Pi"
 url="https://github.com/pikvm/packages"
 license=(GPLv3)
 arch=(any)
-depends=(raspberrypi-utils bc)
+depends=(raspberrypi-utils bc bash)
 source=(pistat.sh)
 md5sums=(SKIP)
 
