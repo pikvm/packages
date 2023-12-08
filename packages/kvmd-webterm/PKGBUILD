@@ -1,5 +1,5 @@
 pkgname=kvmd-webterm
-pkgver=0.45
+pkgver=0.46
 pkgrel=1
 pkgdesc="PiKVM - Web Terminal wrapper for TTYD"
 url="https://github.com/pikvm/packages"
