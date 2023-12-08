@@ -1,6 +1,6 @@
 name: Terminal
 description: Open terminal in a web browser
 icon: extras/webterm/terminal.svg
-path: extras/webterm/ttyd
+path: "extras/webterm/ttyd/?disableLeaveAlert=true"
 daemon: kvmd-webterm
 place: 10
