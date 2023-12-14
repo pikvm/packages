@@ -1,6 +1,6 @@
-_commit=bd9b8e44e61b4c847b33a8fbbe9fab5290ba0cf5
+_commit=6e9a07de32f17c5dd06f2c4938d2bc1076f03a88
 pkgname=janus-gateway-pikvm
-pkgver=0.14.1
+pkgver=0.14.2
 pkgrel=1
 pkgdesc="An open source, general purpose, WebRTC server (PiKVM build)"
 url='https://janus.conf.meetecho.com'
@@ -33,13 +33,15 @@ source=(
 #	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
 	"$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz"
 	"https://webrtc.github.io/adapter/adapter-latest.js"
+	"0001-unmute-hack.patch"
 )
-md5sums=(SKIP SKIP)
+md5sums=(SKIP SKIP SKIP)
 
 
 build() {
 #	cd "janus-gateway-$pkgver"
 	cd "janus-gateway-$_commit"
+	patch -p1 -i ../0001-unmute-hack.patch
 	./autogen.sh
 	./configure \
 		--prefix=/usr \
