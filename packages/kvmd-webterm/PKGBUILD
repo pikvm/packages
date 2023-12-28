@@ -1,11 +1,11 @@
 pkgname=kvmd-webterm
-pkgver=0.47
+pkgver=0.48
 pkgrel=1
 pkgdesc="PiKVM - Web Terminal wrapper for TTYD"
 url="https://github.com/pikvm/packages"
 license=(GPL)
 arch=(any)
-depends=(kvmd ttyd inetutils)
+depends=(kvmd "ttyd>=1.7.4" inetutils)
 install=$pkgname.install
 source=(
 	$pkgname.install
