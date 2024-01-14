@@ -1,5 +1,5 @@
 pkgname=kvmd-fan
-pkgver=0.28
+pkgver=0.29
 pkgrel=1
 pkgdesc="PiKVM - A small fan controller daemon"
 url="https://github.com/pikvm/kvmd-fan"
@@ -8,7 +8,7 @@ arch=(armv6h armv7h aarch64)
 depends=(
 	iniparser
 	libmicrohttpd
-	libgpiod1
+	"libgpiod1>=2.0"
 	wiringpi
 )
 source=(${pkgname}::"git+https://github.com/pikvm/kvmd-fan#commit=v${pkgver}")
