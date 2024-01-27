@@ -4,12 +4,12 @@
 
 pkgname=ustreamer
 pkgver=5.48
-pkgrel=2
+pkgrel=3
 pkgdesc="Lightweight and fast MJPEG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
 license=(GPL)
 arch=(i686 x86_64 armv6h armv7h aarch64)
-depends=(janus-gateway-pikvm alsa-lib opus speexdsp libjpeg libevent libbsd "libgpiod1>=2.0" systemd)
+depends=(janus-gateway-pikvm alsa-lib opus speexdsp libjpeg libevent libbsd libgpiod systemd)
 makedepends=(gcc make systemd)
 source=(${pkgname}::"git+https://github.com/pikvm/ustreamer#commit=v${pkgver}")
 md5sums=(SKIP)
