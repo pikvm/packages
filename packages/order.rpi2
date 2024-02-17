@@ -3,6 +3,7 @@ linux-firmware-pikvm
 firmware-raspberrypi-pikvm
 raspberrypi-bootloader-pikvm
 linux-rpi-pikvm
+pikvm-os-updater
 pikvm-os-raspberrypi
 mkinitcpio-rootdelay
 janus-gateway-pikvm
