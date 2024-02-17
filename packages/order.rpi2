@@ -3,11 +3,12 @@ linux-firmware-pikvm
 firmware-raspberrypi-pikvm
 raspberrypi-bootloader-pikvm
 linux-rpi-pikvm
+pistat
+pikvm-os-ro
 pikvm-os-updater
 pikvm-os-raspberrypi
 mkinitcpio-rootdelay
 janus-gateway-pikvm
-pistat
 watchdog
 tailscale-pikvm
 python-pyserial-asyncio

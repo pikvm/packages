@@ -87,11 +87,6 @@ fi
 
 pacman $_yes -Su
 
-if [ -f /usr/local/bin/pistat ]; then
-	pacman $_yes -S pistat
-	rm -f /usr/local/bin/pistat
-fi
-
 if systemctl is-enabled -q tailscaled; then
 	systemctl restart tailscaled
 	tailscale up

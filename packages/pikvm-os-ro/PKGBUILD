@@ -1,0 +1,16 @@
+pkgname=pikvm-os-ro
+pkgver=0.4
+pkgrel=1
+pkgdesc="PiKVM OS Read-Only utils"
+url="https://github.com/pikvm/packages"
+license=(GPL)
+arch=(any)
+source=(pikvm-os-ro.install ro.sh rw.sh)
+install=pikvm-os-ro.install
+md5sums=(SKIP SKIP SKIP)
+
+
+package() {
+	install -Dm755 ro.sh "$pkgdir/usr/bin/ro"
+	install -Dm755 rw.sh "$pkgdir/usr/bin/rw"
+}
