@@ -45,6 +45,8 @@ if [ `pacman -S -u --print-format %n | grep -v pikvm-os-updater | wc -l` -eq 0 ]
 	exit 0
 fi
 
+rm -f /var/cache/pacman/pkg/*
+
 if [ "$1" != "--no-self-update" ]; then
 	if [ `pacman -S --needed --print-format %n pikvm-os-updater | wc -l` -ne 0 ]; then
 		pacman $_yes -S pikvm-os-updater
