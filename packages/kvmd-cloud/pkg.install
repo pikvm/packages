@@ -16,4 +16,9 @@ post_upgrade() {
 	chown root:kvmd-nginx /etc/kvmd/cloud/ssl/* 2>/dev/null || true
 	chmod 440 /etc/kvmd/cloud/ssl/server.key 2>/dev/null || true
 	chmod 444 /etc/kvmd/cloud/ssl/server.crt 2>/dev/null || true
+
+	if [ -f /etc/kvmd/cloud/nginx.ctx-http.conf ]; then
+		sed -i -e 's|include /etc/kvmd/nginx/redirect-to-https.conf;|location / { return 301 https://$host$request_uri; }|g' \
+			/etc/kvmd/cloud/nginx.ctx-http.conf
+	fi
 }
