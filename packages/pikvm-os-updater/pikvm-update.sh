@@ -63,7 +63,11 @@ rm -f /var/cache/pacman/pkg/*
 if [ -z "$_opt_no_self_update" ]; then
 	if [ `pacman -S --needed --print-format %n pikvm-os-updater | wc -l` -ne 0 ]; then
 		pacman $_yes -S pikvm-os-updater
-		pikvm-update --no-self-update
+		_opts=--no-self-update
+		if [ -n "$_opt_no_reboot" ]; then
+			_opts="$_opts --no-reboot"
+		fi
+		pikvm-update $_opts
 		exit $?
 	fi
 fi
