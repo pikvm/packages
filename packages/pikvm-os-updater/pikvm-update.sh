@@ -155,4 +155,5 @@ else
 	echo
 	show_rw_msg
 	set -x
+	exit 100
 fi
