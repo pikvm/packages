@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xeE
+set -eE
 
 if [ `whoami` != root ]; then
 	set +x
@@ -9,6 +9,19 @@ if [ `whoami` != root ]; then
 	set -x
 	exit 1
 fi
+
+_opt_no_self_update=""
+_opt_no_reboot=""
+while test "$#" != 0; do
+	case "$1" in
+		--no-self-update) _opt_no_self_update=1;;
+		--no-reboot) _opt_no_reboot=1;;
+		*) echo "Usage: pikvm-update [--no-reboot]"; exit 1;;
+	esac
+	shift
+done
+
+set -x
 
 function show_rw_msg() {
 	set +x
@@ -47,7 +60,7 @@ fi
 
 rm -f /var/cache/pacman/pkg/*
 
-if [ "$1" != "--no-self-update" ]; then
+if [ -z "$_opt_no_self_update" ]; then
 	if [ `pacman -S --needed --print-format %n pikvm-os-updater | wc -l` -ne 0 ]; then
 		pacman $_yes -S pikvm-os-updater
 		pikvm-update --no-self-update
@@ -119,14 +132,23 @@ if ! kvmd -m >/dev/null 2>&1; then
 	exit 1
 fi
 
-set +x
-echo "=============================================================="
-echo "      Reboot required. We will make it after 30 seconds."
-echo "            Press Ctrl+C if you don't want this."
-echo "=============================================================="
-echo
-show_rw_msg
-set -x
-
-sleep 30
-reboot
+if [ -z "$_opt_no_reboot" ]; then
+	set +x
+	echo "=============================================================="
+	echo "      Reboot required. We will make it after 30 seconds."
+	echo "            Press Ctrl+C if you don't want this."
+	echo "=============================================================="
+	echo
+	show_rw_msg
+	set -x
+	sleep 30
+	reboot
+else
+	set +x
+	echo "=============================================================="
+	echo "        Reboot required. Please perfrorm it manually."
+	echo "=============================================================="
+	echo
+	show_rw_msg
+	set -x
+fi
