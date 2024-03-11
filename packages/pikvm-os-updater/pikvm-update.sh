@@ -66,6 +66,7 @@ if [ -z "$_opt_no_self_update" ]; then
 		_opts=--no-self-update
 		if [ -n "$_opt_no_reboot" ]; then
 			_opts="$_opts --no-reboot"
+			trap - ERR
 		fi
 		pikvm-update $_opts
 		exit $?
