@@ -148,6 +148,7 @@ if [ -z "$_opt_no_reboot" ]; then
 	sleep 30
 	reboot
 else
+	trap - ERR
 	set +x
 	echo "=============================================================="
 	echo "        Reboot required. Please perfrorm it manually."
