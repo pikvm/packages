@@ -73,6 +73,12 @@ if [ -z "$_opt_no_self_update" ]; then
 	fi
 fi
 
+if ! grep -q "^C.UTF-8 UTF-8" /etc/locale.gen; then
+	# bsdtar: bsdtar: Failed to set default localeFailed to set default locale
+	echo "C.UTF-8 UTF-8" >> /etc/locale.gen
+	locale-gen || true
+fi
+
 for _pkg in rpi-eeprom rpi4-eeprom; do
 	if pacman -Q $_pkg >/dev/null 2>&1; then
 		pacman --noconfirm --ask=4 -R $_pkg

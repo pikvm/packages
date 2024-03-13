@@ -7,14 +7,14 @@ pkgbase=linux-firmware
 pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
          linux-firmware-{nfp,mellanox,marvell,qcom,liquidio,qlogic,bnx2x}-pikvm
 )
-_tag=20231030
-pkgver=20231030.2b304bfe
+_tag=20240220
+pkgver=20240220.97b693d2
 pkgrel=1
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
 arch=('any')
-makedepends=('git')
+makedepends=('git' 'rdfind')
 options=(!strip)
 source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git#tag=${_tag}")
 sha256sums=('SKIP')
@@ -93,6 +93,8 @@ package_linux-firmware-pikvm() {
   cd "${pkgdir}"
 
   # split
+  _pick amd-ucode usr/lib/firmware/amd-ucode
+
   _pick linux-firmware-nfp usr/lib/firmware/netronome
   _pick linux-firmware-nfp usr/share/licenses/linux-firmware/LICENCE.Netronome
 
@@ -118,6 +120,8 @@ package_amd-ucode-pikvm() {
   provides=("amd-ucode=$pkgver")
   pkgdesc="Microcode update image for AMD CPUs"
   license=(custom)
+
+  mv -v amd-ucode/* "$pkgdir"
 
   install -Dt "${pkgdir}/boot" -m644 amd-ucode.img
 

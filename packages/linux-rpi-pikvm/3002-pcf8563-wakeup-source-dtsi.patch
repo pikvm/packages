@@ -1,0 +1,13 @@
+diff --git a/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi b/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
+index 3bea8d62c..204c71e27 100644
+--- a/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
++++ b/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
+@@ -348,6 +348,7 @@ __overrides__ {
+ 				<&ds3231>,"wakeup-source?",
+ 				<&mcp7940x>,"wakeup-source?",
+ 				<&mcp7941x>,"wakeup-source?",
+-				<&m41t62>,"wakeup-source?";
++				<&m41t62>,"wakeup-source?",
++				<&pcf8563>,"wakeup-source?";
+ 	};
+ };

@@ -7,14 +7,14 @@
 _pikvm_use_distcc=1
 
 pkgbase=linux-rpi
-_commit=17f135b742c4edb340afb365873c3a574f7e16cb
+_commit=d3d24545684c6b6637603e14443bbd67dae59413
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.1.61
-pkgrel=1
+pkgver=6.6.21
+pkgrel=4
 pkgdesc='Linux'
-url="http://www.kernel.org/"
+url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
 license=(GPL2)
 makedepends=(
@@ -23,29 +23,30 @@ makedepends=(
   inetutils
 )
 options=('!strip')
-source_armv7h=('config' 'config.txt')
-source_aarch64=('config8' 'config8.txt')
+source_armv7h=('config')
+source_aarch64=('config8')
 source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
         cmdline.txt
+        config.txt
         0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
         linux.preset
-        60-linux.hook
-        90-linux.hook
         archarm.diffconfig
         1003-remote-wakeup.patch
         2001-rename-msd.patch
+        3001-pcf8563-wakeup-source.patch
+        3002-pcf8563-wakeup-source-dtsi.patch
 )
 md5sums=(SKIP SKIP SKIP
          SKIP SKIP SKIP
-         SKIP SKIP SKIP)
-md5sums_armv7h=(SKIP SKIP)
-md5sums_aarch64=(SKIP SKIP)
+         SKIP SKIP SKIP SKIP)
+md5sums_armv7h=(SKIP)
+md5sums_aarch64=(SKIP)
 
 # setup vars
 if [[ $CARCH == "armv7h" ]]; then
-  _kernel=kernel7.img KARCH=arm _image=zImage _config=config _bconfig=config.txt
+  _kernel=kernel7.img KARCH=arm _image=zImage _config=config
 elif [[ $CARCH == "aarch64" ]]; then
-  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8 _bconfig=config8.txt
+  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8
 fi
 
 _make() {
@@ -61,6 +62,8 @@ prepare() {
 
   patch -p1 -i ../1003-remote-wakeup.patch
   patch -p1 -i ../2001-rename-msd.patch
+  patch -p1 -i ../3001-pcf8563-wakeup-source.patch
+  patch -p1 -i ../3002-pcf8563-wakeup-source-dtsi.patch
 
   if [ "$_pikvm_use_distcc" -eq 1 ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
@@ -86,19 +89,19 @@ prepare() {
       # https://archlinuxarm.org/forum/viewtopic.php?f=23&t=16377
       scripts/config --disable CONFIG_LRU_GEN_ENABLED
     fi
-    sed '/^CONFIG_LOCALVERSION=/s,.*$,CONFIG_LOCALVERSION="-ARCH",' .config >$startdir/newconfig.$_config
+    # bcm2711_defconfig inserts either -v7l or -v8 for CONFIG_LOCALVERSION= so set this to null
+    sed '/^CONFIG_LOCALVERSION=/s,.*$,CONFIG_LOCALVERSION="",' .config >$startdir/newconfig.$_config
     echo "verify that newconfig.$_config is fit for purpose then redefine $_config"
     exit
   else
-    make bcm2711_defconfig
-    make -s kernelrelease | sed 's/rpi-.*$/rpi-ARCH/' > version
-    make mrproper
     echo "Setting config..."
     cp ../"$_config" .config
     scripts/config --enable CONFIG_DYNAMIC_DEBUG
     scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
-    _make olddefconfig
+    make olddefconfig
     diff -u ../"$_config" .config || :
+
+    make -s kernelrelease > version
     echo "Prepared $pkgbase version $(<version)"
   fi
 }
@@ -114,7 +117,7 @@ build() {
 }
 
 _package-pikvm() {
-  pkgdesc="RPi Foundation patched Linux kernel and modules"
+  pkgdesc="Linux kernel and modules (RPi Foundation fork with PiKVM patches)"
   depends=(
     coreutils
     firmware-raspberrypi
@@ -131,6 +134,7 @@ _package-pikvm() {
   )
   conflicts=(
     linux
+    linux-rpi-16k
     uboot-raspberrypi
   )
   replaces=(
@@ -158,8 +162,8 @@ _package-pikvm() {
   _make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
     DEPMOD=/doesnt/exist modules_install  # Suppress depmod
 
-  # remove build and source links
-  rm "$modulesdir"/{source,build}
+  # remove build link
+  rm -f "$modulesdir"/build
 
   echo "Installing Arch ARM specific stuff..."
   mkdir -p "${pkgdir}"/boot
@@ -174,7 +178,7 @@ _package-pikvm() {
 
   cp arch/$KARCH/boot/$_image "${pkgdir}/boot/$_kernel"
   cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/overlays"
-  install -m644 ../$_bconfig "${pkgdir}/boot/config.txt"
+  install -m644 ../config.txt "${pkgdir}/boot/config.txt"
   install -m644 ../cmdline.txt "${pkgdir}/boot"
 
   # sed expression for following substitutions
@@ -187,17 +191,15 @@ _package-pikvm() {
   sed "${_subst}" ../linux.preset |
     install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
-  # install pacman hooks
-  sed "${_subst}" ../60-linux.hook |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
-  sed "${_subst}" ../90-linux.hook |
-    install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+  # rather than use another hook (90-linux.hook) rely on mkinitcpio's 90-mkinitcpio-install.hook
+  # which avoids a double run of mkinitcpio that can occur
+  touch "${pkgdir}/usr/lib/modules/$(<version)/vmlinuz"
 }
 
 _package-headers-pikvm() {
-  pkgdesc="RPi Foundation header and scripts for building modules for Linux kernel"
+  pkgdesc="Headers and scripts for building modules for Linux kernel"
   provides=("linux-headers=${pkgver}")
-  conflicts=('linux-headers')
+  conflicts=('linux-headers' 'linux-rpi-16k-headers')
   replaces=('linux-raspberrypi-latest-headers' 'linux-raspberrypi4-headers')
 
   conflicts+=(linux-raspberrypi4-headers linux-raspberrypi-headers linux-rpi-headers)
@@ -279,7 +281,7 @@ _package-headers-pikvm() {
       application/x-pie-executable\;*) # Relocatable binaries
         strip -v $STRIP_SHARED "$file" ;;
     esac
-  done < <(find "$builddir" -type f -perm -u+x)
+  done < <(find "$builddir" -type f -perm -u+x -print0)
 
   echo "Adding symlink..."
   mkdir -p "$pkgdir/usr/src"
