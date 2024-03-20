@@ -1,8 +1,0 @@
-[Unit]
-Description=Disable HDMI output on Raspberry Pi after 15mins after boot
-
-[Timer]
-OnBootSec=15min
-
-[Install]
-WantedBy=timers.target
