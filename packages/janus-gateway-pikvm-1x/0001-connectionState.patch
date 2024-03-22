@@ -1,0 +1,65 @@
+From c6d0b368e9fdb9e92891afcb6f5af027d2b8219b Mon Sep 17 00:00:00 2001
+From: sergey radionov <rsatom@gmail.com>
+Date: Mon, 11 Mar 2024 10:28:47 +0700
+Subject: [PATCH] janus.js: connectionState callback added
+
+it can be useful since latest Chrome versions
+doesn't assign `failed` state to ICE connection state.
+---
+ html/demos/janus.js | 7 +++++++
+ src/mainpage.dox    | 3 +++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/html/demos/janus.js b/html/demos/janus.js
+index 510ea9073e..b03ca961e2 100644
+--- a/html/demos/janus.js
++++ b/html/demos/janus.js
+@@ -1272,6 +1272,7 @@ function Janus(gatewayCallbacks) {
+ 		callbacks.error = (typeof callbacks.error == "function") ? callbacks.error : Janus.noop;
+ 		callbacks.dataChannelOptions = callbacks.dataChannelOptions || { ordered: true };
+ 		callbacks.consentDialog = (typeof callbacks.consentDialog == "function") ? callbacks.consentDialog : Janus.noop;
++		callbacks.connectionState = (typeof callbacks.connectionState == "function") ? callbacks.connectionState : Janus.noop;
+ 		callbacks.iceState = (typeof callbacks.iceState == "function") ? callbacks.iceState : Janus.noop;
+ 		callbacks.mediaState = (typeof callbacks.mediaState == "function") ? callbacks.mediaState : Janus.noop;
+ 		callbacks.webrtcState = (typeof callbacks.webrtcState == "function") ? callbacks.webrtcState : Janus.noop;
+@@ -1351,6 +1352,7 @@ function Janus(gatewayCallbacks) {
+ 						data : function(callbacks) { sendData(handleId, callbacks); },
+ 						dtmf : function(callbacks) { sendDtmf(handleId, callbacks); },
+ 						consentDialog : callbacks.consentDialog,
++						connectionState : callbacks.connectionState,
+ 						iceState : callbacks.iceState,
+ 						mediaState : callbacks.mediaState,
+ 						webrtcState : callbacks.webrtcState,
+@@ -1429,6 +1431,7 @@ function Janus(gatewayCallbacks) {
+ 						data : function(callbacks) { sendData(handleId, callbacks); },
+ 						dtmf : function(callbacks) { sendDtmf(handleId, callbacks); },
+ 						consentDialog : callbacks.consentDialog,
++						connectionState : callbacks.connectionState,
+ 						iceState : callbacks.iceState,
+ 						mediaState : callbacks.mediaState,
+ 						webrtcState : callbacks.webrtcState,
+@@ -1909,6 +1912,10 @@ function Janus(gatewayCallbacks) {
+ 			config.bitrate.value = '0 kbits/sec';
+ 		}
+ 		Janus.log('Preparing local SDP and gathering candidates (trickle=' + config.trickle + ')');
++		config.pc.onconnectionstatechange = function() {
++			if(config.pc)
++				pluginHandle.connectionState(config.pc.connectionState);
++		};
+ 		config.pc.oniceconnectionstatechange = function() {
+ 			if(config.pc)
+ 				pluginHandle.iceState(config.pc.iceConnectionState);
+diff --git a/src/mainpage.dox b/src/mainpage.dox
+index 8ec962847a..a68f7946e2 100644
+--- a/src/mainpage.dox
++++ b/src/mainpage.dox
+@@ -347,6 +347,9 @@ var janus = new Janus(
+  * when WebRTC is actually up and running between you and Janus (e.g., to notify
+  * a user they're actually now active in a conference); notice that in case
+  * of <b>false</b> a reason string may be present as an optional parameter;
++ * 		- \c connectionState: this callback is triggered when the connection state for the
++ * PeerConnection associated to the handle changes: the argument of the callback
++ * is the new state as a string (e.g., "connected" or "failed");
+  * 		- \c iceState: this callback is triggered when the ICE state for the
+  * PeerConnection associated to the handle changes: the argument of the callback
+  * is the new state as a string (e.g., "connected" or "failed");
