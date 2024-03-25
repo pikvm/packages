@@ -3,8 +3,8 @@
 
 
 pkgname=ustreamer
-pkgver=6.6
-pkgrel=2
+pkgver=6.7
+pkgrel=1
 pkgdesc="Lightweight and fast MJPEG-HTTP streamer"
 url="https://github.com/pikvm/ustreamer"
 license=(GPL)
@@ -19,7 +19,7 @@ _options="WITH_V4P=1 WITH_GPIO=1 WITH_SYSTEMD=1"
 if [ -e /usr/bin/python3 ]; then
 	_options="$_options WITH_PYTHON=1"
 	depends+=(python)
-	makedepends+=(python-setuptools python-pip python-build)
+	makedepends+=(python-setuptools python-pip python-build python-wheel)
 fi
 if [ -e /usr/include/janus/plugins/plugin.h ];then
 	depends+=(janus-gateway-pikvm alsa-lib opus)
