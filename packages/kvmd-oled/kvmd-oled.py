@@ -153,7 +153,7 @@ def main() -> None:
     parser = luma_cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.set_defaults(**_detect_geometry())
 
-    parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
+    parser.add_argument("--font", default="/usr/share/kvmd-oled/ProggySquare.ttf", help="Font path")
     parser.add_argument("--font-size", default=16, type=int, help="Font size")
     parser.add_argument("--font-spacing", default=2, type=int, help="Font line spacing")
     parser.add_argument("--offset-x", default=0, type=int, help="Horizontal offset")
