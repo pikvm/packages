@@ -70,5 +70,11 @@ RUN userdel -r -f alarm \
 	&& mkdir -p /run/user/$ALARM_UID \
 	&& chown alarm:alarm /run/user/$ALARM_UID
 
+# FIXME: https://archlinuxarm.org/forum/viewtopic.php?f=57&t=16830
+RUN echo 'CPPFLAGS=""' >> /etc/makepkg.conf
+RUN echo 'CFLAGS="-march=armv7-a -mfloat-abi=hard -mfpu=neon -O2 -pipe -fstack-protector-strong -fno-plt -fexceptions -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -fstack-clash-protection"' >> /etc/makepkg.conf
+RUN echo 'CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"' >> /etc/makepkg.conf
+RUN echo 'LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"' >> /etc/makepkg.conf
+
 RUN mkdir /tools
 COPY stages/buildenv/buildpkg /tools/
