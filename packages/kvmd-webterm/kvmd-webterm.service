@@ -13,9 +13,8 @@ RestartSec=1
 UMask=0117
 
 EnvironmentFile=-/etc/conf.d/kvmd-webterm
-ExecStart=/usr/bin/ttyd \
+ExecStart=/usr/bin/kvmd-ttyd \
 		-W \
-		-t disableLeaveAlert=true \
 		--interface=/run/kvmd/ttyd.sock \
 		--port=0 \
 		$KVMD_WEBTERM_ARGS \
