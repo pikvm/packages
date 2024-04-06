@@ -39,7 +39,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=3.329
+pkgver=3.330
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -113,6 +113,9 @@ depends=(
 
 	# fsck for /boot
 	dosfstools
+
+	# pgrep for kvmd-udev-restart-pass
+	procps-ng
 
 	# Misc
 	hostapd
@@ -245,7 +248,7 @@ for _variant in "${_variants[@]}"; do
 
 		if [[ $_platform =~ ^.*-hdmi$ ]]; then
 			backup=(\"\${backup[@]}\" etc/kvmd/tc358743-edid.hex)
-			install -DTm444 configs/kvmd/edid/$_platform.hex \"\$pkgdir/etc/kvmd/tc358743-edid.hex\"
+			install -DTm444 configs/kvmd/edid/$_base.hex \"\$pkgdir/etc/kvmd/tc358743-edid.hex\"
 		fi
 
 		mkdir -p \"\$pkgdir/usr/share/kvmd\"
