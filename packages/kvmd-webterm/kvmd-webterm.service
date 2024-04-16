@@ -13,7 +13,7 @@ RestartSec=1
 UMask=0117
 
 EnvironmentFile=-/etc/conf.d/kvmd-webterm
-ExecStart=/usr/bin/kvmd-ttyd \
+ExecStart=/usr/bin/ttyd \
 		-W \
 		--interface=/run/kvmd/ttyd.sock \
 		--port=0 \

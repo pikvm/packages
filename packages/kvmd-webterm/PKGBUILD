@@ -1,16 +1,13 @@
 pkgname=kvmd-webterm
-pkgver=0.49
+pkgver=0.50
 pkgrel=1
 pkgdesc="PiKVM - Web Terminal wrapper for TTYD"
 url="https://github.com/pikvm/packages"
 license=(GPL)
 arch=(any)
-#depends=(kvmd "ttyd>=1.7.4" inetutils)
-depends=(kvmd inetutils zlib libwebsockets json-c libuv openssl) # own ttyd because arch upstream is slow
-makedepends=(git cmake)
+depends=(kvmd "ttyd>=1.7.7" inetutils)
 install=$pkgname.install
 source=(
-	"ttyd::git+https://github.com/tsl0922/ttyd#commit=40e79c706be14029b391f369bee6613c31667abb"
 	$pkgname.install
 	$pkgname.service
 	sysusers.conf
@@ -19,16 +16,10 @@ source=(
 	nginx.ctx-server.conf
 	manifest.yaml
 )
-md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 
 
 package() {
-	cd ttyd
-	cmake -B build -D CMAKE_BUILD_TYPE='None' -W no-dev
-	cmake --build build
-	install -Dm755 build/ttyd "$pkgdir/usr/bin/kvmd-ttyd"
-	cd -
-
 	mkdir -p "$pkgdir/usr/lib/systemd/system"
 	cp kvmd-webterm.service "$pkgdir/usr/lib/systemd/system/kvmd-webterm.service"
 
