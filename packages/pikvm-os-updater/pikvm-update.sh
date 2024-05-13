@@ -99,7 +99,6 @@ if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
 		kvmd-fan \
 		kvmd \
 		`LC_ALL=C pacman -Q | grep kvmd-platform | awk '{print $1}'` \
-		python-ajsonrpc \
 		python-luma-core \
 		python-luma-oled \
 		python-pyftdi \
