@@ -1,13 +1,13 @@
 pkgname=python-luma-oled
 pkgver=3.13.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Python module to drive OLED displays"
 url="https://github.com/rm-hull/luma.oled"
 license=(MIT)
 arch=(any)
 depends=(
-	"python>=3.11"
-	"python<3.12"
+	"python>=3.12"
+	"python<3.13"
 	python-luma-core
 )
 makedepends=(python-distribute)

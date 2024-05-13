@@ -1,13 +1,13 @@
 pkgname=python-pyserial-asyncio
 pkgver=0.6
-pkgrel=4
+pkgrel=5
 pkgdesc="Asyncio extension package for pyserial"
 url="https://github.com/pyserial/pyserial-asyncio"
 license=(MIT)
 arch=(any)
 depends=(
-	"python>=3.11"
-	"python<3.12"
+	"python>=3.12"
+	"python<3.13"
 	python-pyserial
 )
 makedepends=(python-setuptools)
