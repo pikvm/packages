@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eE
 
+export LC_ALL=C
+export LANG=C
+
 if [ `whoami` != root ]; then
 	set +x
 	echo "============================"
@@ -90,6 +93,11 @@ done
 #       /usr/lib/firmware/brcm/brcmfmac4356-sdio.AP6356S.txt \
 #       /usr/lib/firmware/updates/brcm/brcmfmac43430-sdio.txt
 
+if (pacman -Qi python-ajsonrpc | grep Depends | grep -q 'python<3\.12'); then
+	rm -f /var/cache/pacman/pkg/python-ajsonrpc-*
+	pacman $_yes -S python-ajsonrpc
+fi
+
 if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
 	pacman $_yes --needed -S \
 		raspberrypi-utils \
@@ -98,7 +106,7 @@ if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
 		libgpiod \
 		kvmd-fan \
 		kvmd \
-		`LC_ALL=C pacman -Q | grep kvmd-platform | awk '{print $1}'` \
+		`pacman -Q | grep kvmd-platform | awk '{print $1}'` \
 		python-luma-core \
 		python-luma-oled \
 		python-pyftdi \
