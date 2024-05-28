@@ -93,7 +93,7 @@ done
 #       /usr/lib/firmware/brcm/brcmfmac4356-sdio.AP6356S.txt \
 #       /usr/lib/firmware/updates/brcm/brcmfmac43430-sdio.txt
 
-if (pacman -Qi python-ajsonrpc | grep Depends | grep -q 'python<3\.12'); then
+if (pacman -Qi python-ajsonrpc | grep Depends | grep -q -e 'python<3\.11' -e 'python<3\.12'); then
 	rm -f /var/cache/pacman/pkg/python-ajsonrpc-*
 	pacman $_yes -S python-ajsonrpc
 fi
