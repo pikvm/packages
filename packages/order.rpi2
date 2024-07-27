@@ -24,6 +24,7 @@ raspberrypi-io-access
 raspberrypi-bluetooth
 flashrom-pikvm
 ustreamer
+wpa_supplicant-pikvm
 kvmd
 kvmd-webterm
 kvmd-oled
