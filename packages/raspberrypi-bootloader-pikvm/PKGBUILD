@@ -2,9 +2,9 @@
 # Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
 
 pkgname=raspberrypi-bootloader-pikvm
-pkgver=20240321
+pkgver=20240818
 pkgrel=1
-_commit=45319db29eb5e4f67feab5c4194bc1f28c574ed0
+_commit=6b029c7772b5d29a50a07c477a808a7effb0a373
 arch=('any')
 url="https://github.com/raspberrypi/firmware"
 license=('custom')

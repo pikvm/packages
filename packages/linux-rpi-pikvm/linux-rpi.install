@@ -20,19 +20,6 @@ correct_fstab() {
   fi
 }
 
-advertise_rpi5() {
-  if [[ -f /sys/firmware/devicetree/base/model ]]; then
-    if grep -a -q 5 /sys/firmware/devicetree/base/model; then
-      cat <<END
-
->>> For optimal performance on RPi5, consider installing the
-    linux-rpi-16k kernel package instead of linux-rpi.
-
-END
-    fi
-  fi
-}
-
 pikvm_move_pacsave() {
   for name in config cmdline; do
     if [ -f /boot/$name.txt.pacsave ]; then
@@ -47,7 +34,6 @@ post_install () {
 }
 
 post_upgrade() {
-  advertise_rpi5
   correct_fstab
   disable_cma
   pikvm_move_pacsave

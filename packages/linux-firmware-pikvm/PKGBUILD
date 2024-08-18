@@ -7,8 +7,8 @@ pkgbase=linux-firmware
 pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
          linux-firmware-{nfp,mellanox,marvell,qcom,liquidio,qlogic,bnx2x}-pikvm
 )
-_tag=20240220
-pkgver=20240220.97b693d2
+_tag=20240811
+pkgver=20240809.59460076
 pkgrel=1
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"

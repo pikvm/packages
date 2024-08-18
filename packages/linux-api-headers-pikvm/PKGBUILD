@@ -6,7 +6,7 @@
 # toolchain build order: linux-api-headers->glibc->binutils->gcc->glibc->binutils->gcc
 
 pkgname=linux-api-headers-pikvm
-pkgver=6.6.21
+pkgver=6.6.45
 pkgrel=1
 pkgdesc='Kernel headers sanitized for use in userspace'
 arch=(any)
