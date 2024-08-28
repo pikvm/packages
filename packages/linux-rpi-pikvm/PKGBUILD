@@ -12,7 +12,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.6.45
-pkgrel=3
+pkgrel=4
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -79,10 +79,10 @@ prepare() {
     # useful on two point releases to keep shit straight
     echo "Applying custom shit to bcm2711_defconfig"
     make bcm2711_defconfig
+    cat ../archarm.diffconfig >> .config
 	scripts/config --module CONFIG_HID_CP2112
     scripts/config --enable CONFIG_DYNAMIC_DEBUG
     scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
-    cat ../archarm.diffconfig >> .config
     make olddefconfig
     if [[ $CARCH == "armv7h" ]]; then
       # https://archlinuxarm.org/forum/viewtopic.php?f=23&t=16373
@@ -101,6 +101,7 @@ prepare() {
   else
     echo "Setting config..."
     cp ../"$_config" .config
+	scripts/config --module CONFIG_HID_CP2112
     scripts/config --enable CONFIG_DYNAMIC_DEBUG
     scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
     make olddefconfig
