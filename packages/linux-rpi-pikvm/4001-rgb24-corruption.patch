@@ -1,56 +1,23 @@
 diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 5b6f74e56..ae46522d3 100644
+index 5b6f74e56..715ca429c 100644
 --- a/drivers/media/i2c/tc358743.c
 +++ b/drivers/media/i2c/tc358743.c
-@@ -54,6 +54,8 @@ MODULE_LICENSE("GPL");
- #define POLL_INTERVAL_CEC_MS	10
- #define POLL_INTERVAL_MS	1000
+@@ -687,10 +687,15 @@ static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
+ 	struct tc358743_platform_data *pdata = &state->pdata;
+ 	u32 bits_pr_pixel =
+ 		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
+-	u32 bps = bt->width * bt->height * fps(bt) * bits_pr_pixel;
++	u32 bps = (bt->width + bt->hsync) * (bt->height + bt->vsync)
++		* fps(bt) * bits_pr_pixel;
+ 	u32 bps_pr_lane = (pdata->refclk_hz / pdata->pll_prd) * pdata->pll_fbd;
  
-+#define FIFO_LEVEL_DEFAULT 374
-+
- static const struct v4l2_dv_timings_cap tc358743_timings_cap = {
- 	.type = V4L2_DV_BT_656_1120,
- 	/* keep this initialization for compatibility with GCC < 4.4.6 */
-@@ -544,6 +546,24 @@ static inline void enable_stream(struct v4l2_subdev *sd, bool enable)
- 		i2c_wr32(sd, TXOPTIONCNTRL, 0);
- 		/* Set to continuous mode to trigger LP11->HS transition */
- 		i2c_wr32(sd, TXOPTIONCNTRL, MASK_CONTCLKMODE);
-+		/* https://github.com/raspberrypi/linux/issues/6322 */
-+		if (state->mbus_fmt_code == MEDIA_BUS_FMT_RGB888_1X24) {
-+			struct v4l2_bt_timings *bt = &state->timings.bt;
-+			struct tc358743_platform_data *pdata = &state->pdata;
-+			unsigned f = fps(bt);
-+			unsigned fifo_level = FIFO_LEVEL_DEFAULT;
-+			if (
-+				(bt->width == 1920 && bt->height == 1080 && f == 50)
-+				|| (bt->width == 1280 && bt->height == 720 && (f == 30 || f == 25 || f == 24))
-+				|| (bt->width == 1280 && bt->height == 960 && f == 60)
-+			) {
-+				fifo_level = 120;
-+			}
-+			if (i2c_rd16(sd, FIFOCTL) != fifo_level) {
-+				pdata->fifo_level = fifo_level;
-+				i2c_wr16(sd, FIFOCTL, pdata->fifo_level);
-+			}
-+		}
- 		/* Unmute video */
- 		i2c_wr8(sd, VI_MUTE, MASK_AUTO_MUTE);
- 	} else {
-@@ -1289,6 +1309,8 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
- 			"yes" : "no");
- 	v4l2_info(sd, "CEC enabled: %s\n",
- 			(i2c_rd16(sd, CECEN) & MASK_CECEN) ?  "yes" : "no");
-+	v4l2_info(sd, "FIFO level: %d\n",
-+			(i2c_rd16(sd, FIFOCTL)));
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	v4l2_info(sd, "TMDS signal detected: %s\n",
- 			hdmi_sys_status & MASK_S_TMDS ? "yes" : "no");
-@@ -1940,7 +1962,7 @@ static int tc358743_probe_of(struct tc358743_state *state)
- 	state->pdata.ddc5v_delay = DDC5V_DELAY_100_MS;
- 	state->pdata.enable_hdcp = false;
- 	/* A FIFO level of 16 should be enough for 2-lane 720p60 at 594 MHz. */
--	state->pdata.fifo_level = 374;
-+	state->pdata.fifo_level = FIFO_LEVEL_DEFAULT;
- 	/*
- 	 * The PLL input clock is obtained by dividing refclk by pll_prd.
- 	 * It must be between 6 MHz and 40 MHz, lower frequency is better.
+-	return DIV_ROUND_UP(bps, bps_pr_lane);
++	/*
++	 * We're don't using DIV_ROUND_UP() here because its formula
++	 * causes u32 overflow when values are too big.
++	 */
++	return (bps / bps_pr_lane) + (((bps % bps_pr_lane) != 0) ? 1 : 0);
+ }
+ 
+ static void tc358743_set_csi(struct v4l2_subdev *sd)
+
