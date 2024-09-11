@@ -27,7 +27,6 @@ ustreamer
 wpa_supplicant-pikvm
 kvmd
 kvmd-webterm
-kvmd-oled
 kvmd-fan
 kvmd-cloud
 vi-vim-symlink
