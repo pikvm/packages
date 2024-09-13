@@ -19,6 +19,7 @@ python-raspberry-gpio
 python-smbus2
 python-luma-core
 python-luma-oled
+python-luma-lcd
 python-pyrad
 raspberrypi-io-access
 raspberrypi-bluetooth

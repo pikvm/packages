@@ -1,0 +1,21 @@
+pkgname=python-luma-lcd
+pkgver=2.11.0
+pkgrel=1
+pkgdesc="Python module to drive LCD displays"
+url="https://github.com/rm-hull/luma.lcd"
+license=(MIT)
+arch=(any)
+depends=(
+	"python>=3.12"
+	"python<3.13"
+	python-luma-core
+)
+makedepends=(python-distribute)
+source=("https://pypi.python.org/packages/source/l/luma.lcd/luma.lcd-$pkgver.tar.gz")
+sha1sums=(SKIP)
+
+
+package() {
+	cd "$srcdir/luma.lcd-$pkgver"
+	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
+}
