@@ -15,11 +15,13 @@ fi
 
 _opt_no_self_update=""
 _opt_no_reboot=""
+_opt_power_off=""
 while test "$#" != 0; do
 	case "$1" in
 		--no-self-update) _opt_no_self_update=1;;
 		--no-reboot) _opt_no_reboot=1;;
-		*) echo "Usage: pikvm-update [--no-reboot]"; exit 1;;
+		--power-off) _opt_power_off=1;;
+		*) echo "Usage: pikvm-update [--no-reboot] [--power-off]"; exit 1;;
 	esac
 	shift
 done
@@ -161,11 +163,22 @@ if [ -z "$_opt_no_reboot" ]; then
 	set -x
 	sleep 30
 	reboot
+elif [ -z "$_opt_power_off" ]; then
+    set +x
+	echo "=============================================================="
+	echo "      Power off requested. We will make it after 30 seconds."
+	echo "            Press Ctrl+C if you don't want this."
+	echo "=============================================================="
+	echo
+	show_rw_msg
+	set -x
+	sleep 30
+	poweroff
 else
 	trap - ERR
 	set +x
 	echo "=============================================================="
-	echo "        Reboot required. Please perfrorm it manually."
+	echo "        Reboot required. Please perform it manually."
 	echo "=============================================================="
 	echo
 	show_rw_msg
