@@ -152,18 +152,7 @@ if ! kvmd -m >/dev/null 2>&1; then
 	exit 1
 fi
 
-if [ -z "$_opt_no_reboot" ]; then
-	set +x
-	echo "=============================================================="
-	echo "      Reboot required. We will make it after 30 seconds."
-	echo "            Press Ctrl+C if you don't want this."
-	echo "=============================================================="
-	echo
-	show_rw_msg
-	set -x
-	sleep 30
-	reboot
-elif [ -z "$_opt_power_off" ]; then
+if [ -n "$_opt_power_off" ]; then
     set +x
 	echo "=============================================================="
 	echo "      Power off requested. We will make it after 30 seconds."
@@ -174,6 +163,17 @@ elif [ -z "$_opt_power_off" ]; then
 	set -x
 	sleep 30
 	poweroff
+elif [ -z "$_opt_no_reboot" ]; then
+	set +x
+	echo "=============================================================="
+	echo "      Reboot required. We will make it after 30 seconds."
+	echo "            Press Ctrl+C if you don't want this."
+	echo "=============================================================="
+	echo
+	show_rw_msg
+	set -x
+	sleep 30
+	reboot
 else
 	trap - ERR
 	set +x
