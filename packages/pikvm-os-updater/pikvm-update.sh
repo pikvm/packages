@@ -149,7 +149,7 @@ if ! kvmd -m >/dev/null 2>&1; then
 	echo "       ----------------------------------"
 	echo "=================================================="
 	set -x
-	exit 1
+	exit 101
 fi
 
 if [ -n "$_opt_power_off" ]; then

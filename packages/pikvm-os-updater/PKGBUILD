@@ -1,5 +1,5 @@
 pkgname=pikvm-os-updater
-pkgver=0.24
+pkgver=0.25
 pkgrel=1
 pkgdesc="PiKVM OS update utility"
 url="https://github.com/pikvm/packages"
