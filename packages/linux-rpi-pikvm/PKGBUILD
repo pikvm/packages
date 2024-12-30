@@ -12,7 +12,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.6.45
-pkgrel=8
+pkgrel=9
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -80,7 +80,15 @@ prepare() {
     echo "Applying custom shit to bcm2711_defconfig"
     make bcm2711_defconfig
     cat ../archarm.diffconfig >> .config
+	#
 	scripts/config --module CONFIG_HID_CP2112
+	# https://github.com/pikvm/pikvm/issues/1453
+	scripts/config --module CONFIG_I2C_DLN2
+	scripts/config --module CONFIG_SPI_DLN2
+	scripts/config --module CONFIG_GPIO_DLN2
+	scripts/config --module CONFIG_MFD_DLN2
+	scripts/config --module CONFIG_DLN2_ADC
+	# Debug
     scripts/config --enable CONFIG_DYNAMIC_DEBUG
     scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
     make olddefconfig
@@ -101,7 +109,15 @@ prepare() {
   else
     echo "Setting config..."
     cp ../"$_config" .config
+	#
 	scripts/config --module CONFIG_HID_CP2112
+	# https://github.com/pikvm/pikvm/issues/1453
+	scripts/config --module CONFIG_I2C_DLN2
+	scripts/config --module CONFIG_SPI_DLN2
+	scripts/config --module CONFIG_GPIO_DLN2
+	scripts/config --module CONFIG_MFD_DLN2
+	scripts/config --module CONFIG_DLN2_ADC
+	# Debug
     scripts/config --enable CONFIG_DYNAMIC_DEBUG
     scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
     make olddefconfig
