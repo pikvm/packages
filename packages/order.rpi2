@@ -9,7 +9,6 @@ pikvm-os-updater
 pikvm-os-raspberrypi
 mkinitcpio-rootdelay
 janus-gateway-pikvm
-janus-gateway-pikvm-1x
 watchdog
 tailscale-pikvm
 python-pyserial-asyncio

@@ -1,11 +1,11 @@
-_commit=99e133bc00cb910186a34b4e2083821cb6c111fc
+_commit=dc8323741043a75537fb770d42ca37498a3d8947
 pkgname=janus-gateway-pikvm
-pkgver=0.14.3
-pkgrel=1
+pkgver=1.3.0
+pkgrel=3
 pkgdesc="An open source, general purpose, WebRTC server (PiKVM build)"
 url='https://janus.conf.meetecho.com'
 license=(GPL3)
-arch=(armv7h aarch64)
+arch=(armv6h armv7h)
 depends=(
 	glib2
 	jansson
@@ -33,15 +33,13 @@ source=(
 #	"$pkgname-$pkgver.tar.gz::https://github.com/meetecho/janus-gateway/archive/v$pkgver.tar.gz"
 	"$pkgname-$_commit.tar.gz::https://github.com/meetecho/janus-gateway/archive/$_commit.tar.gz"
 	"https://webrtc.github.io/adapter/adapter-latest.js"
-	"0001-unmute-hack.patch"
 )
-md5sums=(SKIP SKIP SKIP)
+md5sums=(SKIP SKIP)
 
 
 build() {
 #	cd "janus-gateway-$pkgver"
 	cd "janus-gateway-$_commit"
-	patch -p1 -i ../0001-unmute-hack.patch
 	./autogen.sh
 	./configure \
 		--prefix=/usr \
@@ -65,7 +63,7 @@ package() {
 	make DESTDIR="$pkgdir" install
 	mkdir "$pkgdir/usr/lib/janus/loggers"
 	sed -i -e 's|^#include "refcount.h"$|#include "../refcount.h"|g' "$pkgdir/usr/include/janus/plugins/plugin.h"
-	sed -i -e 's|^function Janus(|export function Janus(|g' "$pkgdir/usr/share/janus/javascript/janus.js"
-	sed -i '1s|^|import "./adapter.js"\n|' "$pkgdir/usr/share/janus/javascript/janus.js"
+	sed -i -e 's|^var Janus = (|export var Janus = (|g' "$pkgdir/usr/share/janus/javascript/janus.js"
+	sed -i '2s|^|import "./adapter.js"\n|' "$pkgdir/usr/share/janus/javascript/janus.js"
 	cp ../adapter-latest.js "$pkgdir/usr/share/janus/javascript/adapter.js"
 }
