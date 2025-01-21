@@ -1,13 +1,13 @@
 pkgname=python-luma-lcd
 pkgver=2.11.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Python module to drive LCD displays"
 url="https://github.com/rm-hull/luma.lcd"
 license=(MIT)
 arch=(any)
 depends=(
-	"python>=3.12"
-	"python<3.13"
+	"python>=3.13"
+	"python<3.14"
 	python-luma-core
 )
 makedepends=(python-distribute)

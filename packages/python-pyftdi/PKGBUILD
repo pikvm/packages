@@ -3,13 +3,14 @@
 _name=pyftdi
 pkgname=python-pyftdi
 pkgver=0.55.4
-pkgrel=2
+pkgrel=3
 pkgdesc="FTDI device driver written in pure Python"
 arch=(any)
 url="https://github.com/eblot/pyftdi"
 license=(BSD-3-Clause)
 depends=(
-  python
+  "python>=3.13"
+  "python<3.14"
   python-pyusb
   python-pyserial
 )
