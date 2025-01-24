@@ -1,0 +1,144 @@
+diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
+index 80a74099f..5e629d064 100644
+--- a/drivers/usb/gadget/function/f_mass_storage.c
++++ b/drivers/usb/gadget/function/f_mass_storage.c
+@@ -1071,7 +1071,10 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
+ 	buf[5] = 0;		/* No special options */
+ 	buf[6] = 0;
+ 	buf[7] = 0;
+-	if (curlun->inquiry_string[0])
++	if (curlun->cdrom && curlun->inquiry_string_cdrom[0])
++		memcpy(buf + 8, curlun->inquiry_string_cdrom,
++		       sizeof(curlun->inquiry_string_cdrom));
++	else if (curlun->inquiry_string[0])
+ 		memcpy(buf + 8, curlun->inquiry_string,
+ 		       sizeof(curlun->inquiry_string));
+ 	else
+@@ -3613,6 +3616,21 @@ static ssize_t fsg_lun_opts_inquiry_string_store(struct config_item *item,
+ 
+ CONFIGFS_ATTR(fsg_lun_opts_, inquiry_string);
+ 
++static ssize_t fsg_lun_opts_inquiry_string_cdrom_show(struct config_item *item,
++						      char *page)
++{
++	return fsg_show_inquiry_string_cdrom(to_fsg_lun_opts(item)->lun, page);
++}
++
++static ssize_t fsg_lun_opts_inquiry_string_cdrom_store(struct config_item *item,
++						       const char *page, size_t len)
++{
++	return fsg_store_inquiry_string_cdrom(to_fsg_lun_opts(item)->lun,
++					      page, len);
++}
++
++CONFIGFS_ATTR(fsg_lun_opts_, inquiry_string_cdrom);
++
+ static ssize_t fsg_lun_opts_forced_eject_store(struct config_item *item,
+ 					       const char *page, size_t len)
+ {
+@@ -3632,6 +3650,7 @@ static struct configfs_attribute *fsg_lun_attrs[] = {
+ 	&fsg_lun_opts_attr_cdrom,
+ 	&fsg_lun_opts_attr_nofua,
+ 	&fsg_lun_opts_attr_inquiry_string,
++	&fsg_lun_opts_attr_inquiry_string_cdrom,
+ 	&fsg_lun_opts_attr_forced_eject,
+ 	NULL,
+ };
+diff --git a/drivers/usb/gadget/function/storage_common.c b/drivers/usb/gadget/function/storage_common.c
+index 0a8a19833..e68f1caf9 100644
+--- a/drivers/usb/gadget/function/storage_common.c
++++ b/drivers/usb/gadget/function/storage_common.c
+@@ -369,6 +369,12 @@ ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf)
+ }
+ EXPORT_SYMBOL_GPL(fsg_show_inquiry_string);
+ 
++ssize_t fsg_show_inquiry_string_cdrom(struct fsg_lun *curlun, char *buf)
++{
++	return sprintf(buf, "%s\n", curlun->inquiry_string_cdrom);
++}
++EXPORT_SYMBOL_GPL(fsg_show_inquiry_string_cdrom);
++
+ /*
+  * The caller must hold fsg->filesem for reading when calling this function.
+  */
+@@ -499,24 +505,43 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
+ }
+ EXPORT_SYMBOL_GPL(fsg_store_removable);
+ 
+-ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
+-				 size_t count)
++static ssize_t _fsg_store_inquiry_string(struct fsg_lun *curlun,
++					 const char *buf, size_t count,
++					 bool cdrom)
+ {
+-	const size_t len = min(count, sizeof(curlun->inquiry_string));
++	char *inq_ptr = (cdrom
++			 ? curlun->inquiry_string_cdrom
++			 : curlun->inquiry_string);
++	const size_t inq_size = (cdrom
++				 ? sizeof(curlun->inquiry_string_cdrom)
++				 : sizeof(curlun->inquiry_string));
++	const size_t len = min(count, inq_size);
+ 
+ 	if (len == 0 || buf[0] == '\n') {
+-		curlun->inquiry_string[0] = 0;
++		inq_ptr[0] = 0;
+ 	} else {
+-		snprintf(curlun->inquiry_string,
+-			 sizeof(curlun->inquiry_string), "%-28s", buf);
+-		if (curlun->inquiry_string[len-1] == '\n')
+-			curlun->inquiry_string[len-1] = ' ';
++		snprintf(inq_ptr, inq_size, "%-28s", buf);
++		if (inq_ptr[len-1] == '\n')
++			inq_ptr[len-1] = ' ';
+ 	}
+ 
+ 	return count;
+ }
++
++ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
++				 size_t count)
++{
++	return _fsg_store_inquiry_string(curlun, buf, count, false);
++}
+ EXPORT_SYMBOL_GPL(fsg_store_inquiry_string);
+ 
++ssize_t fsg_store_inquiry_string_cdrom(struct fsg_lun *curlun, const char *buf,
++				       size_t count)
++{
++	return _fsg_store_inquiry_string(curlun, buf, count, true);
++}
++EXPORT_SYMBOL_GPL(fsg_store_inquiry_string_cdrom);
++
+ ssize_t fsg_store_forced_eject(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+ 			       const char *buf, size_t count)
+ {
+diff --git a/drivers/usb/gadget/function/storage_common.h b/drivers/usb/gadget/function/storage_common.h
+index 76bf8b56c..45b1502c7 100644
+--- a/drivers/usb/gadget/function/storage_common.h
++++ b/drivers/usb/gadget/function/storage_common.h
+@@ -134,6 +134,7 @@ struct fsg_lun {
+ 	const char	*name;		/* "lun.name" */
+ 	const char	**name_pfx;	/* "function.name" */
+ 	char		inquiry_string[INQUIRY_STRING_LEN];
++	char		inquiry_string_cdrom[INQUIRY_STRING_LEN];
+ };
+ 
+ static inline bool fsg_lun_is_open(struct fsg_lun *curlun)
+@@ -220,6 +221,7 @@ ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf);
+ ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+ 		      char *buf);
+ ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf);
++ssize_t fsg_show_inquiry_string_cdrom(struct fsg_lun *curlun, char *buf);
+ ssize_t fsg_show_cdrom(struct fsg_lun *curlun, char *buf);
+ ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf);
+ ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+@@ -233,6 +235,8 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
+ 			    size_t count);
+ ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
+ 				 size_t count);
++ssize_t fsg_store_inquiry_string_cdrom(struct fsg_lun *curlun, const char *buf,
++				 size_t count);
+ ssize_t fsg_store_forced_eject(struct fsg_lun *curlun, struct rw_semaphore *filesem,
+ 			       const char *buf, size_t count);
+ 
