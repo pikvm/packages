@@ -1,11 +1,11 @@
 _commit=dc8323741043a75537fb770d42ca37498a3d8947
 pkgname=janus-gateway-pikvm
 pkgver=1.3.0
-pkgrel=3
+pkgrel=4
 pkgdesc="An open source, general purpose, WebRTC server (PiKVM build)"
 url='https://janus.conf.meetecho.com'
 license=(GPL3)
-arch=(armv6h armv7h)
+arch=(armv6h armv7h aarch64)
 depends=(
 	glib2
 	jansson
