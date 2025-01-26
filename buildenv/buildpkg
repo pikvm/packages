@@ -245,6 +245,8 @@ def main() -> None:  # pylint: disable=too-many-statements
         _run("sed", "-i", "-e", r"s/^ShutDown() {/ShutDown() {\nexit 0/g", "/usr/bin/pump")  # FIXME: pump hanging on exit
         _say(f"Using MAKE_J={o.distcc_make_j} (distcc)")
         _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.distcc_make_j}/g", "/etc/makepkg.conf")
+        with open("/tmp/_pikvm_use_distcc", "w") as file:
+            pass
     else:
         _say(f"Using MAKE_J={o.make_j} (local)")
         _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")

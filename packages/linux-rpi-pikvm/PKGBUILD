@@ -4,7 +4,9 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-_pikvm_use_distcc=1
+if [ -f "/tmp/_pikvm_use_distcc" ]; then
+	_pikvm_use_distcc=1
+fi
 
 pkgbase=linux-rpi
 _commit=15ca476264094b25d0a210109a061192a468117b
@@ -69,7 +71,7 @@ prepare() {
   #patch -p1 -i ../3002-pcf8563-wakeup-source-dtsi.patch # TODO: Remove, already applied
   patch -p1 -i ../4001-rgb24-corruption.patch
 
-  if [ "$_pikvm_use_distcc" -eq 1 ]; then
+  if [ -n "$_pikvm_use_distcc" ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
   fi
 
@@ -133,7 +135,7 @@ prepare() {
 build() {
   cd "${srcdir}/${_srcname}"
 
-  if [ "$_pikvm_use_distcc" -eq 1 ]; then
+  if [ -n "$_pikvm_use_distcc" ]; then
     _make "$_image" modules dtbs CC=distcc CXX=distcc
   else
     _make "$_image" modules dtbs
