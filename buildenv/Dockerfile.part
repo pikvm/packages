@@ -71,10 +71,16 @@ RUN userdel -r -f alarm \
 	&& chown alarm:alarm /run/user/$ALARM_UID
 
 # FIXME: https://archlinuxarm.org/forum/viewtopic.php?f=57&t=16830
-RUN echo 'CPPFLAGS=""' >> /etc/makepkg.conf
-RUN echo 'CFLAGS="-march=armv7-a -mfloat-abi=hard -mfpu=neon -O2 -pipe -fstack-protector-strong -fno-plt -fexceptions -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -fstack-clash-protection"' >> /etc/makepkg.conf
-RUN echo 'CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"' >> /etc/makepkg.conf
-RUN echo 'LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"' >> /etc/makepkg.conf
+#RUN sed -i \
+#		-e 's/-Wl,-z,pack-relative-relocs//g' \
+#		-e 's/-fno-omit-frame-pointer//g' \
+#		-e 's/-mno-omit-leaf-frame-pointer//g' \
+#	/etc/makepkg.conf
+
+RUN mkdir -p /etc/gnupg \
+	&& echo '[ignore]' > /etc/gnupg/common.conf \
+	&& echo 'use-keyboxd' >> /etc/gnupg/common.conf \
+	&& echo '[-ignore]' >> /etc/gnupg/common.conf
 
 RUN mkdir /tools
 COPY stages/buildenv/buildpkg /tools/
