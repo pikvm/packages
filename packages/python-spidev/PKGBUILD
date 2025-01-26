@@ -1,10 +1,10 @@
 pkgname=python-spidev
 pkgver=3.6
-pkgrel=5
+pkgrel=6
 pkgdesc="Python bindings for Linux SPI devices"
 url="https://github.com/doceme/py-spidev"
 license=(GPL)
-arch=(any)
+arch=(armv7h aarch64)
 depends=("python>=3.13" "python<3.14")
 makedepends=(gcc python-distribute)
 source=("https://pypi.python.org/packages/source/s/spidev/spidev-$pkgver.tar.gz")

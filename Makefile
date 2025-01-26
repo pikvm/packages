@@ -2,6 +2,7 @@
 
 export PROJECT ?= pikvm-packages
 export BOARD ?= rpi2
+export ARCH ?= arm
 export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export ARCH_DIST_REPO_URL ?= http://mirror.archlinuxarm.org/
@@ -24,11 +25,11 @@ _TARGET_REPO_KEY = 912C773ABBD1B584
 _ALARM_UID := $(shell id -u)
 _ALARM_GID := $(shell id -g)
 
-_BUILDENV_IMAGE = $(PROJECT).$(BOARD).$(_ALARM_UID)-$(_ALARM_GID)
-_BUILDENV_DIR = ./.pi-builder/$(BOARD)
-_BUILD_DIR = ./.build/$(BOARD)
+_BUILDENV_IMAGE = $(PROJECT).$(BOARD)-$(ARCH).$(_ALARM_UID)-$(_ALARM_GID)
+_BUILDENV_DIR = ./.pi-builder/$(BOARD)-$(ARCH)
+_BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
 _BASE_REPOS_DIR = ./repos
-_TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)
+_TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)-$(ARCH)
 
 
 # =====
@@ -67,16 +68,16 @@ $(__UPDATABLE):
 	$(MAKE) -C packages/$(subst __update__,,$@) -f update.mk update
 
 
-__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)))
+__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)-$(ARCH)))
 build: buildenv $(__BUILD_ORDER)
 $(__BUILD_ORDER):
-	$(MAKE) _build BOARD=$(BOARD) PKG=$(subst __build__,,$@)
+	$(MAKE) _build BOARD=$(BOARD) ARCH=$(ARCH) PKG=$(subst __build__,,$@)
 # XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
 
 
 _build:
 	test -n "$(PKG)"
-	$(call say,"Ensuring package $(PKG) for $(BOARD)")
+	$(call say,"Ensuring package $(PKG) for $(BOARD)-$(ARCH)")
 	$(MAKE) _run \
 		OPTS="--shm-size=4gb --tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg \
@@ -89,7 +90,7 @@ _build:
 			--make-j $(J) \
 			$(PKG) \
 		"
-	$(call say,"Complete package $(PKG) for $(BOARD)")
+	$(call say,"Complete package $(PKG) for $(BOARD)-$(ARCH)")
 
 
 shell: buildenv
@@ -102,7 +103,7 @@ binfmt: $(_BUILDENV_DIR)
 
 
 buildenv: binfmt
-	$(call say,"Ensuring $(BOARD) buildenv")
+	$(call say,"Ensuring $(BOARD)-$(ARCH) buildenv")
 	rm -rf $(_BUILDENV_DIR)/stages/arch/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
@@ -115,7 +116,7 @@ buildenv: binfmt
 			--build-arg ALARM_UID=$(_ALARM_UID) \
 			--build-arg ALARM_GID=$(_ALARM_GID) \
 		"
-	$(call say,"Buildenv $(BOARD) is ready")
+	$(call say,"Buildenv $(BOARD)-$(ARCH) is ready")
 
 
 # =====
@@ -146,14 +147,18 @@ $(_BUILD_DIR):
 	mkdir -p $(_BUILD_DIR)
 
 
-$(_BASE_REPOS_DIR)/rpi2:
+$(_BASE_REPOS_DIR)/rpi2-arm:
 	mkdir -p $(_BASE_REPOS_DIR)/rpi2
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/zero2w
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4
 	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
+
+
+$(_BASE_REPOS_DIR)/rpi4-aarch64:
+	mkdir -p $(_BASE_REPOS_DIR)/rpi4-aarch64
 
 
 # =====

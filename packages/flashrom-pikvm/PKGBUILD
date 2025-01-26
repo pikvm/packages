@@ -3,11 +3,11 @@ _commit=03b14083c751727ee14256fe027706338182ce50
 #_commit=001c87d9014b5b2dbb8adc9f64ab7023359a38b4
 pkgname=flashrom-pikvm
 pkgver=20230521
-pkgrel=2
+pkgrel=3
 pkgdesc="A utility for identifying, reading, writing, verifying and erasing flash chips"
 url="https://github.com/flashrom/flashrom"
 license=(GPL)
-arch=(i686 x86_64 armv6h armv7h)
+arch=(i686 x86_64 armv6h armv7h aarch64)
 depends=(
 	libusb
 	libftdi
