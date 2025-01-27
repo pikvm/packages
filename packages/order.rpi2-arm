@@ -25,6 +25,7 @@ python-periphery
 raspberrypi-io-access
 raspberrypi-bluetooth
 flashrom-pikvm
+wiringpi-pikvm
 ustreamer
 wpa_supplicant-pikvm
 kvmd

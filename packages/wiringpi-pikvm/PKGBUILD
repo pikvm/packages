@@ -1,0 +1,58 @@
+# We're building this for PiKVM because upstream package wasn't update since 2022
+# and we need support of aarch64.
+#
+# Jan 27 02:22:12 pikvm kvmd-fan[8352]: Oops: Unable to determine board revision from /proc/cpuinfo
+# Jan 27 02:22:12 pikvm kvmd-fan[8352]:  -> No "Hardware" line
+# Jan 27 02:22:12 pikvm kvmd-fan[8352]:  ->  You'd best google the error to find out why.
+
+# Maintainer: Kevin Mihelich <kevin@archlinuxarm.org>
+# Contributor: Mike Brown <mbrown@archlinuxarm.org>
+
+_commit=3.12
+pkgname=wiringpi-pikvm
+_pkgname=WiringPi
+pkgver=182
+pkgrel=1
+pkgdesc='GPIO Interface library for the Raspberry Pi'
+arch=('armv7h' 'aarch64')
+makedepends=('git')
+conflicts=(wiringpi)
+provides=(wiringpi)
+license=('LGPL3')
+url='https://github.com/WiringPi/WiringPi.git'
+source=("$_pkgname-$_commit.tar.gz::https://github.com/WiringPi/WiringPi/archive/$_commit.tar.gz")
+md5sums=('SKIP')
+
+prepare() {
+  mv ${_pkgname}-${_commit} ${_pkgname}
+#  sed -i 's|/usr/local/bin/gpio|/usr/bin/gpio|' wiringPi/wiringPi.c
+}
+
+build() {
+  cd ${_pkgname}
+  VERSION=$(cat VERSION)
+
+  make -C wiringPi all PREFIX=/usr
+  make -C devLib all PREFIX=/usr INCLUDE+="-I${srcdir}/${_pkgname}/wiringPi"
+
+  ln -sf "${srcdir}/${_pkgname}/wiringPi/libwiringPi.so.${VERSION}" wiringPi/libwiringPi.so
+  ln -sf "${srcdir}/${_pkgname}/devLib/libwiringPiDev.so.${VERSION}" devLib/libwiringPiDev.so
+
+  make -C gpio PREFIX=/usr INCLUDE+="-I${srcdir}/${_pkgname}/wiringPi -I${srcdir}/${_pkgname}/devLib" LDFLAGS+="-L${srcdir}/${_pkgname}/wiringPi -L${srcdir}/${_pkgname}/devLib"
+  make -C wiringPiD PREFIX=/usr INCLUDE+="-I${srcdir}/${_pkgname}/wiringPi -I${srcdir}/${_pkgname}/devLib" LDFLAGS+="-L${srcdir}/${_pkgname}/wiringPi -L${srcdir}/${_pkgname}/devLib"
+}
+
+package(){
+  cd ${_pkgname}
+  VERSION=$(cat VERSION)
+
+  make LDCONFIG= PREFIX= DESTDIR="${pkgdir}/usr" -C wiringPi install
+  make LDCONFIG= PREFIX= DESTDIR="${pkgdir}/usr" -C devLib install
+  install -d "${pkgdir}/usr/bin"
+  make PREFIX=/usr DESTDIR="${pkgdir}" WIRINGPI_SUID=1 -C gpio install
+  install -m0755 wiringPiD/wiringpid "${pkgdir}/usr/bin"
+  install -Dm644 COPYING.LESSER "$pkgdir/usr/share/licenses/$pkgname/COPYING.LESSER"
+
+  ln -sf "libwiringPi.so.${VERSION}" "$pkgdir/usr/lib/libwiringPi.so"
+  ln -sf "libwiringPiDev.so.${VERSION}" "$pkgdir/usr/lib/libwiringPiDev.so"
+}
