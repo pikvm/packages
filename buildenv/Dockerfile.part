@@ -2,7 +2,7 @@
 RUN echo "$LOCALE.UTF-8 UTF-8" > /etc/locale.gen \
 	&& ([ "$LOCALE" == "en_US" ] || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen) \
 	&& locale-gen
-ENV LC_ALL $LOCALE.UTF-8
+ENV LC_ALL=$LOCALE.UTF-8
 
 RUN rm -f /etc/localtime \
 	&& ln -s "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
@@ -46,11 +46,11 @@ RUN pacman --noconfirm --ask=4 -Syy \
 	&& (pacman --noconfirm -Sc || true)
 
 ARG TARGET_REPO_NAME
-ENV TARGET_REPO_NAME $TARGET_REPO_NAME
+ENV TARGET_REPO_NAME=$TARGET_REPO_NAME
 RUN echo $TARGET_REPO_NAME
 
 ARG TARGET_REPO_KEY
-ENV TARGET_REPO_KEY $TARGET_REPO_KEY
+ENV TARGET_REPO_KEY=$TARGET_REPO_KEY
 RUN ( \
 		pacman-key --keyserver hkps://keyserver.ubuntu.com:443 -r $TARGET_REPO_KEY \
 		|| pacman-key --keyserver hkps://keys.gnupg.net:443 -r $TARGET_REPO_KEY \
@@ -59,9 +59,9 @@ RUN ( \
 	&& pacman-key --lsign-key $TARGET_REPO_KEY
 
 ARG ALARM_UID
-ENV ALARM_UID $ALARM_UID
+ENV ALARM_UID=$ALARM_UID
 ARG ALARM_GID
-ENV ALARM_GID $ALARM_GID
+ENV ALARM_GID=$ALARM_GID
 RUN userdel -r -f alarm \
 	&& (g=$(getent group $ALARM_GID | cut -d: -f1); [ -z "$g" ] || groupdel "$g") \
 	&& (u=$(getent passwd $ALARM_UID | cut -d: -f1); [ -z "$u" ] || userdel "$u") \
