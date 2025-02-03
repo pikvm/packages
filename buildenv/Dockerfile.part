@@ -71,11 +71,11 @@ RUN userdel -r -f alarm \
 	&& chown alarm:alarm /run/user/$ALARM_UID
 
 # FIXME: https://archlinuxarm.org/forum/viewtopic.php?f=57&t=16830
-#RUN sed -i \
-#		-e 's/-Wl,-z,pack-relative-relocs//g' \
-#		-e 's/-fno-omit-frame-pointer//g' \
-#		-e 's/-mno-omit-leaf-frame-pointer//g' \
-#	/etc/makepkg.conf
+RUN test $ARCH != arm || sed -i \
+		-e 's/-Wl,-z,pack-relative-relocs//g' \
+		-e 's/-fno-omit-frame-pointer//g' \
+		-e 's/-mno-omit-leaf-frame-pointer//g' \
+	/etc/makepkg.conf
 
 RUN mkdir -p /etc/gnupg \
 	&& echo '[ignore]' > /etc/gnupg/common.conf \
