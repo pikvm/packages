@@ -58,7 +58,6 @@ upload: $(addprefix __upload__,$(UPLOAD))
 
 
 download:
-	rm -rf $(_BASE_REPOS_DIR)
 	rsync -rl --progress $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
 
 
