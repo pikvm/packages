@@ -19,17 +19,18 @@ export NOINT ?=
 
 
 # =====
+_TARGET = $(BOARD)-$(ARCH)
 _TARGET_REPO_NAME = pikvm
 _TARGET_REPO_KEY = 912C773ABBD1B584
 
 _ALARM_UID := $(shell id -u)
 _ALARM_GID := $(shell id -g)
 
-_BUILDENV_IMAGE = $(PROJECT).$(BOARD)-$(ARCH).$(_ALARM_UID)-$(_ALARM_GID)
-_BUILDENV_DIR = ./.pi-builder/$(BOARD)-$(ARCH)
-_BUILD_DIR = ./.build/$(BOARD)-$(ARCH)
+_BUILDENV_IMAGE = $(PROJECT).$(_TARGET).$(_ALARM_UID)-$(_ALARM_GID)
+_BUILDENV_DIR = ./.pi-builder/$(_TARGET)
+_BUILD_DIR = ./.build/$(_TARGET)
 _BASE_REPOS_DIR = ./repos
-_TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(BOARD)-$(ARCH)
+_TARGET_REPO_DIR = $(_BASE_REPOS_DIR)/$(_TARGET)
 
 
 # =====
@@ -51,14 +52,31 @@ all:
 
 
 __upload__testing:
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing
+	rsync -rl --progress --delete \
+		$(_TARGET_REPO_DIR)/ \
+		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing/$(_TARGET)
 __upload__stable:
-	rsync -rl --progress --delete $(_BASE_REPOS_DIR)/ $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch
+	rsync -rl --progress --delete \
+		$(_TARGET_REPO_DIR)/ \
+		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$(_TARGET)
 upload: $(addprefix __upload__,$(UPLOAD))
 
 
 download:
-	rsync -rl --progress $(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/ $(_BASE_REPOS_DIR)
+	mkdir -p $(_BASE_REPOS_DIR)
+	rsync -rl --progress \
+		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$(_TARGET)/ \
+		$(_TARGET_REPO_DIR)
+	$(MAKE) links-$(_TARGET)
+links-rpi4-aarch64:
+	true
+links-rpi2-arm:
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/zero2w
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
+	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
 
 
 __UPDATABLE := $(addprefix __update__,$(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
@@ -67,7 +85,7 @@ $(__UPDATABLE):
 	$(MAKE) -C packages/$(subst __update__,,$@) -f update.mk update
 
 
-__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(BOARD)-$(ARCH)))
+__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(_TARGET)))
 build: buildenv $(__BUILD_ORDER)
 $(__BUILD_ORDER):
 	$(MAKE) _build BOARD=$(BOARD) ARCH=$(ARCH) PKG=$(subst __build__,,$@)
@@ -76,7 +94,7 @@ $(__BUILD_ORDER):
 
 _build:
 	test -n "$(PKG)"
-	$(call say,"Ensuring package $(PKG) for $(BOARD)-$(ARCH)")
+	$(call say,"Ensuring package $(PKG) for $(_TARGET)")
 	$(MAKE) _run \
 		OPTS="--shm-size=4gb --tty $(if $(call optbool,$(NOINT)),,--interactive)" \
 		CMD="/tools/buildpkg \
@@ -89,7 +107,7 @@ _build:
 			--make-j $(J) \
 			$(PKG) \
 		"
-	$(call say,"Complete package $(PKG) for $(BOARD)-$(ARCH)")
+	$(call say,"Complete package $(PKG) for $(_TARGET)")
 
 
 shell: buildenv
@@ -102,7 +120,7 @@ binfmt: $(_BUILDENV_DIR)
 
 
 buildenv: binfmt
-	$(call say,"Ensuring $(BOARD)-$(ARCH) buildenv")
+	$(call say,"Ensuring $(_TARGET) buildenv")
 	rm -rf $(_BUILDENV_DIR)/stages/arch/buildenv
 	cp -a buildenv $(_BUILDENV_DIR)/stages/arch/buildenv
 	$(MAKE) -C $(_BUILDENV_DIR) os \
@@ -115,7 +133,7 @@ buildenv: binfmt
 			--build-arg ALARM_UID=$(_ALARM_UID) \
 			--build-arg ALARM_GID=$(_ALARM_GID) \
 		"
-	$(call say,"Buildenv $(BOARD)-$(ARCH) is ready")
+	$(call say,"Buildenv $(_TARGET) is ready")
 
 
 # =====
@@ -144,20 +162,6 @@ $(_BUILDENV_DIR):
 
 $(_BUILD_DIR):
 	mkdir -p $(_BUILD_DIR)
-
-
-$(_BASE_REPOS_DIR)/rpi2-arm:
-	mkdir -p $(_BASE_REPOS_DIR)/rpi2
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/zero2w
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
-
-
-$(_BASE_REPOS_DIR)/rpi4-aarch64:
-	mkdir -p $(_BASE_REPOS_DIR)/rpi4-aarch64
 
 
 # =====
