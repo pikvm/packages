@@ -14,7 +14,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.6.45
-pkgrel=10
+pkgrel=11
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -39,10 +39,11 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         3001-pcf8563-wakeup-source.patch
         3002-pcf8563-wakeup-source-dtsi.patch
         4001-rgb24-corruption.patch
+        5001-no-audio-ids.patch
 )
 md5sums=(SKIP SKIP SKIP
          SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
@@ -70,6 +71,7 @@ prepare() {
   patch -p1 -i ../3001-pcf8563-wakeup-source.patch
   #patch -p1 -i ../3002-pcf8563-wakeup-source-dtsi.patch # TODO: Remove, already applied
   patch -p1 -i ../4001-rgb24-corruption.patch
+  patch -p1 -i ../5001-no-audio-ids.patch
 
   if [ -n "$_pikvm_use_distcc" ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
