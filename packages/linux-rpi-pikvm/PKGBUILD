@@ -4,7 +4,7 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-if [ -f "/tmp/_pikvm_use_distcc" ]; then
+if [ -f "/tmp/_pikvm_use_distcc_allowed" ]; then
 	_pikvm_use_distcc=1
 fi
 

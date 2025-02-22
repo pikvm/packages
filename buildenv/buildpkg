@@ -223,6 +223,10 @@ def main() -> None:  # pylint: disable=too-many-statements
     o.build_dir = join(o.build_dir, o.pkg_name)
     _run("sudo", "-u", "alarm", "mkdir", "-p", o.build_dir)
 
+    if bool(o.distcc_hosts):
+        with open("/tmp/_pikvm_use_distcc_allowed", "w") as file:
+            pass
+
     pkg = _read_pkgbuild(join(o.packages_dir, o.pkg_name))
     old_version = _get_latest_version(o.target_repo_dir, o.pkg_name)
 
@@ -245,8 +249,6 @@ def main() -> None:  # pylint: disable=too-many-statements
         _run("sed", "-i", "-e", r"s/^ShutDown() {/ShutDown() {\nexit 0/g", "/usr/bin/pump")  # FIXME: pump hanging on exit
         _say(f"Using MAKE_J={o.distcc_make_j} (distcc)")
         _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.distcc_make_j}/g", "/etc/makepkg.conf")
-        with open("/tmp/_pikvm_use_distcc", "w") as file:
-            pass
     else:
         _say(f"Using MAKE_J={o.make_j} (local)")
         _run("sed", "-i", "-e", f"s/^#MAKEFLAGS=.*/MAKEFLAGS=-j{o.make_j}/g", "/etc/makepkg.conf")
