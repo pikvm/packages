@@ -96,30 +96,30 @@ done
 #       /usr/lib/firmware/brcm/brcmfmac4356-sdio.AP6356S.txt \
 #       /usr/lib/firmware/updates/brcm/brcmfmac43430-sdio.txt
 
-if (pacman -Qi python-ajsonrpc | grep Depends | grep -q -e 'python<3\.11' -e 'python<3\.12'); then
-	rm -f /var/cache/pacman/pkg/python-ajsonrpc-*
-	pacman $_yes -S python-ajsonrpc
-fi
+#if (pacman -Qi python-ajsonrpc | grep Depends | grep -q -e 'python<3\.11' -e 'python<3\.12'); then
+#	rm -f /var/cache/pacman/pkg/python-ajsonrpc-*
+#	pacman $_yes -S python-ajsonrpc
+#fi
 
-if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
-	pacman $_yes --needed -S \
-		raspberrypi-utils \
-		ustreamer \
-		pikvm-os-raspberrypi \
-		libgpiod \
-		kvmd-fan \
-		kvmd \
-		`pacman -Q | grep kvmd-platform | awk '{print $1}'` \
-		python-luma-core \
-		python-luma-oled \
-		python-pyftdi \
-		python-pyghmi \
-		python-pyrad \
-		python-pyserial-asyncio \
-		python-raspberry-gpio \
-		python-smbus2 \
-		python-spidev
-fi
+#if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
+#	pacman $_yes --needed -S \
+#		raspberrypi-utils \
+#		ustreamer \
+#		pikvm-os-raspberrypi \
+#		libgpiod \
+#		kvmd-fan \
+#		kvmd \
+#		`pacman -Q | grep kvmd-platform | awk '{print $1}'` \
+#		python-luma-core \
+#		python-luma-oled \
+#		python-pyftdi \
+#		python-pyghmi \
+#		python-pyrad \
+#		python-pyserial-asyncio \
+#		python-raspberry-gpio \
+#		python-smbus2 \
+#		python-spidev
+#fi
 
 pacman $_yes -Su
 
