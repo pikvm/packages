@@ -1,5 +1,5 @@
 pkgname=pikvm-os-raspberrypi
-pkgver=0.8
+pkgver=0.9
 pkgrel=1
 pkgdesc="Pi-KVM OS Metapackage"
 url="https://pikvm.org"
@@ -16,6 +16,7 @@ depends=(
 	pikvm-os-updater
 	pikvm-os-ro
 	pistat
+	busybox
 )
 replaces=(pikvm-os-raspberrypi4)
 source=()
