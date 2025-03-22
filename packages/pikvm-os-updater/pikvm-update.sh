@@ -101,25 +101,9 @@ done
 #	pacman $_yes -S python-ajsonrpc
 #fi
 
-#if ! pacman -Q raspberrypi-utils libgpiod >/dev/null 2>&1; then
-#	pacman $_yes --needed -S \
-#		raspberrypi-utils \
-#		ustreamer \
-#		pikvm-os-raspberrypi \
-#		libgpiod \
-#		kvmd-fan \
-#		kvmd \
-#		`pacman -Q | grep kvmd-platform | awk '{print $1}'` \
-#		python-luma-core \
-#		python-luma-oled \
-#		python-pyftdi \
-#		python-pyghmi \
-#		python-pyrad \
-#		python-pyserial-asyncio \
-#		python-raspberry-gpio \
-#		python-smbus2 \
-#		python-spidev
-#fi
+if ! pacman -Q raspberrypi-utils >/dev/null 2>&1; then
+	pacman $_yes -Sdd raspberrypi-utils
+fi
 
 pacman $_yes -Su
 
