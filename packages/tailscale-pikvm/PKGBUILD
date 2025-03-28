@@ -6,12 +6,14 @@ url="https://tailscale.com"
 license=(GPL)
 arch=(any)
 depends=("tailscale>=1.30.1")
-source=(pikvm-logs-dir.conf after-kvmd-nginx.conf)
+source=(pikvm-logs-dir.conf after-kvmd-nginx.conf tailscale)
 md5sums=(SKIP SKIP)
 install=tailscale-pikvm.install
 
 package() {
 	mkdir -p "$pkgdir/etc/systemd/system/tailscaled.service.d"
+	mkdir -p "$pkgdir/etc/default"
 	install -m644 pikvm-logs-dir.conf "$pkgdir/etc/systemd/system/tailscaled.service.d"
 	install -m644 after-kvmd-nginx.conf "$pkgdir/etc/systemd/system/tailscaled.service.d"
+	install -m644 tailscale "$pkgdir/etc/default"
 }
