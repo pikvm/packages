@@ -1,5 +1,6 @@
+_commit=33cff21882b6782c20b054e6e8adcf94b5e09561
 pkgname=python-pyghmi
-pkgver=1.5.69
+pkgver=1.6.0
 pkgrel=2
 pkgdesc="A Pure python IPMI library"
 url="https://opendev.org/x/pyghmi"
@@ -13,7 +14,8 @@ depends=(
 	python-six
 )
 makedepends=(python-distribute)
-source=(${pkgname}::"git+https://opendev.org/x/pyghmi#commit=${pkgver}")
+#source=(${pkgname}::"git+https://opendev.org/x/pyghmi#commit=${pkgver}")
+source=(${pkgname}::"git+https://opendev.org/x/pyghmi#commit=${_commit}")
 md5sums=(SKIP)
 
 
