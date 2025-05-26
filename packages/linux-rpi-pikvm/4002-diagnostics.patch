@@ -1,0 +1,142 @@
+commit 7da4f7ef0ea8a00fc5632d93c9f905486f2adb29
+Author: Maxim Devaev <mdevaev@gmail.com>
+Date:   Sun May 25 20:15:44 2025 +0300
+
+    tc358743 diagnostics
+
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index d4fb57d5b..0c704f598 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -81,6 +81,7 @@ struct tc358743_state {
+ 	struct v4l2_ctrl *detect_tx_5v_ctrl;
+ 	struct v4l2_ctrl *audio_sampling_rate_ctrl;
+ 	struct v4l2_ctrl *audio_present_ctrl;
++	struct v4l2_ctrl *chip_status_ctrl;
+ 
+ 	struct delayed_work delayed_work_enable_hotplug;
+ 
+@@ -307,6 +308,12 @@ static int get_audio_sampling_rate(struct v4l2_subdev *sd)
+ 	return code_to_rate[i2c_rd8(sd, FS_SET) & MASK_FS];
+ }
+ 
++static unsigned get_max_data_lanes(struct v4l2_subdev *sd)
++{
++	const void *ptr = v4l2_get_subdev_hostdata(sd);
++	return (ptr ? *(unsigned*)ptr : 0);
++}
++
+ /* --------------- TIMINGS --------------- */
+ 
+ static inline unsigned fps(const struct v4l2_bt_timings *t)
+@@ -1309,6 +1316,8 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
+ 			true);
+ 
+ 	v4l2_info(sd, "-----CSI-TX status-----\n");
++	v4l2_info(sd, "Lanes max: %u\n",
++			get_max_data_lanes(sd));
+ 	v4l2_info(sd, "Lanes needed: %d\n",
+ 			tc358743_num_csi_lanes_needed(sd));
+ 	v4l2_info(sd, "Lanes in use: %d\n",
+@@ -1876,6 +1885,66 @@ static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
+ 	.flags = V4L2_CTRL_FLAG_READ_ONLY,
+ };
+ 
++static int tc358743_ctrl_g_volatile_chip_status(struct v4l2_ctrl *ctrl)
++{
++	struct tc358743_state *state = container_of(ctrl->handler,
++		struct tc358743_state, hdl);
++	struct v4l2_subdev *sd = &state->sd;
++	const uint16_t sysctl = i2c_rd16(sd, SYSCTL);
++	const uint8_t hdmi_sys_status = i2c_rd8(sd, SYS_STATUS);
++	const uint16_t csi_status = i2c_rd16(sd, CSI_STATUS);
++	const unsigned max_data_lanes = get_max_data_lanes(sd);
++	const bool hdmi = is_hdmi(sd);
++	struct v4l2_dv_timings timings;
++	u32 result = 0;
++
++#define SET_BIT(nbit, check) { if (check) { result |= 1 << (nbit); } }
++
++	SET_BIT(0, sysctl & MASK_IRRST); /* Reset IR */
++	SET_BIT(1, sysctl & MASK_CECRST); /* Reset CEC */
++	SET_BIT(2, sysctl & MASK_CTXRST); /* Reset CSI TX */
++	SET_BIT(3, sysctl & MASK_HDMIRST); /* Reset HDMI */
++	SET_BIT(4, sysctl & MASK_SLEEP); /* Sleep mode */
++	SET_BIT(5, hdmi_sys_status & MASK_S_DDC5V); /* Cable detected (+5V power) */
++	SET_BIT(6, i2c_rd8(sd, EDID_MODE) & MASK_EDID_MODE_E_DDC); /* DDC lines enabled */
++	SET_BIT(7, i2c_rd8(sd, HPD_CTL) & MASK_HPD_OUT0); /* Hotplug enabled */
++	SET_BIT(8, i2c_rd16(sd, CECEN) & MASK_CECEN); /* CEC enabled */
++	SET_BIT(9, hdmi_sys_status & MASK_S_TMDS); /* TMDS signal detected */
++	SET_BIT(10, hdmi_sys_status & MASK_S_SYNC); /* Stable sync signal */
++	SET_BIT(11, hdmi_sys_status & MASK_S_PHY_PLL); /* PHY PLL locked */
++	SET_BIT(12, hdmi_sys_status & MASK_S_PHY_SCDT); /* PHY DE detected */
++	SET_BIT(13, !tc358743_get_detected_timings(sd, &timings)); /* Detected format */
++	SET_BIT(14, (max_data_lanes == 0
++		|| tc358743_num_csi_lanes_needed(sd) > max_data_lanes)); /* Too few lanes */
++	SET_BIT(15, csi_status & MASK_S_WSYNC); /* Waiting for particular sync signal */
++	SET_BIT(16, csi_status & MASK_S_TXACT); /* Transmit mode */
++	SET_BIT(17, csi_status & MASK_S_RXACT); /* Receive mode */
++	SET_BIT(18, csi_status & MASK_S_HLT); /* Stopped */
++	SET_BIT(19, hdmi); /* 1 on HDMI, 0 on DVI-D */
++	SET_BIT(20, hdmi_sys_status & MASK_S_HDCP); /* HDCP encrypted content */
++	SET_BIT(21, (hdmi && (hdmi_sys_status & MASK_S_AVMUTE))); /* AV Mute */
++
++#undef SET_BIT
++
++	ctrl->val = result;
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops tc358743_ctrl_chip_status_ops = {
++	.g_volatile_ctrl = tc358743_ctrl_g_volatile_chip_status,
++};
++
++static const struct v4l2_ctrl_config tc358743_ctrl_chip_status = {
++	.ops = &tc358743_ctrl_chip_status_ops,
++	.id = TC358743_CID_CHIP_STATUS,
++	.name = "Chip status",
++	.type = V4L2_CTRL_TYPE_BITMASK,
++	.min = 0,
++	.max = (u32)-1,
++	.def = 0,
++	.flags = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_VOLATILE,
++};
++
+ /* --------------- PROBE / REMOVE --------------- */
+ 
+ #ifdef CONFIG_OF
+@@ -2100,6 +2169,9 @@ static int tc358743_probe(struct i2c_client *client)
+ 	state->audio_present_ctrl = v4l2_ctrl_new_custom(&state->hdl,
+ 			&tc358743_ctrl_audio_present, NULL);
+ 
++	state->chip_status_ctrl = v4l2_ctrl_new_custom(&state->hdl,
++			&tc358743_ctrl_chip_status, NULL);
++
+ 	sd->ctrl_handler = &state->hdl;
+ 	if (state->hdl.error) {
+ 		err = state->hdl.error;
+diff --git a/drivers/media/platform/bcm2835/bcm2835-unicam.c b/drivers/media/platform/bcm2835/bcm2835-unicam.c
+index a6ad0c0fb..1dc5c8b60 100644
+--- a/drivers/media/platform/bcm2835/bcm2835-unicam.c
++++ b/drivers/media/platform/bcm2835/bcm2835-unicam.c
+@@ -2824,6 +2824,8 @@ unicam_async_bound(struct v4l2_async_notifier *notifier,
+ 	unicam->sensor = subdev;
+ 	unicam_dbg(1, unicam, "Using sensor %s for capture\n", subdev->name);
+ 
++	v4l2_set_subdev_hostdata(subdev, &unicam->max_data_lanes);
++
+ 	return 0;
+ }
+ 
+diff --git a/include/media/i2c/tc358743.h b/include/media/i2c/tc358743.h
+index b343650c2..d6ca0b35d 100644
+--- a/include/media/i2c/tc358743.h
++++ b/include/media/i2c/tc358743.h
+@@ -113,5 +113,7 @@ struct tc358743_platform_data {
+ #define TC358743_CID_AUDIO_SAMPLING_RATE (V4L2_CID_USER_TC358743_BASE + 0)
+ /* Audio present status */
+ #define TC358743_CID_AUDIO_PRESENT       (V4L2_CID_USER_TC358743_BASE + 1)
++/* Current HDMI status flags */
++#define TC358743_CID_CHIP_STATUS         (V4L2_CID_USER_TC358743_BASE + 2)
+ 
+ #endif
