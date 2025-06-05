@@ -85,7 +85,7 @@ if ! grep -q "^C.UTF-8 UTF-8" /etc/locale.gen; then
 	locale-gen || true
 fi
 
-for _pkg in rpi-eeprom rpi4-eeprom; do
+for _pkg in rpi-eeprom rpi4-eeprom edid-decode; do
 	if pacman -Q $_pkg >/dev/null 2>&1; then
 		pacman --noconfirm --ask=4 -R $_pkg
 	fi
