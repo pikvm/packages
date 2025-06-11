@@ -108,8 +108,9 @@ fi
 pacman $_yes -Su
 
 if systemctl is-enabled -q tailscaled; then
+	source /etc/default/tailscale
 	systemctl restart tailscaled
-	tailscale up
+	tailscale up ${TAILSCALE_FLAGS}
 fi
 
 if ! kvmd -m >/dev/null 2>&1; then
