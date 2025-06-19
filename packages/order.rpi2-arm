@@ -10,6 +10,7 @@ pikvm-os-raspberrypi
 mkinitcpio-rootdelay
 janus-gateway-pikvm
 watchdog
+libirecovery
 tailscale-pikvm
 python-pyserial-asyncio
 python-pyghmi
