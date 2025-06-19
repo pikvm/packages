@@ -6,7 +6,7 @@ pkgname=idevicerestore
 pkgver=1.0.0
 pkgrel=5
 pkgdesc='Restore/upgrade firmware of iOS devices'
-arch=('x86_64' 'armv7l' 'aarch64')
+arch=('x86_64' 'armv7h' 'aarch64')
 url='https://www.libimobiledevice.org'
 # https://github.com/libimobiledevice/idevicerestore/issues/345
 license=('LGPL-3.0-only')
