@@ -11,6 +11,7 @@ mkinitcpio-rootdelay
 janus-gateway-pikvm
 watchdog
 libirecovery
+idevicerestore
 tailscale-pikvm
 python-pyserial-asyncio
 python-pyghmi
