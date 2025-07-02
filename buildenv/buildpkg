@@ -167,6 +167,8 @@ def _build(build_path: str, key: str, distcc_hosts: str, no_extract: bool) -> No
             cmd += ["--noextract", "--force"]
             _say("... With NOEXTRACT")
         _run(*cmd)
+        if len(glob.iglob("*.pkg.tar.xz")) == 0:
+            raise RuntimeError("Unexpected makepkg error: no new packages generated")
         if key:
             _say("Signing package(s) ...")
             _sign_files(set(sorted(glob.iglob("*.pkg.tar.xz"))), key)
