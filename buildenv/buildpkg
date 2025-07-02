@@ -176,7 +176,7 @@ def _build(build_path: str, key: str, distcc_hosts: str, no_extract: bool) -> No
 
 def _remove_from_repo(repo_path: str, pkg_name: str, version: str) -> None:
     with _pushd(repo_path):
-        for pattern in [f"{pkg_name}-{version}-*.pkg.tar.xz*", f"{pkg_name}-*-{version}-*.pkg.tar.xz*"]:
+        for pattern in [f"{pkg_name}-{version}-*.pkg.tar.xz*", f"{pkg_name}-*-{version}-*.pkg.tar.xz*"]:  # With .sig
             for name in glob.iglob(pattern):
                 _say(f"Removing old {name} ...")
                 os.remove(name)
@@ -185,7 +185,7 @@ def _remove_from_repo(repo_path: str, pkg_name: str, version: str) -> None:
 def _copy_to_repo(build_path: str, repo_path: str) -> None:
     _say("Placing package(s) in the repo ...")
     with _pushd(build_path):
-        for name in glob.iglob("*.pkg.tar.xz*"):
+        for name in glob.iglob("*.pkg.tar.xz*"):  # With .sig
             shutil.copy(name, repo_path)
 
 
