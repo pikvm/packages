@@ -9,7 +9,7 @@ pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
 )
 _tag=20240811
 pkgver=20240809.59460076
-pkgrel=2
+pkgrel=3
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
@@ -84,6 +84,15 @@ package_linux-firmware-pikvm() {
     linux-firmware-other
     linux-firmware-radeon
     linux-firmware-realtek
+    #
+    linux-firmware-bnx2x
+    linux-firmware-broadcom
+    linux-firmware-qlogic
+    linux-firmware-liquidio
+    linux-firmware-qcom
+    linux-firmware-marvell
+    linux-firmware-mellanox
+    linux-firmware-nfp
   )
   provides=("linux-firmware=$pkgver")
   depends=('linux-firmware-whence-pikvm')
