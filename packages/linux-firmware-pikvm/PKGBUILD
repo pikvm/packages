@@ -9,7 +9,7 @@ pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
 )
 _tag=20240811
 pkgver=20240809.59460076
-pkgrel=1
+pkgrel=2
 pkgdesc="Firmware files for Linux"
 url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
 license=('GPL2' 'GPL3' 'custom')
@@ -73,7 +73,18 @@ package_linux-firmware-whence-pikvm() {
 }
 
 package_linux-firmware-pikvm() {
-  conflicts=(linux-firmware)
+  conflicts=(
+    linux-firmware
+    linux-firmware-amdgpu
+    linux-firmware-atheros
+    linux-firmware-cirrus
+    linux-firmware-intel
+    linux-firmware-mediatek
+    linux-firmware-nvidia
+    linux-firmware-other
+    linux-firmware-radeon
+    linux-firmware-realtek
+  )
   provides=("linux-firmware=$pkgver")
   depends=('linux-firmware-whence-pikvm')
   
@@ -183,7 +194,7 @@ package_linux-firmware-qlogic-pikvm() {
 }
 
 package_linux-firmware-bnx2x-pikvm() {
-  conflicts=(linux-firmware-bnx2x)
+  conflicts=(linux-firmware-bnx2x linux-firmware-broadcom)
   provides=("linux-firmware-bnx2x=$pkgver")
   pkgdesc+=" - bnx2x / Firmware for Broadcom NetXtreme II 10Gb ethernet adapters"
   depends=('linux-firmware-whence-pikvm')
