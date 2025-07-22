@@ -1,0 +1,13 @@
+diff --git a/src/idevicerestore.c b/src/idevicerestore.c
+index 1465f87..698dbce 100644
+--- a/src/idevicerestore.c
++++ b/src/idevicerestore.c
+@@ -1521,7 +1521,7 @@ int idevicerestore_start(struct idevicerestore_client_t* client)
+ 	if (client->mode != MODE_RESTORE) {
+ 		mutex_lock(&client->device_event_mutex);
+ 		logger(LL_INFO, "Waiting for device to enter restore mode...\n");
+-		cond_wait_timeout(&client->device_event_cond, &client->device_event_mutex, 180000);
++		cond_wait_timeout(&client->device_event_cond, &client->device_event_mutex, 240000);
+ 		if (client->mode != MODE_RESTORE || (client->flags & FLAG_QUIT)) {
+ 			mutex_unlock(&client->device_event_mutex);
+ 			logger(LL_ERROR, "Device failed to enter restore mode.\n");
