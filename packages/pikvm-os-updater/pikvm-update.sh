@@ -105,6 +105,12 @@ if ! pacman -Q raspberrypi-utils >/dev/null 2>&1; then
 	pacman $_yes -Sdd raspberrypi-utils
 fi
 
+if pacman -Q python-bcrypt >/dev/null 2>&1; then
+	# Conflicts with kvmd, it needs manual removal for some reason
+	# Also: https://gitlab.archlinux.org/pacman/pacman/-/issues/60
+	pacman $_yes -Rdd python-bcrypt
+fi
+
 pacman $_yes -Su
 
 if systemctl is-enabled -q tailscaled; then
