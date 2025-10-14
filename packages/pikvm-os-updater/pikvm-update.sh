@@ -49,6 +49,7 @@ function on_error() {
 trap on_error ERR
 
 _yes="--noconfirm --ask=4 --overwrite \\*"
+_remove_yes="--noconfirm --ask=4"
 
 rw
 pacman -Syy
@@ -87,7 +88,7 @@ fi
 
 for _pkg in rpi-eeprom rpi4-eeprom edid-decode; do
 	if pacman -Q $_pkg >/dev/null 2>&1; then
-		pacman --noconfirm --ask=4 -R $_pkg
+		pacman $_remove_yes -R $_pkg
 	fi
 done
 
@@ -108,7 +109,7 @@ fi
 if pacman -Q python-bcrypt >/dev/null 2>&1; then
 	# Conflicts with kvmd, it needs manual removal for some reason
 	# Also: https://gitlab.archlinux.org/pacman/pacman/-/issues/60
-	pacman $_yes -Rdd python-bcrypt
+	pacman $_remove_yes -Rdd python-bcrypt
 fi
 
 pacman $_yes -Su
