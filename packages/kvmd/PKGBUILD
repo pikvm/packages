@@ -39,7 +39,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=4.100
+pkgver=4.101
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -53,8 +53,7 @@ depends=(
 	python-aiofiles
 	python-async-lru
 	python-passlib
-	# python-bcrypt is needed for passlib
-	python-bcrypt
+	# python-bcrypt
 	python-pyotp
 	python-qrcode
 	python-periphery
@@ -138,6 +137,9 @@ conflicts=(
 	platformio
 	avrdude-pikvm
 	kvmd-oled
+
+	# See kvmd/crypto.py
+	python-bcrypt
 )
 makedepends=(
 	python-setuptools
