@@ -39,7 +39,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=4.101
+pkgver=4.102
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -49,6 +49,7 @@ depends=(
 	"python>=3.13"
 	"python<3.14"
 	python-yaml
+	python-ruamel-yaml
 	python-aiohttp
 	python-aiofiles
 	python-async-lru
@@ -148,7 +149,7 @@ makedepends=(
 source=("$url/archive/v$pkgver.tar.gz")
 md5sums=(SKIP)
 backup=(
-	etc/kvmd/{override,logging,auth,meta}.yaml
+	etc/kvmd/{override,auth,meta}.yaml
 	etc/kvmd/{ht,ipmi,vnc}passwd
 	etc/kvmd/totp.secret
 	etc/kvmd/nginx/{kvmd.ctx-{http,server},certbot.ctx-server}.conf
