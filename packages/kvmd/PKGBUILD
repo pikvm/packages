@@ -39,7 +39,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=4.106
+pkgver=4.107
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -97,7 +97,7 @@ depends=(
 	certbot
 	"raspberrypi-io-access>=0.7"
 	raspberrypi-utils
-	"ustreamer>=6.37"
+	"ustreamer>=6.41"
 
 	# Systemd UDEV bug
 	"systemd>=248.3-2"
