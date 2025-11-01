@@ -1,11 +1,15 @@
-commit d15d1fe11a44009b988cfc332e9ab731872c73d4
-Author: Maxim Devaev <mdevaev@gmail.com>
-Date:   Sun May 25 20:15:44 2025 +0300
+From bc93bdbc80dcbad3ac06c5fcbf4deded7125afa6 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 16:43:32 +0200
+Subject: [PATCH] pikvm: tc358743: lanes diagnostics
 
-    tc358743 diagnostics
+---
+ drivers/media/i2c/tc358743.c | 35 +++++++++++++++++++++++++++++++++++
+ include/media/i2c/tc358743.h |  2 ++
+ 2 files changed, 37 insertions(+)
 
 diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index d4fb57d5b..76d28d2f2 100644
+index fb799a45398c..7e1b413899ec 100644
 --- a/drivers/media/i2c/tc358743.c
 +++ b/drivers/media/i2c/tc358743.c
 @@ -81,6 +81,7 @@ struct tc358743_state {
@@ -24,7 +28,7 @@ index d4fb57d5b..76d28d2f2 100644
  	u8 csi_lanes_in_use;
  
  	struct gpio_desc *reset_gpio;
-@@ -1309,6 +1311,8 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
+@@ -1320,6 +1322,8 @@ static int tc358743_log_status(struct v4l2_subdev *sd)
  			true);
  
  	v4l2_info(sd, "-----CSI-TX status-----\n");
@@ -33,7 +37,7 @@ index d4fb57d5b..76d28d2f2 100644
  	v4l2_info(sd, "Lanes needed: %d\n",
  			tc358743_num_csi_lanes_needed(sd));
  	v4l2_info(sd, "Lanes in use: %d\n",
-@@ -1876,6 +1880,32 @@ static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
+@@ -1920,6 +1924,32 @@ static const struct v4l2_ctrl_config tc358743_ctrl_audio_present = {
  	.flags = V4L2_CTRL_FLAG_READ_ONLY,
  };
  
@@ -66,7 +70,7 @@ index d4fb57d5b..76d28d2f2 100644
  /* --------------- PROBE / REMOVE --------------- */
  
  #ifdef CONFIG_OF
-@@ -1928,6 +1958,8 @@ static int tc358743_probe_of(struct tc358743_state *state)
+@@ -1972,6 +2002,8 @@ static int tc358743_probe_of(struct tc358743_state *state)
  		goto free_endpoint;
  	}
  
@@ -75,7 +79,7 @@ index d4fb57d5b..76d28d2f2 100644
  	state->bus = endpoint.bus.mipi_csi2;
  
  	ret = clk_prepare_enable(refclk);
-@@ -2100,6 +2132,9 @@ static int tc358743_probe(struct i2c_client *client)
+@@ -2155,6 +2187,9 @@ static int tc358743_probe(struct i2c_client *client)
  	state->audio_present_ctrl = v4l2_ctrl_new_custom(&state->hdl,
  			&tc358743_ctrl_audio_present, NULL);
  
@@ -86,7 +90,7 @@ index d4fb57d5b..76d28d2f2 100644
  	if (state->hdl.error) {
  		err = state->hdl.error;
 diff --git a/include/media/i2c/tc358743.h b/include/media/i2c/tc358743.h
-index b343650c2..0867ff624 100644
+index b343650c2948..0867ff624eac 100644
 --- a/include/media/i2c/tc358743.h
 +++ b/include/media/i2c/tc358743.h
 @@ -113,5 +113,7 @@ struct tc358743_platform_data {
@@ -97,3 +101,6 @@ index b343650c2..0867ff624 100644
 +#define TC358743_CID_LANES_ENOUGH        (V4L2_CID_USER_TC358743_BASE + 2)
  
  #endif
+-- 
+2.51.2
+

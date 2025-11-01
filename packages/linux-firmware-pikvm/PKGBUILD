@@ -1,42 +1,75 @@
-# Maintainer: Thomas Bächler <thomas@archlinux.org>
+# Maintainer: Tobias Powalowski <tpowa@archlinux.org>
+# Contributor: Thomas Bächler <thomas@archlinux.org>
 
 # ALARM: Kevin Mihelich <kevin@archlinuxarm.org>
 #  - don't compress firmware for kernels older than 5.3
 
 pkgbase=linux-firmware
-pkgname=(linux-firmware-whence-pikvm linux-firmware-pikvm amd-ucode-pikvm
-         linux-firmware-{nfp,mellanox,marvell,qcom,liquidio,qlogic,bnx2x}-pikvm
+pkgname=(
+  linux-firmware-pikvm
+  linux-firmware-whence-pikvm
+  linux-firmware-other-pikvm
+
+  # Splits
+  amd-ucode-pikvm
+  linux-firmware-amdgpu-pikvm
+  linux-firmware-atheros-pikvm
+  linux-firmware-broadcom-pikvm
+  linux-firmware-cirrus-pikvm
+  linux-firmware-intel-pikvm
+  linux-firmware-liquidio-pikvm
+  linux-firmware-marvell-pikvm
+  linux-firmware-mediatek-pikvm
+  linux-firmware-mellanox-pikvm
+  linux-firmware-nfp-pikvm
+  linux-firmware-nvidia-pikvm
+  linux-firmware-qcom-pikvm
+  linux-firmware-qlogic-pikvm
+  linux-firmware-radeon-pikvm
+  linux-firmware-realtek-pikvm
 )
-_tag=20240811
-pkgver=20240809.59460076
-pkgrel=3
+pkgver=20251021
+pkgrel=2
 pkgdesc="Firmware files for Linux"
-url="https://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=summary"
-license=('GPL2' 'GPL3' 'custom')
-arch=('any')
-makedepends=('git' 'rdfind')
-options=(!strip)
-source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git#tag=${_tag}")
-sha256sums=('SKIP')
+url="https://gitlab.com/kernel-firmware/linux-firmware"
+license=(LicenseRef-WHENCE)
+arch=(any)
+makedepends=(
+  git
+  parallel
+  python
+  rdfind
+)
+options=(
+  !debug
+  !strip
+)
+source=("git+$url.git?signed#tag=${pkgver}")
+b2sums=('c493c331e886cd51142a33139d49ecb0a9cce0641cd43bf6a8a86b54f4bf4d972b9591b1ca45114777673ede0edd363d997930b1dd10d1c92d56f3b8d92c818c')
+validpgpkeys=(
+  4CDE8575E547BF835FE15807A31B6BD72486CFD6 # Josh Boyer <jwboyer@fedoraproject.org>
+)
 
 _backports=(
+)
+
+_reverts=(
+  # https://gitlab.archlinux.org/archlinux/packaging/packages/linux-firmware/-/issues/29
+  ba41835c21ebbbba92fce71d30f747490313eaf6
 )
 
 prepare() {
   cd ${pkgbase}
 
-  local _c
-  for _c in "${_backports[@]}"; do
-    git log --oneline -1 "${_c}"
-    git cherry-pick -n "${_c}"
+  local c
+  for c in "${_backports[@]}"; do
+    echo Backporting $(git log --oneline -1 "${c}")
+    git cherry-pick -n "${c}"
   done
-}
-
-pkgver() {
-  cd ${pkgbase}
-
-  # Commit date + short rev
-  echo $(TZ=UTC git show -s --pretty=%cd --date=format-local:%Y%m%d HEAD).$(git rev-parse --short HEAD)
+  for c in "${_reverts[@]}"; do
+    echo Reverting $(git log --oneline -1 "${c}")
+    git revert -n "${c}"
+  done
 }
 
 build() {
@@ -57,158 +90,361 @@ build() {
 _pick() {
   local p="$1" f d; shift
   for f; do
-    d="$srcdir/$p/${f#$pkgdir/}"
+    d="$srcdir/$p/${f#${pkgdir}/}"
     mkdir -p "$(dirname "$d")"
     mv "$f" "$d"
     rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
   done
 }
 
-package_linux-firmware-whence-pikvm() {
-  conflicts=(linux-firmware-whence)
-  provides=("linux-firmware-whence=$pkgver")
-  pkgdesc+=" - contains the WHENCE license file which documents the vendor license details"
-
-  install -Dt "${pkgdir}/usr/share/licenses/linux-firmware-whence" -m644 ${pkgbase}/WHENCE
+package_linux-firmware-pikvm() {
+  conflicts=(linux-firmware)
+  provides=("linux-firmware=$pkgver")
+  pkgdesc+=" - Default set"
+  license=(CC0-1.0)
+  depends=(
+    linux-firmware-atheros-pikvm
+    linux-firmware-broadcom-pikvm
+    linux-firmware-cirrus-pikvm
+    linux-firmware-intel-pikvm
+    linux-firmware-mediatek-pikvm
+    linux-firmware-other-pikvm
+    linux-firmware-realtek-pikvm
+  )
+  optdepends=(
+    'linux-firmware-amdgpu-pikvm: Firmware for AMD Radeon GPUs'
+    'linux-firmware-nvidia-pikvm: Firmware for NVIDIA GPUs and SoCs'
+    'linux-firmware-radeon-pikvm: Firmware for ATI Radeon GPUs'
+    'linux-firmware-liquidio-pikvm: Firmware for Cavium LiquidIO server adapters'
+    'linux-firmware-marvell-pikvm: Firmware for Marvell devices'
+    'linux-firmware-mellanox-pikvm: Firmware for Mellanox Spectrum switches'
+    'linux-firmware-nfp-pikvm: Firmware for Netronome Flow Processors'
+    'linux-firmware-qcom-pikvm: Firmware for Qualcomm SoCs'
+    'linux-firmware-qlogic-pikvm: Firmware for QLogic devices'
+  )
 }
 
-package_linux-firmware-pikvm() {
-  conflicts=(
-    linux-firmware
-    linux-firmware-amdgpu
-    linux-firmware-atheros
-    linux-firmware-cirrus
-    linux-firmware-intel
-    linux-firmware-mediatek
-    linux-firmware-nvidia
-    linux-firmware-other
-    linux-firmware-radeon
-    linux-firmware-realtek
-    #
-    linux-firmware-bnx2x
-    linux-firmware-broadcom
-    linux-firmware-qlogic
-    linux-firmware-liquidio
-    linux-firmware-qcom
-    linux-firmware-marvell
-    linux-firmware-mellanox
-    linux-firmware-nfp
-  )
-  provides=("linux-firmware=$pkgver")
-  depends=('linux-firmware-whence-pikvm')
-  
-  cd ${pkgbase}
+package_linux-firmware-whence-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-whence)
+  provides=("linux-firmware-whence=$pkgver")
+  pkgdesc+=" - WHENCE file (vendor licenses)"
 
-  make DESTDIR="${pkgdir}" FIRMWAREDIR=/usr/lib/firmware install
+  install -Dm644 ${pkgbase}/WHENCE -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
 
-  # useless without CONFIG_MICROCODE_LATE_LOADING
-  # https://bugs.archlinux.org/task/46591
-  #
-  # # Trigger a microcode reload for configurations not using early updates
-  # echo 'w /sys/devices/system/cpu/microcode/reload - - - - 1' |
-  #   install -Dm644 /dev/stdin "${pkgdir}/usr/lib/tmpfiles.d/linux-firmware.conf"
+package_linux-firmware-other-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-other)
+  provides=("linux-firmware-other=$pkgver")
+  pkgdesc+=" - Unsorted firmware for various devices"
 
-  install -Dt "${pkgdir}/usr/share/licenses/linux-firmware" -m644 LICEN*
-
-  cd "${pkgdir}"
+  local fwdir="${pkgdir}/usr/lib/firmware"
+  make -C ${pkgbase} FIRMWAREDIR="${fwdir}" install
 
   # split
-  _pick amd-ucode usr/lib/firmware/amd-ucode
+  _pick amd-ucode "${fwdir}"/amd-ucode
 
-  _pick linux-firmware-nfp usr/lib/firmware/netronome
-  _pick linux-firmware-nfp usr/share/licenses/linux-firmware/LICENCE.Netronome
+  _pick amdgpu "${fwdir}"/amdgpu
 
-  _pick linux-firmware-mellanox usr/lib/firmware/mellanox
+  _pick atheros "${fwdir}"/{ar[0-9]*,ath*,carl9170*,htc_*,qca,wil6210*}
 
-  _pick linux-firmware-marvell usr/lib/firmware/{libertas,mwl8k,mwlwifi,mrvl}
-  _pick linux-firmware-marvell usr/share/licenses/linux-firmware/LICENCE.{Marvell,NXP}
+  _pick broadcom "${fwdir}"/{bnx2*,brcm,cypress,tigon}
 
-  _pick linux-firmware-qcom usr/lib/firmware/{qcom,a300_*}
-  _pick linux-firmware-qcom usr/share/licenses/linux-firmware/LICENSE.qcom
+  _pick cirrus "${fwdir}"/{cirrus,cs42l43*}
 
-  _pick linux-firmware-liquidio usr/lib/firmware/liquidio
-  _pick linux-firmware-liquidio usr/share/licenses/linux-firmware/LICENCE.cavium_liquidio
+  _pick intel "${fwdir}"/{e100,hfi1_*,i915,intel,isci,iwlwifi*,ixp4xx,qat_*,xe}
 
-  _pick linux-firmware-qlogic usr/lib/firmware/{qlogic,qed,ql2???_*,c{b,t,t2}fw-*}
-  _pick linux-firmware-qlogic usr/share/licenses/linux-firmware/LICENCE.{qla1280,qla2xxx}
+  _pick liquidio "${fwdir}"/liquidio
 
-  _pick linux-firmware-bnx2x usr/lib/firmware/bnx2x*
+  _pick marvell "${fwdir}"/{libertas,mwl8k,mwlwifi,mrvl}
+
+  _pick mediatek "${fwdir}"/{mediatek,mt7*,vpu_*,rt[237]*}
+
+  _pick mellanox "${fwdir}"/mellanox
+
+  _pick nfp "${fwdir}"/netronome
+
+  _pick nvidia "${fwdir}"/nvidia
+
+  _pick qcom "${fwdir}"/{qcom,a300_*}
+
+  _pick qlogic "${fwdir}"/{qlogic,qed,ql2???_*,c{b,t,t2}fw-*}
+
+  _pick radeon "${fwdir}"/radeon
+
+  _pick realtek "${fwdir}"/{realtek,rtlwifi,rtw8*,rtl_*}
+
+  # dedup after splitting
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICEN[CS]E* \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
 package_amd-ucode-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
   conflicts=(amd-ucode)
   provides=("amd-ucode=$pkgver")
   pkgdesc="Microcode update image for AMD CPUs"
-  license=(custom)
+  license=(LicenseRef-amd-ucode)
 
-  mv -v amd-ucode/* "$pkgdir"
+  mv -v ${_x_pkgname}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
 
-  install -Dt "${pkgdir}/boot" -m644 amd-ucode.img
-
-  install -Dt "${pkgdir}/usr/share/licenses/amd-ucode" -m644 ${pkgbase}/LICENSE.amd-ucode
+  install -Dm644 amd-ucode.img -t "${pkgdir}/boot"
+  install -Dm644 ${pkgbase}/LICENSE.amd-ucode \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-package_linux-firmware-nfp-pikvm() {
-  conflicts=(linux-firmware-nfp)
-  provides=("linux-firmware-nfp=$pkgver")
-  pkgdesc+=" - nfp / Firmware for Netronome Flow Processors"
-  depends=('linux-firmware-whence-pikvm')
+package_linux-firmware-amdgpu-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-amdgpu)
+  provides=("linux-firmware-amdgpu=$pkgver")
+  pkgdesc+=" - Firmware for AMD Radeon GPUs"
+  license+=(
+    LicenseRef-amdgpu
+    MIT
+  )
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-nfp/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENSE.amd{gpu,isp} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-package_linux-firmware-mellanox-pikvm() {
-  conflicts=(linux-firmware-mellanox)
-  provides=("linux-firmware-mellanox=$pkgver")
-  pkgdesc+=" - mellanox / Firmware for Mellanox Spectrum switches"
-  depends=('linux-firmware-whence-pikvm')
+package_linux-firmware-atheros-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-atheros)
+  provides=("linux-firmware-atheros=$pkgver")
+  pkgdesc+=" - Firmware for Qualcomm Atheros WiFi and Bluetooth adapters"
+  license+=(
+    GPL-2.0-only
+    LicenseRef-atheros
+  )
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-mellanox/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/qca/NOTICE.txt \
+    "${pkgdir}/usr/share/licenses/${_x_pkgname}/qca-NOTICE.txt"
+  install -Dm644 ${pkgbase}/qcom/NOTICE.txt \
+    "${pkgdir}/usr/share/licenses/${_x_pkgname}/qcom-NOTICE.txt"
+  install -Dm644 \
+    ${pkgbase}/LICENCE.{atheros_,open-ath9k-htc-}firmware \
+    ${pkgbase}/LICENSE.{QualcommAtheros*,qcom} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-package_linux-firmware-marvell-pikvm() {
-  conflicts=(linux-firmware-marvell)
-  provides=("linux-firmware-marvell=$pkgver")
-  pkgdesc+=" - marvell / Firmware for Marvell devices"
-  depends=('linux-firmware-whence-pikvm')
+package_linux-firmware-broadcom-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  pkgdesc+=" - Firmware for Broadcom and Cypress network adapters"
+  license+=(LicenseRef-broadcom)
+  depends=(linux-firmware-whence-pikvm)
+  provides=("linux-firmware-bnx2x=$pkgver" "linux-firmware-broadcom=$pkgver")
+  conflicts=(linux-firmware-bnx2x linux-firmware-broadcom)
+  replaces=('linux-firmware-bnx2x<=20250613.12fe085f-4')
 
-  mv -v linux-firmware-marvell/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.{bnx2*,broadcom_*,cypress,tigon} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-package_linux-firmware-qcom-pikvm() {
-  conflicts=(linux-firmware-qcom)
-  provides=("linux-firmware-qcom=$pkgver")
-  pkgdesc+=" - qcom / Firmware for Qualcomm SoCs"
-  depends=('linux-firmware-whence-pikvm')
+package_linux-firmware-cirrus-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-cirrus)
+  provides=("linux-firmware-cirrus=$pkgver")
+  pkgdesc+=" - Firmware for Cirrus Logic audio devices"
+  license+=(LicenseRef-cirrus)
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-qcom/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENSE.cirrus \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-intel-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-intel)
+  provides=("linux-firmware-intel=$pkgver")
+  pkgdesc+=" - Firmware for Intel devices"
+  license+=(
+    Apache-2.0
+    GPL-2.0-only
+    LicenseRef-intel
+  )
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 \
+    ${pkgbase}/LICENCE.{IntcSST2,adsp_sst,e100,fw_sst_0f28} \
+    ${pkgbase}/LICENCE.{ibt,iwlwifi,qat}_firmware \
+    ${pkgbase}/LICENSE.{hfi1,ipu3}_firmware \
+    ${pkgbase}/LICENSE.{i915,ice*,intel*,ivsc,ixp4xx,xe} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
 package_linux-firmware-liquidio-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
   conflicts=(linux-firmware-liquidio)
   provides=("linux-firmware-liquidio=$pkgver")
-  pkgdesc+=" - liquidio / Firmware for Cavium LiquidIO server adapters"
-  depends=('linux-firmware-whence-pikvm')
+  pkgdesc+=" - Firmware for Cavium LiquidIO server adapters"
+  license+=(LicenseRef-liquidio)
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-liquidio/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.cavium_liquidio \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-marvell-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-marvell)
+  provides=("linux-firmware-marvell=$pkgver")
+  pkgdesc+=" - Firmware for Marvell devices"
+  license+=(LicenseRef-marvell)
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.{Marvell,NXP} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-mediatek-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-mediatek)
+  provides=("linux-firmware-mediatek=$pkgver")
+  pkgdesc+=" - Firmware for MediaTek and Ralink devices"
+  license+=(LicenseRef-mediatek)
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.mediatek \
+    ${pkgbase}/LICENCE.ralink-firmware.txt \
+    ${pkgbase}/LICENCE.ralink_a_mediatek_company_firmware \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-mellanox-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-mellanox)
+  provides=("linux-firmware-mellanox=$pkgver")
+  pkgdesc+=" - Firmware for Mellanox Spectrum switches"
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+}
+
+package_linux-firmware-nfp-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-nfp)
+  provides=("linux-firmware-nfp=$pkgver")
+  pkgdesc+=" - Firmware for Netronome Flow Processors"
+  license+=(LicenseRef-netronome)
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.Netronome \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-nvidia-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-nvidia)
+  provides=("linux-firmware-nvidia=$pkgver")
+  pkgdesc+=" - Firmware for NVIDIA GPUs and SoCs"
+  license+=(LicenseRef-nvidia)
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.nvidia \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+package_linux-firmware-qcom-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-qcom)
+  provides=("linux-firmware-qcom=$pkgver")
+  pkgdesc+=" - Firmware for Qualcomm SoCs"
+  license+=(
+    BSD-3-Clause
+    LicenseRef-qcom
+  )
+  depends=(
+    linux-firmware-atheros-pikvm
+    linux-firmware-whence-pikvm
+  )
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/{qcom/NOTICE.txt,LICENSE.qcom*} \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
 package_linux-firmware-qlogic-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
   conflicts=(linux-firmware-qlogic)
   provides=("linux-firmware-qlogic=$pkgver")
-  pkgdesc+=" - qlogic / Firmware for QLogic devices"
-  depends=('linux-firmware-whence-pikvm')
+  pkgdesc+=" - Firmware for QLogic devices"
+  license+=(LicenseRef-qlogic)
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-qlogic/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.qla* \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-package_linux-firmware-bnx2x-pikvm() {
-  conflicts=(linux-firmware-bnx2x linux-firmware-broadcom)
-  provides=("linux-firmware-bnx2x=$pkgver")
-  pkgdesc+=" - bnx2x / Firmware for Broadcom NetXtreme II 10Gb ethernet adapters"
-  depends=('linux-firmware-whence-pikvm')
+package_linux-firmware-radeon-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-radeon)
+  provides=("linux-firmware-radeon=$pkgver")
+  pkgdesc+=" - Firmware for ATI Radeon GPUs"
+  license+=(LicenseRef-radeon)
+  depends=(linux-firmware-whence-pikvm)
 
-  mv -v linux-firmware-bnx2x/* "${pkgdir}"
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENSE.radeon \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
 }
 
-# vim:set sw=2 et:
+package_linux-firmware-realtek-pikvm() {
+  _x_pkgname=${pkgname%-pikvm}
+  conflicts=(linux-firmware-realtek)
+  provides=("linux-firmware-realtek=$pkgver")
+  pkgdesc+=" - Firmware for Realtek devices"
+  license+=(LicenseRef-realtek)
+  depends=(linux-firmware-whence-pikvm)
+
+  mv -v ${_x_pkgname#linux-firmware-}/* "${pkgdir}"
+  make -C ${pkgbase} FIRMWAREDIR="${pkgdir}/usr/lib/firmware" dedup
+
+  install -Dm644 ${pkgbase}/LICENCE.rtlwifi_firmware.txt \
+    -t "${pkgdir}/usr/share/licenses/${_x_pkgname}"
+}
+
+# vim:set sw=2 sts=-1 et:

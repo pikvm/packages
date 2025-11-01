@@ -112,6 +112,11 @@ if pacman -Q python-bcrypt >/dev/null 2>&1; then
 	pacman $_remove_yes -Rdd python-bcrypt
 fi
 
+if [[ "$(vercmp $(pacman -Q linux-firmware-pikvm | awk '{print $2}') 20251021-1)" -lt 0 ]]; then
+	pacman $_remove_yes -Rdd linux-firmware-pikvm
+	pacman $_yes -S linux-firmware-pikvm
+fi
+
 pacman $_yes -Su
 
 if systemctl is-enabled -q tailscaled; then

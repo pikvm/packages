@@ -1,8 +1,17 @@
+From b8c5efcd7b24c2b342fbf4656ead5846dd079ddb Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 16:35:23 +0200
+Subject: [PATCH] pikvm: tc358743: better lanes calculation
+
+---
+ drivers/media/i2c/tc358743.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
 diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 5b6f74e56..c2c8e5718 100644
+index fb799a45398c..0a82aa4ce88b 100644
 --- a/drivers/media/i2c/tc358743.c
 +++ b/drivers/media/i2c/tc358743.c
-@@ -687,10 +687,19 @@ static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
+@@ -698,10 +698,19 @@ static unsigned tc358743_num_csi_lanes_needed(struct v4l2_subdev *sd)
  	struct tc358743_platform_data *pdata = &state->pdata;
  	u32 bits_pr_pixel =
  		(state->mbus_fmt_code == MEDIA_BUS_FMT_UYVY8_1X16) ?  16 : 24;
@@ -24,4 +33,6 @@ index 5b6f74e56..c2c8e5718 100644
  }
  
  static void tc358743_set_csi(struct v4l2_subdev *sd)
+-- 
+2.51.2
 

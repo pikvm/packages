@@ -1,5 +1,16 @@
+From 4ccd9f752fb1c3607e8dc1cc362f42d96bfba87e Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 16:16:19 +0200
+Subject: [PATCH] pikvm: msd: dvd support
+
+---
+ drivers/usb/gadget/function/f_mass_storage.c | 376 ++++++++++++++++++-
+ drivers/usb/gadget/function/storage_common.c |  15 +-
+ drivers/usb/gadget/function/storage_common.h |  14 +
+ 3 files changed, 388 insertions(+), 17 deletions(-)
+
 diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
-index c265a1f62..80a74099f 100644
+index 08e0d1c511e8..8bf1ce4586ce 100644
 --- a/drivers/usb/gadget/function/f_mass_storage.c
 +++ b/drivers/usb/gadget/function/f_mass_storage.c
 @@ -1185,6 +1185,16 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
@@ -442,7 +453,7 @@ index c265a1f62..80a74099f 100644
  		if (reply == 0)
  			reply = do_read_toc(common, bh);
 diff --git a/drivers/usb/gadget/function/storage_common.c b/drivers/usb/gadget/function/storage_common.c
-index 2a4163b0f..0a8a19833 100644
+index 75831f2c7abe..fb76d863276b 100644
 --- a/drivers/usb/gadget/function/storage_common.c
 +++ b/drivers/usb/gadget/function/storage_common.c
 @@ -241,16 +241,7 @@ int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
@@ -475,7 +486,7 @@ index 2a4163b0f..0a8a19833 100644
  	curlun->blkbits = blkbits;
  	curlun->ro = ro;
 diff --git a/drivers/usb/gadget/function/storage_common.h b/drivers/usb/gadget/function/storage_common.h
-index 0a544a82c..76bf8b56c 100644
+index ced5d2b09234..1883260a898f 100644
 --- a/drivers/usb/gadget/function/storage_common.h
 +++ b/drivers/usb/gadget/function/storage_common.h
 @@ -85,6 +85,19 @@ do {									\
@@ -506,3 +517,6 @@ index 0a544a82c..76bf8b56c 100644
  	unsigned int	prevent_medium_removal:1;
  	unsigned int	registered:1;
  	unsigned int	info_valid:1;
+-- 
+2.51.2
+

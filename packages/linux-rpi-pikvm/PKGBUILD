@@ -5,20 +5,20 @@
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 if [ -f "/tmp/_pikvm_use_distcc_allowed" ]; then
-	_pikvm_use_distcc=1
+    _pikvm_use_distcc=1
 fi
 
 pkgbase=linux-rpi
-_commit=15ca476264094b25d0a210109a061192a468117b
+_commit=78fd5c93f1568d0dac7c56ee3d497739a63b058e
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.6.45
-pkgrel=13
+pkgver=6.12.56
+pkgrel=1
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
-license=(GPL2)
+license=(GPL-2.0-only)
 makedepends=(
   bc
   kmod
@@ -30,34 +30,58 @@ source_aarch64=('config8')
 source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/linux/archive/${_commit}.tar.gz"
         cmdline.txt
         config.txt
+        config8.txt
         0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
         linux.preset
         archarm.diffconfig
-        1003-remote-wakeup.patch
-        2001-msd-dvd.patch
-        2002-msd-inq.patch
-        3001-pcf8563-wakeup-source.patch
-        3002-pcf8563-wakeup-source-dtsi.patch
-        4001-rgb24-corruption.patch
-        4002-diagnostics.patch
-        5001-no-audio-ids.patch
+        1001-pikvm-hid-remote-wakeup-support.patch
+        2001-pikvm-msd-dvd-support.patch
+        2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
+        3001-pikvm-tc358743-better-lanes-calculation.patch
+        3002-pikvm-tc358743-lanes-diagnostics.patch
+        4001-pikvm-uac-remove-string-ids.patch
+        5001-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
+        5002-input-add-hynitron-cst816x-series.patch
+        5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
+        6001-pikvm-uac-fixed-uninitialized-set_audio.patch
 )
-md5sums=(SKIP SKIP SKIP
-         SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
 # setup vars
 if [[ $CARCH == "armv7h" ]]; then
-  _kernel=kernel7.img KARCH=arm _image=zImage _config=config
+  _kernel=kernel7.img KARCH=arm _image=zImage _config=config _boot=config.txt
 elif [[ $CARCH == "aarch64" ]]; then
-  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8
+  _kernel=kernel8.img KARCH=arm64 _image=Image _config=config8 _boot=config8.txt
 fi
 
 _make() {
   test -s version
   make KERNELRELEASE="$(<version)" "$@"
+}
+
+_tune_config() {
+  # USB/UART
+  scripts/config --module CONFIG_HID_CP2112
+
+  # https://github.com/pikvm/pikvm/issues/1453
+  scripts/config --module CONFIG_I2C_DLN2
+  scripts/config --module CONFIG_SPI_DLN2
+  scripts/config --module CONFIG_GPIO_DLN2
+  scripts/config --module CONFIG_MFD_DLN2
+  scripts/config --module CONFIG_DLN2_ADC
+
+  # https://github.com/pikvm/pikvm/issues/1593
+  scripts/config --module CONFIG_MT7921E
+
+  # Touch driver
+  scripts/config --module CONFIG_TOUCHSCREEN_HYNITRON_CST816X
+
+  # Debug
+  scripts/config --enable CONFIG_DYNAMIC_DEBUG
+  scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
 }
 
 prepare() {
@@ -66,14 +90,16 @@ prepare() {
   # consistent behavior of lscpu on arm/arm64
   patch -p1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
 
-  patch -p1 -i ../1003-remote-wakeup.patch
-  patch -p1 -i ../2001-msd-dvd.patch
-  patch -p1 -i ../2002-msd-inq.patch
-  patch -p1 -i ../3001-pcf8563-wakeup-source.patch
-  #patch -p1 -i ../3002-pcf8563-wakeup-source-dtsi.patch # TODO: Remove, already applied
-  patch -p1 -i ../4001-rgb24-corruption.patch
-  patch -p1 -i ../4002-diagnostics.patch
-  patch -p1 -i ../5001-no-audio-ids.patch
+  patch -p1 -i ../1001-pikvm-hid-remote-wakeup-support.patch
+  patch -p1 -i ../2001-pikvm-msd-dvd-support.patch
+  patch -p1 -i ../2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
+  patch -p1 -i ../3001-pikvm-tc358743-better-lanes-calculation.patch
+  patch -p1 -i ../3002-pikvm-tc358743-lanes-diagnostics.patch
+  patch -p1 -i ../4001-pikvm-uac-remove-string-ids.patch
+  patch -p1 -i ../5001-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
+  patch -p1 -i ../5002-input-add-hynitron-cst816x-series.patch
+  patch -p1 -i ../5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
+  patch -p1 -i ../6001-pikvm-uac-fixed-uninitialized-set_audio.patch
 
   if [ -n "$_pikvm_use_distcc" ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
@@ -88,17 +114,7 @@ prepare() {
     echo "Applying custom shit to bcm2711_defconfig"
     make bcm2711_defconfig
     cat ../archarm.diffconfig >> .config
-	#
-	scripts/config --module CONFIG_HID_CP2112
-	# https://github.com/pikvm/pikvm/issues/1453
-	scripts/config --module CONFIG_I2C_DLN2
-	scripts/config --module CONFIG_SPI_DLN2
-	scripts/config --module CONFIG_GPIO_DLN2
-	scripts/config --module CONFIG_MFD_DLN2
-	scripts/config --module CONFIG_DLN2_ADC
-	# Debug
-    scripts/config --enable CONFIG_DYNAMIC_DEBUG
-    scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
+    _tune_config
     make olddefconfig
     if [[ $CARCH == "armv7h" ]]; then
       # https://archlinuxarm.org/forum/viewtopic.php?f=23&t=16373
@@ -117,17 +133,7 @@ prepare() {
   else
     echo "Setting config..."
     cp ../"$_config" .config
-	#
-	scripts/config --module CONFIG_HID_CP2112
-	# https://github.com/pikvm/pikvm/issues/1453
-	scripts/config --module CONFIG_I2C_DLN2
-	scripts/config --module CONFIG_SPI_DLN2
-	scripts/config --module CONFIG_GPIO_DLN2
-	scripts/config --module CONFIG_MFD_DLN2
-	scripts/config --module CONFIG_DLN2_ADC
-	# Debug
-    scripts/config --enable CONFIG_DYNAMIC_DEBUG
-    scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
+    _tune_config
     make olddefconfig
     diff -u ../"$_config" .config || :
 
@@ -152,10 +158,11 @@ _package-pikvm() {
     coreutils
     firmware-raspberrypi
     kmod
-    linux-firmware
     'mkinitcpio>=0.7'
+    raspberrypi-bootloader
   )
   optdepends=(
+    'linux-firmware-pikvm: firmware images needed for some devices'
     'wireless-regdb: to set the correct wireless channels of your country'
   )
   provides=(
@@ -209,7 +216,7 @@ _package-pikvm() {
 
   cp arch/$KARCH/boot/$_image "${pkgdir}/boot/$_kernel"
   cp arch/$KARCH/boot/dts/overlays/README "${pkgdir}/boot/overlays"
-  install -m644 ../config.txt "${pkgdir}/boot/config.txt"
+  install -m644 ../"$_boot" "${pkgdir}/boot/config.txt"
   install -m644 ../cmdline.txt "${pkgdir}/boot"
 
   # sed expression for following substitutions
@@ -325,3 +332,5 @@ for _p in ${pkgname[@]}; do
     _package${_p#${pkgbase}}
   }"
 done
+
+# vim:set ts=8 sts=2 sw=2 et:

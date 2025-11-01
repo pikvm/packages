@@ -1,5 +1,14 @@
+From 29e02ad2707f0b06291966f35ebbff40a342bf0e Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 16:53:30 +0200
+Subject: [PATCH] pikvm: uac: remove string ids
+
+---
+ drivers/usb/gadget/function/f_uac2.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
 diff --git a/drivers/usb/gadget/function/f_uac2.c b/drivers/usb/gadget/function/f_uac2.c
-index 0219cd794..7ce117ba2 100644
+index 9b324821c93b..5143a6a40967 100644
 --- a/drivers/usb/gadget/function/f_uac2.c
 +++ b/drivers/usb/gadget/function/f_uac2.c
 @@ -89,6 +89,7 @@ static int afunc_notify(struct g_audio *agdev, int unit_id, int cs);
@@ -10,15 +19,15 @@ index 0219cd794..7ce117ba2 100644
  enum {
  	STR_ASSOC,
  	STR_IF_CTRL,
-@@ -123,6 +124,7 @@ static struct usb_string strings_fn[] = {
- 	[STR_AS_IN_ALT1].s = "Capture Active",
- 	{ },
+@@ -110,6 +111,7 @@ enum {
  };
+ 
+ static struct usb_string strings_fn[NUM_STR_DESCRIPTORS + 1] = {};
 +#endif
  
  static const char *const speed_names[] = {
  	[USB_SPEED_UNKNOWN] = "UNKNOWN",
-@@ -134,6 +136,7 @@ static const char *const speed_names[] = {
+@@ -121,6 +123,7 @@ static const char *const speed_names[] = {
  	[USB_SPEED_SUPER_PLUS] = "SS+",
  };
  
@@ -26,7 +35,7 @@ index 0219cd794..7ce117ba2 100644
  static struct usb_gadget_strings str_fn = {
  	.language = 0x0409,	/* en-us */
  	.strings = strings_fn,
-@@ -143,6 +146,7 @@ static struct usb_gadget_strings *fn_strings[] = {
+@@ -130,6 +133,7 @@ static struct usb_gadget_strings *fn_strings[] = {
  	&str_fn,
  	NULL,
  };
@@ -34,13 +43,24 @@ index 0219cd794..7ce117ba2 100644
  
  static struct usb_interface_assoc_descriptor iad_desc = {
  	.bLength = sizeof iad_desc,
-@@ -1045,11 +1049,13 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
+@@ -1028,13 +1032,16 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
+ 	struct usb_gadget *gadget = cdev->gadget;
+ 	struct device *dev = &gadget->dev;
+ 	struct f_uac2_opts *uac2_opts = g_audio_to_uac2_opts(agdev);
++#if 0
+ 	struct usb_string *us;
++#endif
+ 	int ret;
+ 
+ 	ret = afunc_validate_opts(agdev, dev);
  	if (ret)
  		return ret;
  
 +#if 0
  	strings_fn[STR_ASSOC].s = uac2_opts->function_name;
- 
+ 	strings_fn[STR_IF_CTRL].s = uac2_opts->if_ctrl_name;
+ 	strings_fn[STR_CLKSRC_IN].s = uac2_opts->clksrc_in_name;
+@@ -1057,6 +1064,7 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
  	us = usb_gstrings_attach(cdev, fn_strings, ARRAY_SIZE(strings_fn));
  	if (IS_ERR(us))
  		return PTR_ERR(us);
@@ -48,7 +68,7 @@ index 0219cd794..7ce117ba2 100644
  
  	if (FUOUT_EN(uac2_opts)) {
  		out_feature_unit_desc = build_fu_desc(uac2_opts->c_chmask);
-@@ -1064,6 +1070,7 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
+@@ -1071,6 +1079,7 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
  		}
  	}
  
@@ -56,7 +76,7 @@ index 0219cd794..7ce117ba2 100644
  	iad_desc.iFunction = us[STR_ASSOC].id;
  	std_ac_if_desc.iInterface = us[STR_IF_CTRL].id;
  	in_clk_src_desc.iClockSource = us[STR_CLKSRC_IN].id;
-@@ -1087,6 +1094,7 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
+@@ -1096,6 +1105,7 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
  				in_feature_unit_desc->bLength - 1;
  		*i_feature = us[STR_FU_IN].id;
  	}
@@ -64,3 +84,6 @@ index 0219cd794..7ce117ba2 100644
  
  
  	/* Initialize the configurable parameters */
+-- 
+2.51.2
+

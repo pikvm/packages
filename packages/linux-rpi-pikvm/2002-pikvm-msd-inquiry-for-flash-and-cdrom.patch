@@ -1,5 +1,16 @@
+From 38cea64f6c055c38e80720832b973c7ecab191f7 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 16:24:34 +0200
+Subject: [PATCH] pikvm: msd: inquiry for flash and cdrom
+
+---
+ drivers/usb/gadget/function/f_mass_storage.c | 21 +++++++++-
+ drivers/usb/gadget/function/storage_common.c | 41 ++++++++++++++++----
+ drivers/usb/gadget/function/storage_common.h |  4 ++
+ 3 files changed, 57 insertions(+), 9 deletions(-)
+
 diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
-index 80a74099f..5e629d064 100644
+index 08e0d1c511e8..47cbfd3a468f 100644
 --- a/drivers/usb/gadget/function/f_mass_storage.c
 +++ b/drivers/usb/gadget/function/f_mass_storage.c
 @@ -1071,7 +1071,10 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
@@ -14,7 +25,7 @@ index 80a74099f..5e629d064 100644
  		memcpy(buf + 8, curlun->inquiry_string,
  		       sizeof(curlun->inquiry_string));
  	else
-@@ -3613,6 +3616,21 @@ static ssize_t fsg_lun_opts_inquiry_string_store(struct config_item *item,
+@@ -3250,6 +3253,21 @@ static ssize_t fsg_lun_opts_inquiry_string_store(struct config_item *item,
  
  CONFIGFS_ATTR(fsg_lun_opts_, inquiry_string);
  
@@ -36,7 +47,7 @@ index 80a74099f..5e629d064 100644
  static ssize_t fsg_lun_opts_forced_eject_store(struct config_item *item,
  					       const char *page, size_t len)
  {
-@@ -3632,6 +3650,7 @@ static struct configfs_attribute *fsg_lun_attrs[] = {
+@@ -3269,6 +3287,7 @@ static struct configfs_attribute *fsg_lun_attrs[] = {
  	&fsg_lun_opts_attr_cdrom,
  	&fsg_lun_opts_attr_nofua,
  	&fsg_lun_opts_attr_inquiry_string,
@@ -45,10 +56,10 @@ index 80a74099f..5e629d064 100644
  	NULL,
  };
 diff --git a/drivers/usb/gadget/function/storage_common.c b/drivers/usb/gadget/function/storage_common.c
-index 0a8a19833..e68f1caf9 100644
+index 75831f2c7abe..04aa42bb8999 100644
 --- a/drivers/usb/gadget/function/storage_common.c
 +++ b/drivers/usb/gadget/function/storage_common.c
-@@ -369,6 +369,12 @@ ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf)
+@@ -374,6 +374,12 @@ ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf)
  }
  EXPORT_SYMBOL_GPL(fsg_show_inquiry_string);
  
@@ -61,7 +72,7 @@ index 0a8a19833..e68f1caf9 100644
  /*
   * The caller must hold fsg->filesem for reading when calling this function.
   */
-@@ -499,24 +505,43 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
+@@ -504,24 +510,43 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
  }
  EXPORT_SYMBOL_GPL(fsg_store_removable);
  
@@ -114,10 +125,10 @@ index 0a8a19833..e68f1caf9 100644
  			       const char *buf, size_t count)
  {
 diff --git a/drivers/usb/gadget/function/storage_common.h b/drivers/usb/gadget/function/storage_common.h
-index 76bf8b56c..45b1502c7 100644
+index ced5d2b09234..7e9468548760 100644
 --- a/drivers/usb/gadget/function/storage_common.h
 +++ b/drivers/usb/gadget/function/storage_common.h
-@@ -134,6 +134,7 @@ struct fsg_lun {
+@@ -120,6 +120,7 @@ struct fsg_lun {
  	const char	*name;		/* "lun.name" */
  	const char	**name_pfx;	/* "function.name" */
  	char		inquiry_string[INQUIRY_STRING_LEN];
@@ -125,7 +136,7 @@ index 76bf8b56c..45b1502c7 100644
  };
  
  static inline bool fsg_lun_is_open(struct fsg_lun *curlun)
-@@ -220,6 +221,7 @@ ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf);
+@@ -206,6 +207,7 @@ ssize_t fsg_show_nofua(struct fsg_lun *curlun, char *buf);
  ssize_t fsg_show_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
  		      char *buf);
  ssize_t fsg_show_inquiry_string(struct fsg_lun *curlun, char *buf);
@@ -133,7 +144,7 @@ index 76bf8b56c..45b1502c7 100644
  ssize_t fsg_show_cdrom(struct fsg_lun *curlun, char *buf);
  ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf);
  ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-@@ -233,6 +235,8 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
+@@ -219,6 +221,8 @@ ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
  			    size_t count);
  ssize_t fsg_store_inquiry_string(struct fsg_lun *curlun, const char *buf,
  				 size_t count);
@@ -142,3 +153,6 @@ index 76bf8b56c..45b1502c7 100644
  ssize_t fsg_store_forced_eject(struct fsg_lun *curlun, struct rw_semaphore *filesem,
  			       const char *buf, size_t count);
  
+-- 
+2.51.2
+

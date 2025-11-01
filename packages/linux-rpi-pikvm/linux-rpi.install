@@ -29,6 +29,16 @@ pikvm_move_pacsave() {
   done
 }
 
+pikvm_remove_cma() {
+  # It's also broken and leads to hang up after "rainbow" sreen
+  cat /boot/cmdline.txt \
+      | xargs printf "%s\n" \
+      | grep -v '^cma=' \
+      | paste -sd ' ' - \
+    > /boot/cmdline.txt.kernel-new
+  mv /boot/cmdline.txt.kernel-new /boot/cmdline.txt
+}
+
 post_install () {
   post_upgrade
 }
@@ -37,6 +47,7 @@ post_upgrade() {
   correct_fstab
   disable_cma
   pikvm_move_pacsave
+  pikvm_remove_cma
 
   if grep "^[^#]*[[:space:]]/boot" etc/fstab 2>&1 >/dev/null; then
     if ! grep "[[:space:]]/boot" etc/mtab 2>&1 >/dev/null; then

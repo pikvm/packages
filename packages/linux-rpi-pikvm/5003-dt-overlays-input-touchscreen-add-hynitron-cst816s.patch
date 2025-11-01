@@ -1,0 +1,54 @@
+From 80ee4d5685623a79c8214607ddf17ea591a428a7 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 1 Nov 2025 18:05:12 +0200
+Subject: [PATCH] dt-overlays: input: touchscreen: add hynitron cst816s
+
+---
+ arch/arm/boot/dts/overlays/Makefile           |  1 +
+ .../arm/boot/dts/overlays/cst816s-overlay.dts | 22 +++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+ create mode 100644 arch/arm/boot/dts/overlays/cst816s-overlay.dts
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 77f3ecb1e2e7..db4da68cd510 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -3,6 +3,7 @@
+ dtb-$(CONFIG_ARCH_BCM2835) += overlay_map.dtb hat_map.dtb
+ 
+ dtbo-$(CONFIG_ARCH_BCM2835) += \
++	cst816s.dtbo \
+ 	act-led.dtbo \
+ 	adafruit-st7735r.dtbo \
+ 	adafruit18.dtbo \
+diff --git a/arch/arm/boot/dts/overlays/cst816s-overlay.dts b/arch/arm/boot/dts/overlays/cst816s-overlay.dts
+new file mode 100644
+index 000000000000..7b287153b428
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/cst816s-overlay.dts
+@@ -0,0 +1,22 @@
++/dts-v1/;
++/plugin/;
++
++/ {
++	fragment@0 {
++		target = <&i2c1>;
++		__overlay__ {
++			cst816s: cst816s@15 {
++				compatible = "hynitron,cst816s";
++				reg = <0x15>;
++				interrupt-parent = <&gpio>;
++				interrupts = <4 1>; /* IRQF_TRIGGER_RISING */
++				reset-gpios = <&gpio 4 1>; /* GPIO_ACTIVE_LOW */
++				linux,keycodes = <0x67>, // KEY_UP
++					<0x6c>,   // KEY_DOWN
++					<0x69>,   // KEY_LEFT
++					<0x6a>,   // KEY_RIGHT
++					<0x14e>;  // BTN_TOOL_TRIPLETAP
++			};
++		};
++	};
++};
+-- 
+2.51.2
+
