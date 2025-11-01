@@ -48,6 +48,9 @@ def _run(*cmd: str) -> None:
 
 
 # =====
+_SUDO = ["sudo", "-u", "alarm"]
+
+
 @dataclasses.dataclass(frozen=True)
 class _Pkg:
     names: set[str]
@@ -136,7 +139,7 @@ def _install_deps(deps: set[str]) -> None:
 def _sign_files(paths: set[str], key: str) -> None:
     for path in sorted(paths):
         _run(
-            "sudo", "-u", "alarm",
+            *_SUDO,
             "gpg", "--verbose", "--pinentry-mode", "loopback",
             "--local-user", key, "--detach-sign", "--use-agent",
             "--no-autostart", path,
@@ -158,7 +161,7 @@ def _test_sign(build_path: str, key: str) -> None:
 def _build(build_path: str, key: str, distcc_hosts: str, no_extract: bool) -> None:
     _say("Building package ...")
     with _pushd(build_path):
-        cmd = ["sudo", "-u", "alarm"]
+        cmd = list(_SUDO)
         if distcc_hosts:
             cmd += ["env", f"DISTCC_HOSTS={distcc_hosts}", "pump"]
             _say("... With DISTCC-PUMP")
@@ -223,7 +226,7 @@ def main() -> None:  # pylint: disable=too-many-statements
     assert o.packages_dir
 
     o.build_dir = join(o.build_dir, o.pkg_name)
-    _run("sudo", "-u", "alarm", "mkdir", "-p", o.build_dir)
+    _run(*_SUDO, "mkdir", "-p", o.build_dir)
 
     if bool(o.distcc_hosts):
         with open("/tmp/_pikvm_use_distcc_allowed", "w") as file:
@@ -240,6 +243,14 @@ def main() -> None:  # pylint: disable=too-many-statements
     else:
         _say(f"Passed {o.pkg_name}")
         return
+
+    if pkg.keys:
+        _run(
+            *_SUDO,
+            "gpg",
+            "--keyserver", "hkps://keyserver.ubuntu.com:443",
+            "--recv-keys", *list(pkg.keys),
+        )
 
     distcc_hosts = ""
     if pkg.use_distcc and bool(o.distcc_hosts):
