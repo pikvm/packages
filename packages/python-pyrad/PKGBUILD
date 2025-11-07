@@ -1,7 +1,7 @@
-_commit=dd34c5a29b46d83b0bea841e85fd72b79f315b87
+_commit=f42a57cb0e80de42949810057d36df7c4a6b5146
 pkgname=python-pyrad
 pkgver=2.4.1
-pkgrel=6
+pkgrel=7
 pkgdesc="Python RADIUS Implementation"
 url="https://github.com/pyradius/pyrad"
 license=(BSD)
