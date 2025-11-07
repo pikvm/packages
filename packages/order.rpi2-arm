@@ -35,7 +35,6 @@ raspberrypi-bluetooth
 flashrom-pikvm
 wiringpi-pikvm
 ustreamer
-wpa_supplicant-pikvm
 kvmd
 kvmd-webterm
 kvmd-fan
