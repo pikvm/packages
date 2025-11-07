@@ -1,6 +1,7 @@
+_commit=13694c5a09188faf15f3ae08eae3772f3a707a68
 pkgname=python-pyserial-asyncio
 pkgver=0.6
-pkgrel=6
+pkgrel=7
 pkgdesc="Asyncio extension package for pyserial"
 url="https://github.com/pyserial/pyserial-asyncio"
 license=(MIT)
@@ -11,11 +12,11 @@ depends=(
 	python-pyserial
 )
 makedepends=(python-setuptools)
-source=("https://github.com/pyserial/pyserial-asyncio/archive/v${pkgver}.tar.gz")
+source=("https://github.com/pyserial/pyserial-asyncio/archive/${_commit}.tar.gz")
 sha1sums=(SKIP)
 
 
 package() {
-	cd "$srcdir/pyserial-asyncio-$pkgver"
+	cd "$srcdir/pyserial-asyncio-$_commit"
 	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
 }
