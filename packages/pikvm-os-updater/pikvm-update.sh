@@ -116,6 +116,9 @@ if [[ "$(vercmp $(pacman -Q linux-firmware-pikvm | awk '{print $2}') 20251021-1)
 	pacman $_remove_yes -Rdd linux-firmware-pikvm
 	pacman $_yes -S linux-firmware-pikvm
 fi
+if ! pacman -Q linux-firmware-pikvm >/dev/null 2>&1; then
+	pacman $_yes -S linux-firmware-pikvm
+fi
 
 pacman $_yes -Su
 
