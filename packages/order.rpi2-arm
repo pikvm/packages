@@ -29,7 +29,6 @@ python-luma-core
 python-luma-oled
 python-luma-lcd
 python-pyrad
-python-periphery
 raspberrypi-io-access
 raspberrypi-bluetooth
 flashrom-pikvm
