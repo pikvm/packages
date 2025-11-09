@@ -5,7 +5,7 @@
 
 pkgname=wpa_supplicant-pikvm
 pkgver=2.10
-pkgrel=9
+pkgrel=10
 epoch=2
 pkgdesc='A utility providing key negotiation for WPA wireless networks'
 url='https://w1.fi/wpa_supplicant/'
