@@ -1,0 +1,86 @@
+From a13cc3e018fa590bf3b191e83aebfb5f86203530 Mon Sep 17 00:00:00 2001
+From: Lorenzo Miniero <lminiero@gmail.com>
+Date: Sun, 2 Nov 2025 18:10:54 +0100
+Subject: [PATCH] Generate a pkg-config .pc file when installing Janus (fixes
+ #3523)
+
+---
+ .gitignore          |  1 +
+ Makefile.am         | 10 ++++++++++
+ configure.ac        |  4 ++++
+ janus-gateway.pc.in | 11 +++++++++++
+ 4 files changed, 26 insertions(+)
+ create mode 100644 janus-gateway.pc.in
+
+diff --git a/.gitignore b/.gitignore
+index e1aeadb671..5526f4c9d2 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -2,6 +2,7 @@ cmdline.c
+ cmdline.h
+ version.c
+ docs/html/
++janus-gateway.pc
+ 
+ janus
+ janus-cfgconv
+diff --git a/Makefile.am b/Makefile.am
+index f6099ef47e..9d4daa23f9 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -46,6 +46,16 @@ EXTRA_DIST += conf/janus.jcfg.sample.in
+ CLEANFILES += conf/janus.jcfg.sample
+ 
+ 
++##
++# pkg-config file
++##
++
++EXTRA_DIST = janus-gateway.pc.in
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = janus-gateway.pc
++DISTCLEANFILES = janus-gateway.pc
++
++
+ ##
+ # Fuzzers checking
+ ##
+diff --git a/configure.ac b/configure.ac
+index 4bbfe6f5c9..7d216195e6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -99,6 +99,9 @@ glib_version=2.34
+ ssl_version=1.0.1
+ jansson_version=2.5
+ 
++JANUS_PACKAGES_PUBLIC="glib-2.0 >= $glib_version, jansson >= $jansson_version"
++AC_SUBST(JANUS_PACKAGES_PUBLIC)
++
+ ##
+ # Janus
+ ##
+@@ -987,6 +990,7 @@ AC_CONFIG_FILES([
+   src/Makefile
+   html/Makefile
+   docs/Makefile
++  janus-gateway.pc
+ ])
+ 
+ JANUS_MANUAL_LIBS+=" -pthread"
+diff --git a/janus-gateway.pc.in b/janus-gateway.pc.in
+new file mode 100644
+index 0000000000..14fe1ecf1c
+--- /dev/null
++++ b/janus-gateway.pc.in
+@@ -0,0 +1,11 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: janus-gateway
++Description: Janus WebRTC Server
++Version: @JANUS_VERSION_STRING@
++Requires: @JANUS_PACKAGES_PUBLIC@
++Libs:
++Cflags: -I${includedir}
