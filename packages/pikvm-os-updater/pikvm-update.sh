@@ -110,11 +110,8 @@ if ! pacman -Q linux-firmware-pikvm >/dev/null 2>&1; then
 	pacman $_yes -S linux-firmware-pikvm
 fi
 
-if pacman -Q wpa_supplicant >/dev/null 2>&1; then
-	pacman $_yes -Sdd wpa_supplicant-pikvm
-fi
 if ! pacman -Q wpa_supplicant-pikvm >/dev/null 2>&1; then
-	pacman $_yes -S wpa_supplicant-pikvm
+	pacman $_yes -Sdd wpa_supplicant-pikvm
 fi
 
 pacman $_yes -Su
