@@ -92,16 +92,6 @@ for _pkg in rpi-eeprom rpi4-eeprom edid-decode; do
 	fi
 done
 
-#rm -f \
-#       /usr/bin/vcgencmd \
-#       /usr/lib/firmware/brcm/brcmfmac4356-sdio.AP6356S.txt \
-#       /usr/lib/firmware/updates/brcm/brcmfmac43430-sdio.txt
-
-#if (pacman -Qi python-ajsonrpc | grep Depends | grep -q -e 'python<3\.11' -e 'python<3\.12'); then
-#	rm -f /var/cache/pacman/pkg/python-ajsonrpc-*
-#	pacman $_yes -S python-ajsonrpc
-#fi
-
 if ! pacman -Q raspberrypi-utils >/dev/null 2>&1; then
 	pacman $_yes -Sdd raspberrypi-utils
 fi
@@ -118,6 +108,13 @@ if [[ "$(vercmp $(pacman -Q linux-firmware-pikvm | awk '{print $2}') 20251021-1)
 fi
 if ! pacman -Q linux-firmware-pikvm >/dev/null 2>&1; then
 	pacman $_yes -S linux-firmware-pikvm
+fi
+
+if pacman -Q wpa_supplicant >/dev/null 2>&1; then
+	pacman $_yes -Sdd wpa_supplicant-pikvm
+fi
+if ! pacman -Q wpa_supplicant-pikvm >/dev/null 2>&1; then
+	pacman $_yes -S wpa_supplicant-pikvm
 fi
 
 pacman $_yes -Su
