@@ -110,9 +110,11 @@ if ! pacman -Q linux-firmware-pikvm >/dev/null 2>&1; then
 	pacman $_yes -S linux-firmware-pikvm
 fi
 
-if ! pacman -Q wpa_supplicant-pikvm >/dev/null 2>&1; then
-	pacman $_yes -Sdd wpa_supplicant-pikvm
-fi
+# XXX: Don't do this because:
+#   :: wpa_supplicant-pikvm-2:2.10-10 and kvmd-4.119-1 are in conflict. Remove kvmd? [y/N] 
+#if ! pacman -Q wpa_supplicant-pikvm >/dev/null 2>&1; then
+#	pacman $_yes -Sdd wpa_supplicant-pikvm
+#fi
 
 pacman $_yes -Su
 
