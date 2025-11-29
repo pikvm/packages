@@ -14,7 +14,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.12.56
-pkgrel=1
+pkgrel=2
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -82,6 +82,10 @@ _tune_config() {
   # Debug
   scripts/config --enable CONFIG_DYNAMIC_DEBUG
   scripts/config --enable CONFIG_DYNAMIC_DEBUG_CORE
+
+  # Avoid unstable video capture jitter
+  scripts/config --disable CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL
+  scripts/config --enable CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 }
 
 prepare() {
