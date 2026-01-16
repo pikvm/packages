@@ -39,15 +39,15 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=4.135
+pkgver=4.137
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
 license=(GPL)
 arch=(any)
 depends=(
-	"python>=3.13"
-	"python<3.14"
+	"python>=3.14"
+	"python<3.15"
 	python-yaml
 	python-ruamel-yaml
 	python-aiohttp

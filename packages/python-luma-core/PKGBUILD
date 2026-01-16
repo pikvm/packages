@@ -1,13 +1,13 @@
 pkgname=python-luma-core
-pkgver=2.5.2
+pkgver=2.5.3
 pkgrel=1
 pkgdesc="A component library to support SBC display drivers"
 url="https://github.com/rm-hull/luma.core"
 license=(MIT)
 arch=(any)
 depends=(
-	"python>=3.13"
-	"python<3.14"
+	"python>=3.14"
+	"python<3.15"
 	python-deprecated
 	python-pillow
 	"python-cbor2>=5.4.3-2"

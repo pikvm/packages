@@ -1,14 +1,14 @@
-_commit=f42a57cb0e80de42949810057d36df7c4a6b5146
+_commit=56649fc522faeb4bc105ac6d0f95b080e97c89aa
 pkgname=python-pyrad
 pkgver=2.4.1
-pkgrel=7
+pkgrel=8
 pkgdesc="Python RADIUS Implementation"
 url="https://github.com/pyradius/pyrad"
 license=(BSD)
 arch=(any)
 depends=(
-	"python>=3.13"
-	"python<3.14"
+	"python>=3.14"
+	"python<3.15"
 	python-netaddr
 	python-six
 )
