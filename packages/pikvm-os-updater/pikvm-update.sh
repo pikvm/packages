@@ -96,6 +96,11 @@ if ! pacman -Q raspberrypi-utils >/dev/null 2>&1; then
 	pacman $_yes -Sdd raspberrypi-utils
 fi
 
+if pacman -Q python-periphery >/dev/null 2>&1; then
+	# KVMD doesn't need this anymore
+	pacman $_remove_yes -Rdd python-periphery
+fi
+
 if pacman -Q python-bcrypt >/dev/null 2>&1; then
 	# Conflicts with kvmd, it needs manual removal for some reason
 	# Also: https://gitlab.archlinux.org/pacman/pacman/-/issues/60
