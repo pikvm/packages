@@ -1,0 +1,38 @@
+From 7d357aac75048cf71496d21c89fe6c7807833abd Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sun, 18 Jan 2026 06:19:56 +0200
+Subject: [PATCH] pikvm: nbd: remove some CAP_SYS_ADMINs
+
+---
+ drivers/block/nbd.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
+index deb298371a6a..eef4734daf6d 100644
+--- a/drivers/block/nbd.c
++++ b/drivers/block/nbd.c
+@@ -1574,8 +1574,10 @@ static int nbd_ioctl(struct block_device *bdev, blk_mode_t mode,
+ 	struct nbd_config *config = nbd->config;
+ 	int error = -EINVAL;
+ 
++#if 0
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
++#endif
+ 
+ 	/* The block layer will pass back some non-nbd ioctls in case we have
+ 	 * special handling for them, but we don't so just return an error.
+@@ -2207,8 +2209,10 @@ static int nbd_genl_disconnect(struct sk_buff *skb, struct genl_info *info)
+ 	struct nbd_device *nbd;
+ 	int index;
+ 
++#if 0
+ 	if (!netlink_capable(skb, CAP_SYS_ADMIN))
+ 		return -EPERM;
++#endif
+ 
+ 	if (GENL_REQ_ATTR_CHECK(info, NBD_ATTR_INDEX)) {
+ 		pr_err("must specify an index to disconnect\n");
+-- 
+2.52.0
+

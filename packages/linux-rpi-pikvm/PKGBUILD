@@ -14,7 +14,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.12.56
-pkgrel=2
+pkgrel=3
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -35,6 +35,7 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         linux.preset
         archarm.diffconfig
         1001-pikvm-hid-remote-wakeup-support.patch
+        1002-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
         2001-pikvm-msd-dvd-support.patch
         2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
         3001-pikvm-tc358743-better-lanes-calculation.patch
@@ -44,9 +45,10 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         5002-input-add-hynitron-cst816x-series.patch
         5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
         6001-pikvm-uac-fixed-uninitialized-set_audio.patch
+        7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs.patch
 )
 md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
@@ -95,6 +97,7 @@ prepare() {
   patch -p1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
 
   patch -p1 -i ../1001-pikvm-hid-remote-wakeup-support.patch
+  patch -p1 -i ../1002-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
   patch -p1 -i ../2001-pikvm-msd-dvd-support.patch
   patch -p1 -i ../2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
   patch -p1 -i ../3001-pikvm-tc358743-better-lanes-calculation.patch
@@ -104,6 +107,7 @@ prepare() {
   patch -p1 -i ../5002-input-add-hynitron-cst816x-series.patch
   patch -p1 -i ../5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
   patch -p1 -i ../6001-pikvm-uac-fixed-uninitialized-set_audio.patch
+  patch -p1 -i ../7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs.patch
 
   if [ -n "$_pikvm_use_distcc" ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
