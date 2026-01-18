@@ -1,4 +1,4 @@
-From e50b00712977dc02f6bd5ab1fd18f06f1d4d2a45 Mon Sep 17 00:00:00 2001
+From 2d6b3ce66dc51cd96fdd85881de5c2531316c3ed Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 05:40:59 +0200
 Subject: [PATCH] pikvm: hid: clean set_report_buf on hidg disabling
@@ -8,7 +8,7 @@ Subject: [PATCH] pikvm: hid: clean set_report_buf on hidg disabling
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
-index ab4d170469f5..f9f3525e7262 100644
+index ab4d170469f5..cd375ad5ff44 100644
 --- a/drivers/usb/gadget/function/f_hid.c
 +++ b/drivers/usb/gadget/function/f_hid.c
 @@ -428,7 +428,7 @@ static ssize_t f_hidg_ssreport_read(struct file *file, char __user *buffer,
@@ -24,7 +24,7 @@ index ab4d170469f5..f9f3525e7262 100644
  		spin_unlock_irqrestore(&hidg->read_spinlock, flags);
  	}
  
-+	if (hidg->set_report_buf) {
++	if (!hidg->use_out_ep) {
 +		spin_lock_irqsave(&hidg->read_spinlock, flags);
 +		kfree(hidg->set_report_buf);
 +		hidg->set_report_buf = NULL;
