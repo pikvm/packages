@@ -1,4 +1,4 @@
-From 6c821011c369bd2d7a294415ef51ec99f6891363 Mon Sep 17 00:00:00 2001
+From e50b00712977dc02f6bd5ab1fd18f06f1d4d2a45 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 05:40:59 +0200
 Subject: [PATCH] pikvm: hid: clean set_report_buf on hidg disabling
