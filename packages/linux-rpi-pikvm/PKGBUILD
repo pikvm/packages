@@ -14,7 +14,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.12.56
-pkgrel=5
+pkgrel=6
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -45,7 +45,7 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         5002-input-add-hynitron-cst816x-series.patch
         5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
         6001-pikvm-uac-fixed-uninitialized-set_audio.patch
-        7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs.patch
+        7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs-set-BLKROSET-ma.patch
 )
 md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
          SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
@@ -107,7 +107,7 @@ prepare() {
   patch -p1 -i ../5002-input-add-hynitron-cst816x-series.patch
   patch -p1 -i ../5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
   patch -p1 -i ../6001-pikvm-uac-fixed-uninitialized-set_audio.patch
-  patch -p1 -i ../7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs.patch
+  patch -p1 -i ../7001-pikvm-nbd-remove-some-CAP_SYS_ADMINs-set-BLKROSET-ma.patch
 
   if [ -n "$_pikvm_use_distcc" ]; then
     sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
