@@ -1,8 +1,11 @@
-From b300c15ca7b78a5647a330218037842bc13027d4 Mon Sep 17 00:00:00 2001
+From 29e775cca07c4c1e97e8b0870325edce79c6d328 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 06:19:56 +0200
-Subject: [PATCH] pikvm: nbd: remove some CAP_SYS_ADMINs, set BLKROSET manually
+Subject: [PATCH] pikvm: nbd: fine tuning
 
+* Removed some CAP_SYS_ADMINs for ioctl() and netlink NBD_CMD_DISCONNECT.
+* Set BLKROSET manually.
+* Added online/offline uevents for NBD_DO_IT
 ---
  drivers/block/nbd.c | 12 ++++++++++++
  1 file changed, 12 insertions(+)
