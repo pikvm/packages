@@ -1,4 +1,4 @@
-From 29e775cca07c4c1e97e8b0870325edce79c6d328 Mon Sep 17 00:00:00 2001
+From c977034a11ca28d7fc47fc6f4b8cfcd501156541 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 06:19:56 +0200
 Subject: [PATCH] pikvm: nbd: fine tuning
@@ -7,14 +7,25 @@ Subject: [PATCH] pikvm: nbd: fine tuning
 * Set BLKROSET manually.
 * Added online/offline uevents for NBD_DO_IT
 ---
- drivers/block/nbd.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/block/nbd.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
-index deb298371a6a..e054dcedd7ab 100644
+index deb298371a6a..214c8dca15a9 100644
 --- a/drivers/block/nbd.c
 +++ b/drivers/block/nbd.c
-@@ -1548,6 +1548,14 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
+@@ -1482,8 +1482,10 @@ static int nbd_start_device_ioctl(struct nbd_device *nbd)
+ 	if (max_part)
+ 		set_bit(GD_NEED_PART_SCAN, &nbd->disk->state);
+ 	mutex_unlock(&nbd->config_lock);
++	kobject_uevent(&nbd_to_dev(nbd)->kobj, KOBJ_ONLINE);
+ 	ret = wait_event_interruptible(config->recv_wq,
+ 					 atomic_read(&config->recv_threads) == 0);
++	kobject_uevent(&nbd_to_dev(nbd)->kobj, KOBJ_OFFLINE);
+ 	if (ret) {
+ 		sock_shutdown(nbd);
+ 		nbd_clear_que(nbd);
+@@ -1548,6 +1550,14 @@ static int __nbd_ioctl(struct block_device *bdev, struct nbd_device *nbd,
  
  	case NBD_SET_FLAGS:
  		config->flags = arg;
@@ -29,7 +40,7 @@ index deb298371a6a..e054dcedd7ab 100644
  		return 0;
  	case NBD_DO_IT:
  		return nbd_start_device_ioctl(nbd);
-@@ -1574,8 +1582,10 @@ static int nbd_ioctl(struct block_device *bdev, blk_mode_t mode,
+@@ -1574,8 +1584,10 @@ static int nbd_ioctl(struct block_device *bdev, blk_mode_t mode,
  	struct nbd_config *config = nbd->config;
  	int error = -EINVAL;
  
@@ -40,7 +51,7 @@ index deb298371a6a..e054dcedd7ab 100644
  
  	/* The block layer will pass back some non-nbd ioctls in case we have
  	 * special handling for them, but we don't so just return an error.
-@@ -2207,8 +2217,10 @@ static int nbd_genl_disconnect(struct sk_buff *skb, struct genl_info *info)
+@@ -2207,8 +2219,10 @@ static int nbd_genl_disconnect(struct sk_buff *skb, struct genl_info *info)
  	struct nbd_device *nbd;
  	int index;
  
