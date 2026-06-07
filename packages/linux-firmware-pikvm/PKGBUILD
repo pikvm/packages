@@ -28,8 +28,8 @@ pkgname=(
   linux-firmware-radeon-pikvm
   linux-firmware-realtek-pikvm
 )
-pkgver=20251021
-pkgrel=2
+pkgver=20260519
+pkgrel=1
 pkgdesc="Firmware files for Linux"
 url="https://gitlab.com/kernel-firmware/linux-firmware"
 license=(LicenseRef-WHENCE)
@@ -45,7 +45,7 @@ options=(
   !strip
 )
 source=("git+$url.git?signed#tag=${pkgver}")
-b2sums=('c493c331e886cd51142a33139d49ecb0a9cce0641cd43bf6a8a86b54f4bf4d972b9591b1ca45114777673ede0edd363d997930b1dd10d1c92d56f3b8d92c818c')
+b2sums=('8d2e6a84208d927c249a257069d401164713bfdd849f528d62b2daa952f1c98a44717e81f83a7439dc3275dc8e1371dc206a6d9cc7f359f06bb600bf5b11b1ad')
 validpgpkeys=(
   4CDE8575E547BF835FE15807A31B6BD72486CFD6 # Josh Boyer <jwboyer@fedoraproject.org>
 )
@@ -54,8 +54,6 @@ _backports=(
 )
 
 _reverts=(
-  # https://gitlab.archlinux.org/archlinux/packaging/packages/linux-firmware/-/issues/29
-  ba41835c21ebbbba92fce71d30f747490313eaf6
 )
 
 prepare() {
@@ -159,7 +157,7 @@ package_linux-firmware-other-pikvm() {
 
   _pick marvell "${fwdir}"/{libertas,mwl8k,mwlwifi,mrvl}
 
-  _pick mediatek "${fwdir}"/{mediatek,mt7*,vpu_*,rt[237]*}
+  _pick mediatek "${fwdir}"/{mediatek,mt7*,rt[237]*}
 
   _pick mellanox "${fwdir}"/mellanox
 
