@@ -101,11 +101,12 @@ if pacman -Q python-periphery >/dev/null 2>&1; then
 	pacman $_remove_yes -Rdd python-periphery
 fi
 
-if pacman -Q python-bcrypt >/dev/null 2>&1; then
-	# Conflicts with kvmd, it needs manual removal for some reason
-	# Also: https://gitlab.archlinux.org/pacman/pacman/-/issues/60
-	pacman $_remove_yes -Rdd python-bcrypt
-fi
+# XXX: It's not actual for new KVMD versions
+#if pacman -Q python-bcrypt >/dev/null 2>&1; then
+#	# Conflicts with kvmd, it needs manual removal for some reason
+#	# Also: https://gitlab.archlinux.org/pacman/pacman/-/issues/60
+#	pacman $_remove_yes -Rdd python-bcrypt
+#fi
 
 if [[ "$(vercmp $(pacman -Q linux-firmware-pikvm | awk '{print $2}') 20251021-1)" -lt 0 ]]; then
 	pacman $_remove_yes -Rdd linux-firmware-pikvm
