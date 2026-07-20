@@ -75,6 +75,9 @@ if [ -z "$_opt_no_self_update" ]; then
 			_opts="$_opts --no-reboot"
 			trap - ERR
 		fi
+		if [ -n "$_opt_power_off" ]; then
+			_opts="$_opts --power-off"
+		fi
 		pikvm-update $_opts
 		exit $?
 	fi
@@ -158,7 +161,7 @@ if ! kvmd -m >/dev/null 2>&1; then
 fi
 
 if [ -n "$_opt_power_off" ]; then
-    set +x
+	set +x
 	echo "=============================================================="
 	echo "      Power off requested. We will make it after 30 seconds."
 	echo "            Press Ctrl+C if you don't want this."
