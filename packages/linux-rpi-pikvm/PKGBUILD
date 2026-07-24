@@ -9,11 +9,11 @@ if [ -f "/tmp/_pikvm_use_distcc_allowed" ]; then
 fi
 
 pkgbase=linux-rpi
-_commit=d8ab4e908235da7727f22dd36ad5af224671677d
+_commit=ae161617d7a4552fa91d03626b8d9f3696d17481
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.12.93
+pkgver=6.12.96
 pkgrel=1
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
