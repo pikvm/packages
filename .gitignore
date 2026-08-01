@@ -2,3 +2,4 @@
 /.build/
 /repos/
 /config.mk
+/.all_targets.mk

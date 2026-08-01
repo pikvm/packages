@@ -9,9 +9,6 @@ export ARCH_DIST_REPO_URL ?= http://mirror.archlinuxarm.org/
 export DOCKER ?= docker
 export DISTCC_HOSTS ?=
 export DISTCC_J ?=
-UPLOAD ?= testing stable
-
-DEPLOY_USER ?= root
 
 export J ?= $(shell nproc)
 export NC ?=
@@ -51,48 +48,7 @@ all:
 	true
 
 
-__upload__testing:
-	rsync -rl --progress --delete \
-		$(_TARGET_REPO_DIR)/ \
-		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch-testing/$(_TARGET)
-__upload__stable:
-	rsync -rl --progress --delete \
-		$(_TARGET_REPO_DIR)/ \
-		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$(_TARGET)
-upload: $(addprefix __upload__,$(UPLOAD))
-
-
-download:
-	mkdir -p $(_BASE_REPOS_DIR)
-	rsync -rl --progress \
-		$(DEPLOY_USER)@files.pikvm.org:/var/www/files.pikvm.org/repos/arch/$(_TARGET)/ \
-		$(_TARGET_REPO_DIR)
-	$(MAKE) links-$(_TARGET)
-links-rpi4-aarch64:
-	true
-links-rpi2-arm:
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/zero2w
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi3-arm
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi4-arm
-	ln -sf rpi2 $(_BASE_REPOS_DIR)/rpi2-arm
-
-
-__UPDATABLE := $(addprefix __update__,$(subst /update.mk,,$(subst packages/,,$(wildcard packages/*/update.mk))))
-update: $(__UPDATABLE)
-$(__UPDATABLE):
-	$(MAKE) -C packages/$(subst __update__,,$@) -f update.mk update
-
-
-__BUILD_ORDER := $(addprefix __build__,$(shell cat packages/order.$(_TARGET)))
-build: buildenv $(__BUILD_ORDER)
-$(__BUILD_ORDER):
-	$(MAKE) _build BOARD=$(BOARD) ARCH=$(ARCH) PKG=$(subst __build__,,$@)
-# XXX: DO NOT RUN BUILD TASKS IN PARALLEL MODE!!!
-
-
-_build:
+build:
 	test -n "$(PKG)"
 	$(call say,"Ensuring package $(PKG) for $(_TARGET)")
 	$(MAKE) _run \
@@ -134,6 +90,7 @@ buildenv: binfmt
 			--build-arg ALARM_GID=$(_ALARM_GID) \
 		"
 	$(call say,"Buildenv $(_TARGET) is ready")
+.PHONY: buildenv
 
 
 # =====
@@ -162,8 +119,3 @@ $(_BUILDENV_DIR):
 
 $(_BUILD_DIR):
 	mkdir -p $(_BUILD_DIR)
-
-
-# =====
-.PHONY: buildenv
-.NOTPARALLEL:
