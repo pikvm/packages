@@ -1,0 +1,49 @@
+# shellcheck disable=SC2148
+
+# arg 1: the new package version
+post_install() {
+	post_upgrade "$1" ""
+}
+
+# arg 1: the new package version
+# arg 2: the old package version
+post_upgrade() {
+	echo "==> Patching platform ..."
+
+	if [[ "$(vercmp "$2" 4.106)" -lt 0 ]]; then
+		# Keep local modifications of etc configs
+		for i in \
+			/etc/sysctl.d/99-kvmd.conf \
+			/etc/udev/rules.d/99-kvmd.rules \
+			/etc/modules-load.d/kvmd.conf \
+			/etc/kvmd/auth.yaml \
+		; do
+			if [ -e "$i".pacsave ]; then
+				mv "$i".pacsave "$i"
+			fi
+		done
+		rm -f \
+			/etc/kvmd/main.yaml.pacnew \
+			/etc/kvmd/auth.yaml.pacnew
+	fi
+
+	if [[ "$(vercmp "$2" 4.112)" -lt 0 ]]; then
+		cat /boot/cmdline.txt \
+				| xargs printf "%s\n" \
+				| grep -v '^cma=' \
+				| paste -sd ' ' - \
+			> /boot/cmdline.txt.kvmd-new
+		mv /boot/cmdline.txt.kvmd-new /boot/cmdline.txt
+
+		# shellcheck source=/dev/null
+		source /usr/lib/kvmd/platform
+		config="/usr/share/kvmd/configs.default/os/boot-config/$PIKVM_MODEL-$PIKVM_VIDEO-$PIKVM_BOARD.txt"
+		if grep -q '^dtoverlay=cma,' "$config"; then
+			if ! grep -q '^dtoverlay=cma,' /boot/config.txt; then
+				# shellcheck disable=SC2129
+				echo >> /boot/config.txt
+				grep '^dtoverlay=cma,' "$config" >> /boot/config.txt
+			fi
+		fi
+	fi
+}

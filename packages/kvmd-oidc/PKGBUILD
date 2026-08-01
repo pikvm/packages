@@ -1,0 +1,185 @@
+# Contributor: Maxim Devaev <mdevaev@gmail.com>
+# Author: Maxim Devaev <mdevaev@gmail.com>
+
+
+pkgname=kvmd-oidc
+pkgver=4.191
+pkgrel=1
+pkgdesc="The main PiKVM daemon"
+url="https://github.com/pikvm/kvmd"
+license=(GPL)
+arch=(any)
+depends=(
+	"python>=3.14"
+	"python<3.15"
+	python-yaml
+	python-ruamel-yaml
+	python-aiohttp
+	python-aiofiles
+	python-async-lru
+	python-passlib
+	python-bcrypt
+	python-pyotp
+	python-qrcode
+	python-pyserial
+	python-pyserial-asyncio
+	python-spidev
+	python-setproctitle
+	python-psutil
+	python-netifaces
+	python-systemd
+	python-dbus
+	python-dbus-next
+	python-pygments
+	"python-pyghmi>=1.6.0-2"
+	python-pam
+	python-pillow
+	python-xlib
+	libxkbcommon
+	python-hidapi
+	python-six
+	python-pyrad
+	python-ldap
+	python-pysmbc
+	python-paramiko
+	python-zstandard
+	python-mako
+	"python-luma-core>=2.5.2"
+	python-luma-oled
+	python-pyusb
+	python-pyudev
+	python-evdev
+	"libgpiod>=2.1"
+	freetype2
+	"v4l-utils>=1.22.1-1"
+	"nginx-mainline>=1.25.1"
+	openssl
+	sudo
+	iptables
+	iproute2
+	dnsmasq
+	ipmitool
+	"janus-gateway-pikvm>=1.3.0"
+	certbot
+	"raspberrypi-io-access>=0.7"
+	raspberrypi-utils
+	"ustreamer>=6.47"
+
+	# Systemd UDEV bug
+	"systemd>=248.3-2"
+
+	# https://bugzilla.redhat.com/show_bug.cgi?id=2035802
+	# https://archlinuxarm.org/forum/viewtopic.php?f=15&t=15725&start=40
+	"zstd>=1.5.1-2.1"
+
+	# Bootconfig
+	dos2unix
+	parted
+	e2fsprogs
+	openssh
+	# FIXME:
+	#   - https://archlinuxarm.org/forum/viewtopic.php?f=15&t=17007&p=72789
+	#   - https://github.com/pikvm/pikvm/issues/1375
+	# Update at 2025.11.10: Still not fixed.
+	#   - https://github.com/pikvm/pikvm/issues/1604
+	wpa_supplicant-pikvm
+	run-parts
+
+	# fsck for /boot
+	dosfstools
+
+	# pgrep for kvmd-udev-restart-pass, sysctl for kvmd-otgnet
+	procps-ng
+
+	# For kvmd-udev-flash-pico
+	picotool
+
+	# Misc
+	hostapd
+)
+optdepends=(
+	tesseract
+)
+conflicts=(
+	python-pikvm
+	python-aiohttp-pikvm
+	platformio
+	avrdude-pikvm
+	kvmd-oled
+)
+makedepends=(
+	python-build
+	python-installer
+	python-wheel
+	python-setuptools
+)
+source=(
+	"kvmd-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz"
+	"https://patch-diff.githubusercontent.com/raw/pikvm/kvmd/pull/194.diff"
+)
+md5sums=(SKIP SKIP)
+backup=(
+	etc/kvmd/{override,meta}.yaml
+	etc/kvmd/{ht,ipmi,vnc}passwd
+	etc/kvmd/totp.secret
+	etc/kvmd/nginx/ssl.conf
+	etc/kvmd/nginx/nginx.conf.mako
+	etc/kvmd/janus/janus{,.plugin.ustreamer,.transport.websockets}.jcfg
+	etc/kvmd/web.css
+)
+
+build() {
+	cd "$srcdir/kvmd-$pkgver"
+	patch -p1 < ../194.diff
+	python -m build --wheel --no-isolation
+}
+
+package() {
+	provides=(kvmd)
+	install=kvmd.install
+
+	cd "$srcdir/kvmd-$pkgver"
+	python -m installer --destdir="$pkgdir" dist/*.whl
+
+	install -Dm755 -t "$pkgdir/usr/bin" scripts/kvmd-{bootconfig,gencert,certbot,update-switch}
+	install -Dm755 -t "$pkgdir/usr/lib/kvmd" scripts/kvmd-udev-flash-pico
+
+	install -dm755 "$pkgdir/usr/lib/systemd/system"
+	cp -rd configs/os/services -T "$pkgdir/usr/lib/systemd/system"
+
+	install -DTm644 configs/os/sysusers.conf "$pkgdir/usr/lib/sysusers.d/kvmd.conf"
+	install -DTm644 configs/os/tmpfiles.conf "$pkgdir/usr/lib/tmpfiles.d/kvmd.conf"
+
+	mkdir -p "$pkgdir/usr/share/kvmd"
+	cp -r {firmware,hid,web,extras,contrib/keymaps} "$pkgdir/usr/share/kvmd"
+	find "$pkgdir/usr/share/kvmd/web" -name '*.pug' -exec rm -f '{}' \;
+
+	local _cfg_default="$pkgdir/usr/share/kvmd/configs.default"
+	mkdir -p "$_cfg_default"
+	cp -r configs/* "$_cfg_default"
+
+	find "$pkgdir" -name ".gitignore" -delete
+	find "$_cfg_default" -type f -exec chmod 444 '{}' \;
+	chmod 400 "$_cfg_default/kvmd"/*passwd
+	chmod 400 "$_cfg_default/kvmd"/*.secret
+	chmod 750 "$_cfg_default/os/sudoers"
+	chmod 400 "$_cfg_default/os/sudoers"/*
+
+	mkdir -p "$pkgdir/etc/kvmd/"{nginx,vnc}"/ssl"
+	chmod 755 "$pkgdir/etc/kvmd/"{nginx,vnc}"/ssl"
+	install -Dm444 -t "$pkgdir/etc/kvmd/nginx" "$_cfg_default/nginx"/*.conf*
+	chmod 644 "$pkgdir/etc/kvmd/nginx/"{nginx,ssl}.conf*
+
+	mkdir -p "$pkgdir/etc/kvmd/janus"
+	chmod 755 "$pkgdir/etc/kvmd/janus"
+	install -Dm444 -t "$pkgdir/etc/kvmd/janus" "$_cfg_default/janus"/*.jcfg
+
+	install -Dm644 -t "$pkgdir/etc/kvmd" "$_cfg_default/kvmd"/*.yaml
+	install -Dm600 -t "$pkgdir/etc/kvmd" "$_cfg_default/kvmd"/*passwd
+	install -Dm600 -t "$pkgdir/etc/kvmd" "$_cfg_default/kvmd"/*.secret
+	install -Dm644 -t "$pkgdir/etc/kvmd" "$_cfg_default/kvmd"/web.css
+	mkdir -p "$pkgdir/etc/kvmd/override.d"
+
+	mkdir -p "$pkgdir/var/lib/kvmd/"{msd,pst}
+	chmod 1775 "$pkgdir/var/lib/kvmd/pst"
+}
