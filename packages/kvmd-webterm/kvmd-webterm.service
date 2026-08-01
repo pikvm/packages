@@ -13,6 +13,7 @@ RestartSec=1
 UMask=0117
 
 EnvironmentFile=-/etc/conf.d/kvmd-webterm
+Environment=LD_PRELOAD=/usr/lib/libsystemd.so.0
 ExecStart=/usr/bin/ttyd \
 		-W \
 		--interface=/run/kvmd/ttyd.sock \
