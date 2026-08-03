@@ -42,6 +42,7 @@ _PKGS = [
     "wpa_supplicant-pikvm",
     "picotool",
     "kvmd",
+    "kvmd-oidc",
     "kvmd-webterm",
     "kvmd-fan",
     "kvmd-cloud",
