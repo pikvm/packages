@@ -3,7 +3,7 @@
 
 
 pkgname=kvmd-oidc
-pkgver=4.198
+pkgver=4.199
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
