@@ -32,7 +32,6 @@ RUN pacman --noconfirm --ask=4 -Syu \
 		vim \
 		wget \
 		python \
-		distcc \
 		jq \
 	&& (pacman --noconfirm -Sc || true)
 

@@ -4,10 +4,6 @@
 # Maintainer: Dave Higham <pepedog@archlinuxarm.org>
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
-if [ -f "/tmp/_pikvm_use_distcc_allowed" ]; then
-    _pikvm_use_distcc=1
-fi
-
 pkgbase=linux-rpi
 _commit=2946b3f3b7ebd99ed502dc8da3c7a9b758bdaff2
 _srcname=linux-${_commit}
@@ -109,10 +105,6 @@ prepare() {
   patch -p1 -i ../6001-pikvm-uac-fixed-uninitialized-set_audio.patch
   patch -p1 -i ../7001-pikvm-nbd-fine-tuning.patch
 
-  if [ -n "$_pikvm_use_distcc" ]; then
-    sed -i '/HAVE_GCC_PLUGINS/d' arch/arm/Kconfig
-  fi
-
   echo "Setting version..."
   echo "-$pkgrel" > localversion.10-pkgrel
   echo "${pkgbase#linux}" > localversion.20-pkgname
@@ -152,12 +144,7 @@ prepare() {
 
 build() {
   cd "${srcdir}/${_srcname}"
-
-  if [ -n "$_pikvm_use_distcc" ]; then
-    _make "$_image" modules dtbs CC=distcc CXX=distcc
-  else
-    _make "$_image" modules dtbs
-  fi
+  _make "$_image" modules dtbs
 }
 
 _package-pikvm() {

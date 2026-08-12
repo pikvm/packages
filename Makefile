@@ -7,8 +7,6 @@ export STAGES ?= __init__ buildenv
 export HOSTNAME = buildenv
 export ARCH_DIST_REPO_URL ?= http://mirror.archlinuxarm.org/
 export DOCKER ?= docker
-export DISTCC_HOSTS ?=
-export DISTCC_J ?=
 
 export J ?= $(shell nproc)
 export NC ?=
@@ -58,8 +56,6 @@ build:
 			$(if $(call optbool,$(NOREPO)),--no-repo,) \
 			$(if $(call optbool,$(NOEXTRACT)),--no-extract,) \
 			$(if $(call optbool,$(NOSIGN)),--no-sign,) \
-			$(if $(DISTCC_HOSTS),--distcc-hosts $(DISTCC_HOSTS),) \
-			$(if $(DISTCC_J),--distcc-make-j $(DISTCC_J),) \
 			--make-j $(J) \
 			$(PKG) \
 		"
