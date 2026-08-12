@@ -39,7 +39,6 @@ _PKGS = [
     "flashrom-pikvm",
     "wiringpi-pikvm",
     "ustreamer",
-    "wpa_supplicant-pikvm",
     "picotool",
     "kvmd",
     "kvmd-oidc",

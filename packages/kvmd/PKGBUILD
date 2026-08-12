@@ -39,7 +39,7 @@ for _variant in "${_variants[@]}"; do
 	pkgname+=(kvmd-platform-$_platform-$_board)
 done
 pkgbase=kvmd
-pkgver=4.200
+pkgver=4.201
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -101,24 +101,12 @@ depends=(
 	raspberrypi-utils
 	"ustreamer>=6.47"
 
-	# Systemd UDEV bug
-	"systemd>=248.3-2"
-
-	# https://bugzilla.redhat.com/show_bug.cgi?id=2035802
-	# https://archlinuxarm.org/forum/viewtopic.php?f=15&t=15725&start=40
-	"zstd>=1.5.1-2.1"
-
 	# Bootconfig
 	dos2unix
 	parted
 	e2fsprogs
 	openssh
-	# FIXME:
-	#   - https://archlinuxarm.org/forum/viewtopic.php?f=15&t=17007&p=72789
-	#   - https://github.com/pikvm/pikvm/issues/1375
-	# Update at 2025.11.10: Still not fixed.
-	#   - https://github.com/pikvm/pikvm/issues/1604
-	wpa_supplicant-pikvm
+	wpa_supplicant
 	run-parts
 
 	# fsck for /boot
@@ -142,6 +130,7 @@ conflicts=(
 	platformio
 	avrdude-pikvm
 	kvmd-oled
+	wpa_supplicant-pikvm
 )
 makedepends=(
 	python-build
@@ -229,7 +218,7 @@ for _variant in "${_variants[@]}"; do
 		backup=()
 
 		pkgdesc=\"PiKVM platform configs - $_platform for $_board\"
-		depends=(kvmd=\"${epoch:+$epoch:}$pkgver-$pkgrel\" \"linux-rpi-pikvm>=6.12.92-2\" \"raspberrypi-bootloader-pikvm>=20251031-1\")
+		depends=(kvmd=\"${epoch:+$epoch:}$pkgver-$pkgrel\" \"linux-rpi-pikvm>=6.12.92-2\" \"pikvm-os-raspberrypi>=0.10\")
 
 		if [[ $_base == v0 ]]; then
 			depends=(\"\${depends[@]}\" platformio-core avrdude make patch)
@@ -244,7 +233,6 @@ for _variant in "${_variants[@]}"; do
 			install -Dm755 -t \"\$pkgdir/usr/lib/kvmd\" scripts/kvmd-udev-restart-pass
 		fi
 
-		install -DTm644 configs/os/modprobe.conf \"\$pkgdir/usr/lib/modprobe.d/99-kvmd.conf\"
 		install -DTm644 configs/os/sysctl.conf \"\$pkgdir/usr/lib/sysctl.d/99-kvmd.conf\"
 		install -DTm644 configs/os/udev/common.rules \"\$pkgdir/usr/lib/udev/rules.d/99-kvmd-common.rules\"
 		install -DTm644 configs/os/udev/$_platform-$_board.rules \"\$pkgdir/usr/lib/udev/rules.d/99-kvmd.rules\"
