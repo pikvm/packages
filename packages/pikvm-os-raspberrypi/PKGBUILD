@@ -1,7 +1,7 @@
 pkgname=pikvm-os-raspberrypi
-pkgver=0.9
+pkgver=0.10
 pkgrel=1
-pkgdesc="Pi-KVM OS Metapackage"
+pkgdesc="PiKVM OS Metapackage"
 url="https://pikvm.org"
 license=(GPL)
 arch=(any)
@@ -19,10 +19,12 @@ depends=(
 	busybox
 )
 replaces=(pikvm-os-raspberrypi4)
-source=()
-md5sums=()
+source=(rpi-brcmfmac.conf disabled-unsafe.conf)
+md5sums=(SKIP SKIP)
 
 
 package() {
-	echo stub >/dev/null
+	cd "$srcdir"
+	install -Dm644 -t "$pkgdir/usr/lib/modprobe.d" rpi-brcmfmac.conf
+	install -Dm644 -t "$pkgdir/usr/lib/modprobe.d" disabled-unsafe.conf
 }
