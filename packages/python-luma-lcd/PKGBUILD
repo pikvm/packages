@@ -1,5 +1,5 @@
 pkgname=python-luma-lcd
-pkgver=2.12.0
+pkgver=2.13.0
 pkgrel=1
 pkgdesc="Python module to drive LCD displays"
 url="https://github.com/rm-hull/luma.lcd"
