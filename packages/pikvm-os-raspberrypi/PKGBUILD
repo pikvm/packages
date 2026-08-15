@@ -1,5 +1,5 @@
 pkgname=pikvm-os-raspberrypi
-pkgver=0.10
+pkgver=0.11
 pkgrel=1
 pkgdesc="PiKVM OS Metapackage"
 url="https://pikvm.org"
