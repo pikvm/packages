@@ -17,4 +17,8 @@ SUBSYSTEM=="gpio", ENV{DEVTYPE}!="?*", ENV{DEVNAME}!="?*", KERNEL=="gpiochip[0-9
 # this rule acts on /sys/class/gpio/gpioN, which are individual GPIO lines exported for use with the legacy sysfs gpio ABI
 SUBSYSTEM=="gpio", ENV{DEVTYPE}!="?*", ENV{DEVNAME}!="?*", KERNEL=="gpio[0-9]*", RUN+="/bin/bash -ec 'f() { chgrp gpio $$@; chmod g=u $$@; }; f %S%p/{active_low,direction,value}'"
 
+# pwm subsystem is braindead and does not emit events for contained pwmN devices
+# as such, this rule acts on pwmchipN nodes but adjusts both pwmchipN nodes themselves and contained pwmchipN/pwmM nodes
+SUBSYSTEM=="pwm", ENV{DEVTYPE}!="?*", ENV{DEVNAME}!="?*", KERNEL=="pwmchip[0-9]*", RUN+="/bin/bash -ex -O nullglob -c 'f() { chgrp pwm $$@; chmod g=u $$@; }; f %S%p/{export,unexport} %S%p/pwm*/{capture,duty_cycle,enable,period,polarity}'"
+
 LABEL="end"
