@@ -123,6 +123,10 @@ if pacman -Q wpa_supplicant-pikvm >/dev/null 2>&1; then
 	pacman $_yes -Sdd pikvm-os-raspberrypi wpa_supplicant
 fi
 
+if pacman -Q wiringpi-pikvm >/dev/null 2>&1; then
+	pacman $_yes -Sdd wiringpi
+fi
+
 pacman $_yes -Su
 
 if systemctl is-enabled -q tailscaled; then
