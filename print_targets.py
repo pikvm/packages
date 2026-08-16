@@ -37,7 +37,6 @@ _PKGS = [
     "raspberrypi-io-access",
     "raspberrypi-bluetooth",
     "flashrom-pikvm",
-    "wiringpi-pikvm",
     "ustreamer",
     "picotool",
     "kvmd",
