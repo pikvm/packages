@@ -1,6 +1,6 @@
 pkgname=python-luma-core
 pkgver=2.6.0
-pkgrel=1
+pkgrel=2
 pkgdesc="A component library to support SBC display drivers"
 url="https://github.com/rm-hull/luma.core"
 license=(MIT)
@@ -12,7 +12,6 @@ depends=(
 	python-pillow
 	"python-cbor2>=5.4.3-2"
 	python-spidev
-	python-raspberry-gpio
 	python-smbus2
 	python-pyftdi
 )
@@ -20,11 +19,12 @@ conflicts=(
 	python-cbor2-pikvm
 )
 makedepends=(python-distribute)
-source=("https://github.com/rm-hull/luma.core/archive/${pkgver}.tar.gz")
-sha1sums=(SKIP)
+source=("https://github.com/rm-hull/luma.core/archive/${pkgver}.tar.gz" "314.patch")
+sha1sums=(SKIP SKIP)
 
 
 package() {
 	cd "$srcdir/luma.core-$pkgver"
+	patch -p1 < ../314.patch
 	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
 }

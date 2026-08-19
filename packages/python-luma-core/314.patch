@@ -1,0 +1,272 @@
+diff --git a/doc/conf.py b/doc/conf.py
+index e5d394d..2d09a81 100644
+--- a/doc/conf.py
++++ b/doc/conf.py
+@@ -87,7 +87,11 @@
+ linkcheck_ignore = [
+     r'http://gnu.ethz.ch/',
+     r'http://www.avrfreaks.net/',
+-    r'https://www.createjs.com/'
++    r'https://www.createjs.com/',
++
++    # https://github.com/badges/shields/issues/12109
++    # https://github.com/lemurheavy/coveralls-public/issues/1858
++    r'https://coveralls.io/',
+ ]
+ 
+ # The name of the Pygments (syntax highlighting) style to use.
+diff --git a/luma/core/gpio.py b/luma/core/gpio.py
+new file mode 100644
+index 0000000..f2badbf
+--- /dev/null
++++ b/luma/core/gpio.py
+@@ -0,0 +1,124 @@
++# -*- coding: utf-8 -*-
++# Copyright (c) 2017-18 Richard Hull and contributors
++# See LICENSE.rst for details.
++
++import os
++import glob
++
++from typing import Union
++from typing import Final
++
++import gpiod
++import gpiod.line
++
++from luma.core.error import UnsupportedPlatform
++
++
++__all__ = ["GPIO", "global_instance"]
++
++
++class GPIO:
++    BCM:  Final[int] = 11
++    OUT:  Final[int] = 0
++
++    LOW:  Final[int] = 0
++    HIGH: Final[int] = 1
++
++    def __init__(
++        self,
++        path: str = "",
++        consumer: str = "luma",
++    ) -> None:
++
++        if not path:
++            path = self.__find_device()
++
++        self.__path: Final[str] = path
++        self.__consumer: Final[str] = consumer
++        self.__lines: dict[int, gpiod.LineRequest] = {}
++
++    def __find_device(self) -> str:
++        known_drivers = frozenset([
++            "raspberrypi,rp1-gpio",
++            "raspberrypi,bcm2835-gpio",
++            "raspberrypi,bcm2711-gpio",
++        ])
++        for path in glob.glob("/sys/bus/gpio/devices/gpiochip*"):
++            try:
++                with open(os.path.join(path, "of_node/compatible")) as file:
++                    lines = file.read().split("\0")
++                    drivers = set(filter(None, map(str.strip, lines)))
++            except FileNotFoundError:
++                pass
++            if drivers & known_drivers:
++                return os.path.join("/dev", os.path.basename(path))
++        return "/dev/gpiochip0"
++
++    def setwarnings(self, enabled: bool) -> None:
++        _ = enabled  # Nothing to do
++
++    def setmode(self, mode: int) -> None:
++        if mode != self.BCM:  # pragma: no cover
++            raise NotImplementedError("Non-BCM modes are not supported")
++
++    def setup(
++        self,
++        channel: int,
++        direction: int,
++        initial: Union[bool, int] = False,
++    ) -> None:
++
++        if direction != self.OUT:  # pragma: no cover
++            raise NotImplementedError("Reading from GPIO is not supported")
++
++        if channel in self.__lines:
++            lr = self.__lines.pop(channel)
++            lr.release()
++
++        try:
++            lr = gpiod.request_lines(
++                self.__path,
++                consumer=self.__consumer,
++                config={(channel,): gpiod.LineSettings(
++                    output_value=gpiod.line.Value(bool(initial or False)),
++                )},
++            )
++        except FileNotFoundError as e:
++            raise UnsupportedPlatform(f"GPIO access not available: {self.__path}"
++                                      f": {type(e).__name__}: {str(e)}")
++        self.__lines[channel] = lr
++
++    def output(
++        self,
++        channel: int,
++        value: Union[bool, int],
++    ) -> None:
++
++        if channel not in self.__lines:
++            self.setup(channel, self.OUT)
++
++        lr = self.__lines[channel]
++        lr.set_value(channel, gpiod.line.Value(bool(value or False)))
++
++    def cleanup(
++        self,
++        channel: Union[int, list[int], tuple[int], None] = None,
++    ) -> None:
++
++        if channel is None:
++            channel = list(self.__lines)
++        elif isinstance(channel, int):
++            channel = [channel]
++
++        for ch in channel:
++            lr = self.__lines.pop[ch]
++            try:
++                lr.release()
++            except Exception:
++                pass
++
++    def __del__(self) -> None:
++        self.cleanup()
++
++
++global_instance = GPIO()
+diff --git a/luma/core/lib.py b/luma/core/lib.py
+index 8f6ad77..ff79185 100644
+--- a/luma/core/lib.py
++++ b/luma/core/lib.py
+@@ -2,7 +2,9 @@
+ # Copyright (c) 2017-18 Richard Hull and contributors
+ # See LICENSE.rst for details.
+ 
+-import luma.core.error
++import sys
++
++from luma.core.error import UnsupportedPlatform
+ 
+ 
+ __all__ = ["rpi_gpio", "spidev"]
+@@ -16,16 +18,10 @@ def __spidev__(self):  # pragma: no cover
+ 
+ 
+ def __rpi_gpio__(self):
+-    # RPi.GPIO _really_ doesn't like being run on anything other than
+-    # a Raspberry Pi... this is imported here so we can swap out the
+-    # implementation for a mock
+-    try:  # pragma: no cover
+-        import RPi.GPIO as GPIO
+-        GPIO.setmode(GPIO.BCM)
+-        return GPIO
+-    except RuntimeError:
+-        raise luma.core.error.UnsupportedPlatform(
+-            'GPIO access not available')
++    if not sys.platform.startswith("linux"):
++        raise UnsupportedPlatform("GPIO access not available")
++    from luma.core.gpio import global_instance
++    return global_instance
+ 
+ 
+ def rpi_gpio(Class):
+diff --git a/setup.cfg b/setup.cfg
+index edd0a78..bf75604 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -43,7 +43,7 @@ include = luma*
+ 
+ [options.extras_require]
+ gpio =
+-    rpi-lgpio; platform_system=="Linux"
++    gpiod; platform_system=="Linux"
+ spi =
+     spidev; platform_system=="Linux"
+ ftdi =
+diff --git a/tests/test_bitbang.py b/tests/test_bitbang.py
+index 32f66ce..ecabe37 100644
+--- a/tests/test_bitbang.py
++++ b/tests/test_bitbang.py
+@@ -70,6 +70,6 @@ def test_unsupported_gpio_platform():
+     try:
+         bitbang()
+     except luma.core.error.UnsupportedPlatform as ex:
+-        assert str(ex) == 'GPIO access not available'
++        assert str(ex).startswith('GPIO access not available')
+     except ImportError:
+         pytest.skip(rpi_gpio_missing)
+diff --git a/tests/test_gpio_cs_spi.py b/tests/test_gpio_cs_spi.py
+index 5e01762..ca66597 100644
+--- a/tests/test_gpio_cs_spi.py
++++ b/tests/test_gpio_cs_spi.py
+@@ -99,6 +99,6 @@ def test_unsupported_gpio_platform():
+     try:
+         gpio_cs_spi(spi=spidev, port=9, device=1, gpio_CS=23)
+     except luma.core.error.UnsupportedPlatform as ex:
+-        assert str(ex) == 'GPIO access not available'
++        assert str(ex).startswith('GPIO access not available')
+     except ImportError:
+         pytest.skip(rpi_gpio_missing)
+diff --git a/tests/test_lib.py b/tests/test_lib.py
+index cdafccd..fc2fd74 100644
+--- a/tests/test_lib.py
++++ b/tests/test_lib.py
+@@ -5,7 +5,6 @@
+ 
+ 
+ import sys
+-from unittest.mock import Mock
+ 
+ import pytest
+ 
+@@ -50,12 +49,8 @@ def test_multi():
+         assertMethod(t, method)
+ 
+ 
+-def test_rpi_gpio_unrecognized_runtime_error(monkeypatch):
+-    fake_gpio = Mock(unsafe=True)
+-    fake_gpio.setmode.side_effect = RuntimeError('some other platform-specific message')
+-    fake_rpi = Mock(GPIO=fake_gpio)
+-    monkeypatch.setitem(sys.modules, 'RPi', fake_rpi)
+-    monkeypatch.setitem(sys.modules, 'RPi.GPIO', fake_gpio)
++def test_rpi_gpio_unrecognized_nonlinux(monkeypatch):
++    monkeypatch.setattr(sys, 'platform', 'darwin')
+ 
+     t = RpiGpioTest()
+     with pytest.raises(luma.core.error.UnsupportedPlatform):
+diff --git a/tests/test_parallel.py b/tests/test_parallel.py
+index b7acff6..cd80d62 100644
+--- a/tests/test_parallel.py
++++ b/tests/test_parallel.py
+@@ -78,6 +78,6 @@ def test_unsupported_gpio_platform():
+     try:
+         bitbang_6800()
+     except luma.core.error.UnsupportedPlatform as ex:
+-        assert str(ex) == 'GPIO access not available'
++        assert str(ex).startswith('GPIO access not available')
+     except ImportError:
+         pytest.skip(rpi_gpio_missing)
+diff --git a/tests/test_spi.py b/tests/test_spi.py
+index 4e91bb5..f48c33d 100644
+--- a/tests/test_spi.py
++++ b/tests/test_spi.py
+@@ -98,7 +98,7 @@ def test_unsupported_gpio_platform():
+     try:
+         spi(spi=spidev, port=9, device=1)
+     except luma.core.error.UnsupportedPlatform as ex:
+-        assert str(ex) == 'GPIO access not available'
++        assert str(ex).startswith('GPIO access not available')
+     except ImportError:
+         pytest.skip(rpi_gpio_missing)
+ 

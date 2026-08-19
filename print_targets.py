@@ -28,7 +28,6 @@ _PKGS = [
     "python-pyghmi",
     "python-pyftdi",
     "python-spidev",
-    "python-raspberry-gpio",
     "python-smbus2",
     "python-luma-core",
     "python-luma-oled",
