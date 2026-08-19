@@ -1,6 +1,6 @@
 pkgname=python-luma-core
 pkgver=2.6.0
-pkgrel=2
+pkgrel=3
 pkgdesc="A component library to support SBC display drivers"
 url="https://github.com/rm-hull/luma.core"
 license=(MIT)
@@ -14,6 +14,7 @@ depends=(
 	python-spidev
 	python-smbus2
 	python-pyftdi
+	"libgpiod>=2.1"
 )
 conflicts=(
 	python-cbor2-pikvm
