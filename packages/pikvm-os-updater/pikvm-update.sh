@@ -104,6 +104,10 @@ if pacman -Q python-periphery >/dev/null 2>&1; then
 	pacman $_remove_yes -Rdd python-periphery
 fi
 
+if pacman -Q python-raspberry-gpio >/dev/null 2>&1; then
+	pacman $_remove_yes -Rdd python-raspberry-gpio
+fi
+
 # XXX: It's not actual for new KVMD versions
 #if pacman -Q python-bcrypt >/dev/null 2>&1; then
 #	# Conflicts with kvmd, it needs manual removal for some reason
