@@ -1,0 +1,61 @@
+From 1390b8abb3d3b9195834effdc33a6caf85413fba Mon Sep 17 00:00:00 2001
+From: Ivan Shapovalov <intelfx@intelfx.name>
+Date: Fri, 15 May 2026 02:43:59 +0300
+Subject: [PATCH 8001/8003] pikvm: gadget: uvc: handle ISOC-IN missed window
+ feedback from dwc2 correctly, do not spam logs
+
+- correctly drop buffers from queue (allow buffers to be recycled)
+- do not spam logs on KERN_WARNING level because they will probably
+  be synchronously emitted via a slow UART and cause more missed windows
+
+See: 0a0a2760b0481 ("usb: gadget: uvc: fix sg handling in error case")
+See: 91bb163e1e4f8 ("usb: dwc2: gadget: Fix ISOC flow for BDMA and Slave")
+---
+ drivers/usb/gadget/function/uvc_video.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/drivers/usb/gadget/function/uvc_video.c b/drivers/usb/gadget/function/uvc_video.c
+index 002bf724d802..aade2ea52c4b 100644
+--- a/drivers/usb/gadget/function/uvc_video.c
++++ b/drivers/usb/gadget/function/uvc_video.c
+@@ -6,6 +6,7 @@
+  *	    Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+  */
+ 
++#include "linux/ratelimit_types.h"
+ #include <linux/kernel.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+@@ -399,12 +400,29 @@ uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
+ 	case 0:
+ 		break;
+ 
++	/* dwc3 and everyone else */
+ 	case -EXDEV:
+ 		uvcg_dbg(&video->uvc->func, "VS request missed xfer.\n");
+ 		if (req->length != 0)
+ 			queue->flags |= UVC_QUEUE_DROP_INCOMPLETE;
+ 		break;
+ 
++	/* dwc2 */
++	case -ENODATA: {
++		/* missed isochronous transmit window.
++		 * do not spam logs because this will cause us to miss
++		 * even more of them if UART is enabled / slow enough */
++		static DEFINE_RATELIMIT_STATE(_rs, HZ, 1);
++		if (__ratelimit(&_rs))
++			uvcg_warn(&video->uvc->func,
++				  "VS request missed xfer.\n");
++
++		// XXX: uvcg_queue_cancel() or queue->flags |= UVC_QUEUE_DROP_INCOMPLETE?
++		if (req->length != 0)
++			queue->flags |= UVC_QUEUE_DROP_INCOMPLETE;
++		break;
++	}
++
+ 	case -ESHUTDOWN:	/* disconnect from host. */
+ 		uvcg_dbg(&video->uvc->func, "VS request cancelled.\n");
+ 		uvcg_queue_cancel(queue, 1);
+-- 
+2.55.0
+

@@ -1,0 +1,33 @@
+From 241dfecd99eb8f9b3725a1abae2662daf7042442 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 4 Jul 2026 04:11:51 +0300
+Subject: [PATCH 8002/8003] pikvm: gadget: uvc: Stop UVC video on disconnect
+
+When the USB cable is physically disconnected, DWC2 quickly responds with the status -ESHUTDOWN
+and causes a flood in the interrupt handler with the callback "complete" a million times per second.
+
+We turn off the function altogether to avoid this, the user space must process this
+and restore the camera when the connection appears again.
+---
+ drivers/usb/gadget/function/uvc_video.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/usb/gadget/function/uvc_video.c b/drivers/usb/gadget/function/uvc_video.c
+index aade2ea52c4b..ce4280ded188 100644
+--- a/drivers/usb/gadget/function/uvc_video.c
++++ b/drivers/usb/gadget/function/uvc_video.c
+@@ -379,6 +379,11 @@ uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
+ 	bool is_bulk = video->max_payload_size;
+ 	int ret = 0;
+ 
++	if (req->status == -ESHUTDOWN) {
++		uvcg_video_disable(video);
++		return;
++	}
++
+ 	spin_lock_irqsave(&video->req_lock, flags);
+ 	if (!video->is_enabled) {
+ 		/*
+-- 
+2.55.0
+
