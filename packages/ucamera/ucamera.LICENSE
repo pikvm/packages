@@ -1,0 +1,14 @@
+PiKVM uCamera
+Copyright (C) 2026
+
+This software is distributed in a binary form and is allowed to run
+only on the original PiKVM V3, V4 Mini and V4 Plus hardware.
+
+Modifications are not allowed.
+
+One day we will publish the source code, but not today.
+
+=====
+Includes other software related under other licenses:
+- BSD: libevent      - https://github.com/libevent/libevent/blob/master/LICENSE
+- BSD: libjpeg-turbo - https://github.com/libjpeg-turbo/libjpeg-turbo/blob/main/LICENSE.md

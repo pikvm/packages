@@ -37,6 +37,7 @@ _PKGS = [
     "raspberrypi-bluetooth",
     "flashrom-pikvm",
     "ustreamer",
+    "ucamera",
     "picotool",
     "kvmd",
     "kvmd-oidc",

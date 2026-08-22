@@ -1,0 +1,29 @@
+# Contributor: Maxim Devaev <mdevaev@gmail.com>
+# Author: Maxim Devaev <mdevaev@gmail.com>
+
+
+pkgname=ucamera
+pkgver=0.1
+pkgrel=1
+pkgdesc="UVC camera service for PiKVM"
+url="https://docs.pikvm.org/camera"
+license=(EULA_orig_PiKVM_device_only)
+arch=(armv7h aarch64)
+depends=(libjpeg-turbo libevent)
+makedepends=(cmake)
+source=(ucamera.tar.bz2 ucamera.LICENSE)
+md5sums=(SKIP SKIP)
+
+
+build() {
+	cd "$srcdir"
+	rm -rf "build"
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -B build -S ucamera/ucamera
+	cmake --build build
+}
+
+package() {
+	cd "$srcdir"
+	DESTDIR="$pkgdir" cmake --install build
+	install -Dm644 -t "$pkgdir/usr/share/licenses/ucamera" ucamera.LICENSE
+}
