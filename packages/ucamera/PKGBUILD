@@ -3,7 +3,7 @@
 
 
 pkgname=ucamera
-pkgver=0.2
+pkgver=0.3
 pkgrel=1
 pkgdesc="UVC camera service for PiKVM"
 url="https://docs.pikvm.org/camera"
