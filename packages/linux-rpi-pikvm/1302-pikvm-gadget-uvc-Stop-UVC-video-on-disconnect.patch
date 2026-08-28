@@ -1,7 +1,7 @@
-From 241dfecd99eb8f9b3725a1abae2662daf7042442 Mon Sep 17 00:00:00 2001
+From 680aa155d0cc01632efc6891030c35ffc8bacd0b Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 4 Jul 2026 04:11:51 +0300
-Subject: [PATCH 8002/8003] pikvm: gadget: uvc: Stop UVC video on disconnect
+Subject: [PATCH 1302/1304] pikvm: gadget: uvc: Stop UVC video on disconnect
 
 When the USB cable is physically disconnected, DWC2 quickly responds with the status -ESHUTDOWN
 and causes a flood in the interrupt handler with the callback "complete" a million times per second.

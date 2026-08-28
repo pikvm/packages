@@ -5,12 +5,12 @@
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-rpi
-_commit=2946b3f3b7ebd99ed502dc8da3c7a9b758bdaff2
+_commit=73b1c785241360882ab9f7fb0793e775c25db325
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.12.100
-pkgrel=2
+pkgver=6.12.105
+pkgrel=1
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -30,24 +30,27 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
         linux.preset
         archarm.diffconfig
-        1001-pikvm-hid-remote-wakeup-support.patch
-        1002-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
-        2001-pikvm-msd-dvd-support.patch
-        2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
-        3001-pikvm-tc358743-better-lanes-calculation.patch
-        3002-pikvm-tc358743-lanes-diagnostics.patch
-        4001-pikvm-uac-remove-string-ids.patch
-        5001-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
-        5002-input-add-hynitron-cst816x-series.patch
-        5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
-        6001-pikvm-uac-fixed-uninitialized-set_audio.patch
-        7001-pikvm-nbd-fine-tuning.patch
-        8001-pikvm-gadget-uvc-handle-ISOC-IN-missed-window-feedba.patch
-        8002-pikvm-gadget-uvc-Stop-UVC-video-on-disconnect.patch
-        8003-pikvm-gadget-uvc-Fixed-kernel-crash-on-closing-dev-v.patch
+        1001-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
+        1002-pikvm-hid-remote-wakeup-support.patch
+        1003-pikvm-gadget-hid-Remove-string-IDs.patch
+        1101-pikvm-msd-inquiry-for-flash-and-cdrom.patch
+        1102-pikvm-msd-dvd-support.patch
+        1103-pikvm-gadget-msd-Remove-string-IDs.patch
+        1201-pikvm-uac-fixed-uninitialized-set_audio.patch
+        1202-pikvm-uac-remove-string-ids.patch
+        1301-pikvm-gadget-uvc-handle-ISOC-IN-missed-window-feedba.patch
+        1302-pikvm-gadget-uvc-Stop-UVC-video-on-disconnect.patch
+        1303-pikvm-gadget-uvc-Fixed-kernel-crash-on-closing-dev-v.patch
+        1304-pikvm-gadget-uvc-Remove-string-IDs.patch
+        1401-pikvm-nbd-fine-tuning.patch
+        1501-pikvm-tc358743-lanes-diagnostics.patch
+        1502-pikvm-tc358743-better-lanes-calculation.patch
+        1601-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
+        1602-input-add-hynitron-cst816x-series.patch
+        1603-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
 )
 md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
@@ -92,24 +95,7 @@ _tune_config() {
 prepare() {
   cd "${srcdir}/${_srcname}"
 
-  # consistent behavior of lscpu on arm/arm64
-  patch -p1 -i ../0001-Make-proc-cpuinfo-consistent-on-arm64-and-arm.patch
-
-  patch -p1 -i ../1001-pikvm-hid-remote-wakeup-support.patch
-  patch -p1 -i ../1002-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
-  patch -p1 -i ../2001-pikvm-msd-dvd-support.patch
-  patch -p1 -i ../2002-pikvm-msd-inquiry-for-flash-and-cdrom.patch
-  patch -p1 -i ../3001-pikvm-tc358743-better-lanes-calculation.patch
-  patch -p1 -i ../3002-pikvm-tc358743-lanes-diagnostics.patch
-  patch -p1 -i ../4001-pikvm-uac-remove-string-ids.patch
-  patch -p1 -i ../5001-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
-  patch -p1 -i ../5002-input-add-hynitron-cst816x-series.patch
-  patch -p1 -i ../5003-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
-  patch -p1 -i ../6001-pikvm-uac-fixed-uninitialized-set_audio.patch
-  patch -p1 -i ../7001-pikvm-nbd-fine-tuning.patch
-  patch -p1 -i ../8001-pikvm-gadget-uvc-handle-ISOC-IN-missed-window-feedba.patch
-  patch -p1 -i ../8002-pikvm-gadget-uvc-Stop-UVC-video-on-disconnect.patch
-  patch -p1 -i ../8003-pikvm-gadget-uvc-Fixed-kernel-crash-on-closing-dev-v.patch
+  for p in ../????-*.patch; do patch -p1 -i $p; done
 
   echo "Setting version..."
   echo "-$pkgrel" > localversion.10-pkgrel

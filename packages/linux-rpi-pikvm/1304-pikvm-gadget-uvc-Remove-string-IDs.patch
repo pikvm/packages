@@ -1,0 +1,58 @@
+From e5ef6816255ff78858aedd5f6a53ce4e38cf0513 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Fri, 28 Aug 2026 16:49:44 +0300
+Subject: [PATCH 1304/1304] pikvm: gadget: uvc: Remove string IDs
+
+---
+ drivers/usb/gadget/function/f_uvc.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/usb/gadget/function/f_uvc.c b/drivers/usb/gadget/function/f_uvc.c
+index 2aa5bc09df87..3d318a6ab868 100644
+--- a/drivers/usb/gadget/function/f_uvc.c
++++ b/drivers/usb/gadget/function/f_uvc.c
+@@ -39,6 +39,7 @@ MODULE_PARM_DESC(trace, "Trace level bitmask");
+ 
+ /* string IDs are assigned dynamically */
+ 
++#if 0
+ static struct usb_string uvc_en_us_strings[] = {
+ 	/* [UVC_STRING_CONTROL_IDX].s = DYNAMIC, */
+ 	[UVC_STRING_STREAMING_IDX].s = "Video Streaming",
+@@ -54,6 +55,7 @@ static struct usb_gadget_strings *uvc_function_strings[] = {
+ 	&uvc_stringtab,
+ 	NULL,
+ };
++#endif
+ 
+ #define UVC_INTF_VIDEO_CONTROL			0
+ #define UVC_INTF_VIDEO_STREAMING		1
+@@ -662,7 +664,9 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
+ 	struct usb_composite_dev *cdev = c->cdev;
+ 	struct uvc_device *uvc = to_uvc(f);
+ 	struct uvcg_extension *xu;
++#	if 0
+ 	struct usb_string *us;
++#	endif
+ 	unsigned int max_packet_mult;
+ 	unsigned int max_packet_size;
+ 	struct usb_ep *ep;
+@@ -782,6 +786,7 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
+ 		if (xu->string_descriptor_index)
+ 			xu->desc.iExtension = cdev->usb_strings[xu->string_descriptor_index].id;
+ 
++#	if 0
+ 	/*
+ 	 * We attach the hard-coded defaults incase the user does not provide
+ 	 * any more appropriate strings through configfs.
+@@ -802,6 +807,7 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
+ 	uvc_streaming_intf_alt1.iInterface = opts->vs1_index ?
+ 					     cdev->usb_strings[opts->vs1_index].id :
+ 					     us[UVC_STRING_STREAMING_IDX].id;
++#	endif
+ 
+ 	/* Allocate interface IDs. */
+ 	if ((ret = usb_interface_id(c, f)) < 0)
+-- 
+2.55.0
+

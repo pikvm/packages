@@ -1,7 +1,7 @@
-From 8d9a289eefe9a409c24e550df18c29394e4fa2ef Mon Sep 17 00:00:00 2001
+From 1cfc220a3d982f3703f0e43e66807c560f000596 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 23:06:56 +0200
-Subject: [PATCH] pikvm: uac: fixed uninitialized set_audio()
+Subject: [PATCH 1201/1202] pikvm: uac: fixed uninitialized set_audio()
 
 ---
  drivers/usb/gadget/function/u_audio.c | 7 +++++--
@@ -26,5 +26,5 @@ index ca8dbec65f73..8fca93f37e61 100644
  EXPORT_SYMBOL_GPL(u_audio_suspend);
  
 -- 
-2.51.2
+2.55.0
 

@@ -1,7 +1,7 @@
-From c1afb3cadcc7146348eb78f0526d4bc713fd28f2 Mon Sep 17 00:00:00 2001
+From 6016ea2f66559e0f2807ede72a470647b8f258e0 Mon Sep 17 00:00:00 2001
 From: Oleh Kuzhylnyi <kuzhylol@gmail.com>
 Date: Sun, 21 Sep 2025 14:59:39 +0200
-Subject: [PATCH 2/2] input: add hynitron cst816x series
+Subject: [PATCH 1602/1603] input: add hynitron cst816x series
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -22,7 +22,7 @@ Signed-off-by: Oleh Kuzhylnyi <kuzhylol@gmail.com>
  create mode 100644 drivers/input/touchscreen/hynitron-cst816x.c
 
 diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
-index 1ac26fc2e3eb..0e7c83cfd957 100644
+index 2faf13fa23f5..990a9a36300c 100644
 --- a/drivers/input/touchscreen/Kconfig
 +++ b/drivers/input/touchscreen/Kconfig
 @@ -451,6 +451,18 @@ config TOUCHSCREEN_HYNITRON_CSTXXX
@@ -45,7 +45,7 @@ index 1ac26fc2e3eb..0e7c83cfd957 100644
  	tristate "Ilitek ILI210X based touchscreen"
  	depends on I2C
 diff --git a/drivers/input/touchscreen/Makefile b/drivers/input/touchscreen/Makefile
-index 82bc837ca01e..cdbc5396c305 100644
+index 0183ae020750..77d3be2cb7b9 100644
 --- a/drivers/input/touchscreen/Makefile
 +++ b/drivers/input/touchscreen/Makefile
 @@ -49,6 +49,7 @@ obj-$(CONFIG_TOUCHSCREEN_GOODIX_BERLIN_I2C)	+= goodix_berlin_i2c.o
@@ -55,7 +55,7 @@ index 82bc837ca01e..cdbc5396c305 100644
 +obj-$(CONFIG_TOUCHSCREEN_HYNITRON_CST816X)	+= hynitron-cst816x.o
  obj-$(CONFIG_TOUCHSCREEN_ILI210X)	+= ili210x.o
  obj-$(CONFIG_TOUCHSCREEN_ILITEK)	+= ilitek_ts_i2c.o
- obj-$(CONFIG_TOUCHSCREEN_IMAGIS)	+= imagis.o
+ obj-$(CONFIG_TOUCHSCREEN_ILITEK_V3)	+= ilitek_v3_ts_i2c.o
 diff --git a/drivers/input/touchscreen/hynitron-cst816x.c b/drivers/input/touchscreen/hynitron-cst816x.c
 new file mode 100644
 index 000000000000..0de9bb6a6ef5
@@ -306,5 +306,5 @@ index 000000000000..0de9bb6a6ef5
 +MODULE_DESCRIPTION("Hynitron CST816x Series Touchscreen Driver");
 +MODULE_LICENSE("GPL");
 -- 
-2.51.2
+2.55.0
 

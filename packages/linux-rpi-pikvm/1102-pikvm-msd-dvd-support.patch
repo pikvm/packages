@@ -1,7 +1,7 @@
-From 4ccd9f752fb1c3607e8dc1cc362f42d96bfba87e Mon Sep 17 00:00:00 2001
+From e294e9fd4d7d94e46f826e55e74695c30df1fa49 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 16:16:19 +0200
-Subject: [PATCH] pikvm: msd: dvd support
+Subject: [PATCH 1102/1103] pikvm: msd: dvd support
 
 ---
  drivers/usb/gadget/function/f_mass_storage.c | 376 ++++++++++++++++++-
@@ -10,10 +10,10 @@ Subject: [PATCH] pikvm: msd: dvd support
  3 files changed, 388 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
-index 08e0d1c511e8..8bf1ce4586ce 100644
+index 002ee715252d..35915b85a345 100644
 --- a/drivers/usb/gadget/function/f_mass_storage.c
 +++ b/drivers/usb/gadget/function/f_mass_storage.c
-@@ -1185,6 +1185,16 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1189,6 +1189,16 @@ static int do_read_header(struct fsg_common *common, struct fsg_buffhd *bh)
  	u32		lba = get_unaligned_be32(&common->cmnd[2]);
  	u8		*buf = (u8 *)bh->buf;
  
@@ -30,7 +30,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  	if (common->cmnd[1] & ~0x02) {		/* Mask away MSF */
  		curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
  		return -EINVAL;
-@@ -1239,7 +1249,19 @@ static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1243,7 +1253,19 @@ static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
  
  		buf[13] = 0x16;		/* Lead-out track is data */
  		buf[14] = 0xAA;		/* Lead-out track number */
@@ -51,7 +51,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  		return len;
  
  	case 2:
-@@ -1264,7 +1286,12 @@ static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1268,7 +1290,12 @@ static int do_read_toc(struct fsg_common *common, struct fsg_buffhd *bh)
  		buf -= 11;		/* go back to A2 descriptor */
  
  		/* For A2, 7, 8, 9, 10 - zero, Pmin, Psec, Pframe of Lead out */
@@ -65,7 +65,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  		return len;
  
  	default:
-@@ -1285,6 +1312,23 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1289,6 +1316,23 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
  	int		valid_page = 0;
  	int		len, limit;
  
@@ -89,7 +89,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  	if ((common->cmnd[1] & ~0x08) != 0) {	/* Mask away DBD */
  		curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
  		return -EINVAL;
-@@ -1317,10 +1361,9 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1321,10 +1365,9 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
  
  	/* No block descriptors */
  
@@ -103,7 +103,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  	if (page_code == 0x08 || all_pages) {
  		valid_page = 1;
  		buf[0] = 0x08;		/* Page code */
-@@ -1342,6 +1385,24 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1346,6 +1389,24 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
  		buf += 12;
  	}
  
@@ -128,7 +128,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  	/*
  	 * Check that a valid page was requested and the mode data length
  	 * isn't too long.
-@@ -1461,6 +1522,249 @@ static int do_mode_select(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1465,6 +1526,249 @@ static int do_mode_select(struct fsg_common *common, struct fsg_buffhd *bh)
  	return -EINVAL;
  }
  
@@ -378,7 +378,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  
  /*-------------------------------------------------------------------------*/
  
-@@ -1882,6 +2186,63 @@ static int do_scsi_command(struct fsg_common *common)
+@@ -1893,6 +2197,63 @@ static int do_scsi_command(struct fsg_common *common)
  	down_read(&common->filesem);	/* We're using the backing file */
  	switch (common->cmnd[0]) {
  
@@ -442,7 +442,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  	case INQUIRY:
  		common->data_size_from_cmnd = common->cmnd[4];
  		reply = check_command(common, 6, DATA_DIR_TO_HOST,
-@@ -2009,7 +2370,8 @@ static int do_scsi_command(struct fsg_common *common)
+@@ -2020,7 +2381,8 @@ static int do_scsi_command(struct fsg_common *common)
  		common->data_size_from_cmnd =
  			get_unaligned_be16(&common->cmnd[7]);
  		reply = check_command(common, 10, DATA_DIR_TO_HOST,
@@ -453,7 +453,7 @@ index 08e0d1c511e8..8bf1ce4586ce 100644
  		if (reply == 0)
  			reply = do_read_toc(common, bh);
 diff --git a/drivers/usb/gadget/function/storage_common.c b/drivers/usb/gadget/function/storage_common.c
-index 75831f2c7abe..fb76d863276b 100644
+index 04aa42bb8999..82740405d5a0 100644
 --- a/drivers/usb/gadget/function/storage_common.c
 +++ b/drivers/usb/gadget/function/storage_common.c
 @@ -241,16 +241,7 @@ int fsg_lun_open(struct fsg_lun *curlun, const char *filename)
@@ -486,7 +486,7 @@ index 75831f2c7abe..fb76d863276b 100644
  	curlun->blkbits = blkbits;
  	curlun->ro = ro;
 diff --git a/drivers/usb/gadget/function/storage_common.h b/drivers/usb/gadget/function/storage_common.h
-index ced5d2b09234..1883260a898f 100644
+index 7e9468548760..08836dad19fe 100644
 --- a/drivers/usb/gadget/function/storage_common.h
 +++ b/drivers/usb/gadget/function/storage_common.h
 @@ -85,6 +85,19 @@ do {									\
@@ -518,5 +518,5 @@ index ced5d2b09234..1883260a898f 100644
  	unsigned int	registered:1;
  	unsigned int	info_valid:1;
 -- 
-2.51.2
+2.55.0
 

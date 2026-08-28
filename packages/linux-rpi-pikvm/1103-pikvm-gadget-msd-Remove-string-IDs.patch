@@ -1,0 +1,68 @@
+From f3ccb30cdd87721a190c8f29b5472fbb553acd48 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Fri, 28 Aug 2026 18:39:00 +0300
+Subject: [PATCH 1103/1103] pikvm: gadget: msd: Remove string IDs
+
+---
+ drivers/usb/gadget/function/f_mass_storage.c | 6 ++++++
+ drivers/usb/gadget/function/storage_common.c | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
+index 35915b85a345..2e7fb82db2ad 100644
+--- a/drivers/usb/gadget/function/f_mass_storage.c
++++ b/drivers/usb/gadget/function/f_mass_storage.c
+@@ -205,11 +205,14 @@
+ #define FSG_DRIVER_DESC		"Mass Storage Function"
+ #define FSG_DRIVER_VERSION	"2009/09/11"
+ 
++#if 0
+ static const char fsg_string_interface[] = "Mass Storage";
++#endif
+ 
+ #include "storage_common.h"
+ #include "f_mass_storage.h"
+ 
++#if 0
+ /* Static strings, in UTF-8 (for simplicity we use only ASCII characters) */
+ static struct usb_string		fsg_strings[] = {
+ 	{FSG_STRING_INTERFACE,		fsg_string_interface},
+@@ -225,6 +228,7 @@ static struct usb_gadget_strings *fsg_strings_array[] = {
+ 	&fsg_stringtab,
+ 	NULL,
+ };
++#endif
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -3191,12 +3195,14 @@ int fsg_common_set_cdev(struct fsg_common *common,
+ 	common->ep0req = cdev->req;
+ 	common->cdev = cdev;
+ 
++#	if 0
+ 	us = usb_gstrings_attach(cdev, fsg_strings_array,
+ 				 ARRAY_SIZE(fsg_strings));
+ 	if (IS_ERR(us))
+ 		return PTR_ERR(us);
+ 
+ 	fsg_intf_desc.iInterface = us[FSG_STRING_INTERFACE].id;
++#	endif
+ 
+ 	/*
+ 	 * Some peripheral controllers are known not to be able to
+diff --git a/drivers/usb/gadget/function/storage_common.c b/drivers/usb/gadget/function/storage_common.c
+index 82740405d5a0..de9558eca5a6 100644
+--- a/drivers/usb/gadget/function/storage_common.c
++++ b/drivers/usb/gadget/function/storage_common.c
+@@ -38,7 +38,7 @@ struct usb_interface_descriptor fsg_intf_desc = {
+ 	.bInterfaceClass =	USB_CLASS_MASS_STORAGE,
+ 	.bInterfaceSubClass =	USB_SC_SCSI,	/* Adjusted during fsg_bind() */
+ 	.bInterfaceProtocol =	USB_PR_BULK,	/* Adjusted during fsg_bind() */
+-	.iInterface =		FSG_STRING_INTERFACE,
++	.iInterface =		0, /* FSG_STRING_INTERFACE, */
+ };
+ EXPORT_SYMBOL_GPL(fsg_intf_desc);
+ 
+-- 
+2.55.0
+

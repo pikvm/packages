@@ -1,7 +1,7 @@
-From 4a589516e2fe94603f45f851c9ceb638e7d02392 Mon Sep 17 00:00:00 2001
+From fcb89c1148b40c0e9607c1bdb5983b5fbadb057a Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 4 Jul 2026 05:05:32 +0300
-Subject: [PATCH 8003/8003] pikvm: gadget: uvc: Fixed kernel crash on closing
+Subject: [PATCH 1303/1304] pikvm: gadget: uvc: Fixed kernel crash on closing
  /dev/videoN
 
 If uvc_v4l2_streamoff() (via ioctl VIDIOC_STREAMOFF) was not called
@@ -14,10 +14,10 @@ we just have to call it before uvc_function_disconnect().
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/function/uvc_v4l2.c b/drivers/usb/gadget/function/uvc_v4l2.c
-index 77e17d23ffe5..0ed468a2a5df 100644
+index 624215508ed6..f6e4d9fef166 100644
 --- a/drivers/usb/gadget/function/uvc_v4l2.c
 +++ b/drivers/usb/gadget/function/uvc_v4l2.c
-@@ -532,8 +532,8 @@ uvc_v4l2_subscribe_event(struct v4l2_fh *fh,
+@@ -534,8 +534,8 @@ uvc_v4l2_subscribe_event(struct v4l2_fh *fh,
  
  static void uvc_v4l2_disable(struct uvc_device *uvc)
  {

@@ -1,7 +1,7 @@
-From f3889f60edc5bd5a8060479f806177d3aba0f1bf Mon Sep 17 00:00:00 2001
+From 22bfcda09f526807510c91e1029032a4dee671b2 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 16:12:13 +0200
-Subject: [PATCH] pikvm: hid remote wakeup support
+Subject: [PATCH 1002/1003] pikvm: hid remote wakeup support
 
 ---
  drivers/usb/dwc2/gadget.c           | 73 +++++++++++++++++++++++++++++
@@ -10,10 +10,10 @@ Subject: [PATCH] pikvm: hid remote wakeup support
  3 files changed, 88 insertions(+)
 
 diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
-index 834fc02610a2..a3a2ddca8358 100644
+index e88683b1268f..31c7830ee330 100644
 --- a/drivers/usb/dwc2/gadget.c
 +++ b/drivers/usb/dwc2/gadget.c
-@@ -4782,6 +4782,78 @@ static void dwc2_gadget_set_speed(struct usb_gadget *g, enum usb_device_speed sp
+@@ -4784,6 +4784,78 @@ static void dwc2_gadget_set_speed(struct usb_gadget *g, enum usb_device_speed sp
  	spin_unlock_irqrestore(&hsotg->lock, flags);
  }
  
@@ -92,7 +92,7 @@ index 834fc02610a2..a3a2ddca8358 100644
  static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
  	.get_frame	= dwc2_hsotg_gadget_getframe,
  	.set_selfpowered	= dwc2_hsotg_set_selfpowered,
-@@ -4791,6 +4863,7 @@ static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
+@@ -4793,6 +4865,7 @@ static const struct usb_gadget_ops dwc2_hsotg_gadget_ops = {
  	.udc_set_speed		= dwc2_gadget_set_speed,
  	.vbus_session		= dwc2_hsotg_vbus_session,
  	.vbus_draw		= dwc2_hsotg_vbus_draw,
@@ -101,7 +101,7 @@ index 834fc02610a2..a3a2ddca8358 100644
  
  /**
 diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
-index ab4d170469f5..b6eddf451edf 100644
+index 743c5898508d..e79d7234d4cf 100644
 --- a/drivers/usb/gadget/function/f_hid.c
 +++ b/drivers/usb/gadget/function/f_hid.c
 @@ -71,6 +71,8 @@ struct f_hidg {
@@ -133,7 +133,7 @@ index ab4d170469f5..b6eddf451edf 100644
  	spin_lock_irqsave(&hidg->write_spinlock, flags);
  
  	if (!hidg->req) {
-@@ -1377,6 +1388,7 @@ CONFIGFS_ATTR(f_hid_opts_, name)
+@@ -1380,6 +1391,7 @@ CONFIGFS_ATTR(f_hid_opts_, name)
  F_HID_OPT(subclass, 8, 255);
  F_HID_OPT(protocol, 8, 255);
  F_HID_OPT(no_out_endpoint, 8, 1);
@@ -141,7 +141,7 @@ index ab4d170469f5..b6eddf451edf 100644
  F_HID_OPT(report_length, 16, 65535);
  
  static ssize_t f_hid_opts_report_desc_show(struct config_item *item, char *page)
-@@ -1437,6 +1449,7 @@ static struct configfs_attribute *hid_attrs[] = {
+@@ -1440,6 +1452,7 @@ static struct configfs_attribute *hid_attrs[] = {
  	&f_hid_opts_attr_subclass,
  	&f_hid_opts_attr_protocol,
  	&f_hid_opts_attr_no_out_endpoint,
@@ -149,7 +149,7 @@ index ab4d170469f5..b6eddf451edf 100644
  	&f_hid_opts_attr_report_length,
  	&f_hid_opts_attr_report_desc,
  	&f_hid_opts_attr_dev,
-@@ -1572,6 +1585,7 @@ static struct usb_function *hidg_alloc(struct usb_function_instance *fi)
+@@ -1585,6 +1598,7 @@ static struct usb_function *hidg_alloc(struct usb_function_instance *fi)
  		}
  	}
  	hidg->use_out_ep = !opts->no_out_endpoint;
@@ -170,5 +170,5 @@ index 84bb70292855..f7fcaf1eaf1d 100644
  	unsigned short			report_desc_length;
  	unsigned char			*report_desc;
 -- 
-2.51.2
+2.55.0
 

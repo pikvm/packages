@@ -1,7 +1,7 @@
-From 38cea64f6c055c38e80720832b973c7ecab191f7 Mon Sep 17 00:00:00 2001
+From 8323e3f21ca4915309c3c0f59bc17569f4539ec5 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 16:24:34 +0200
-Subject: [PATCH] pikvm: msd: inquiry for flash and cdrom
+Subject: [PATCH 1101/1103] pikvm: msd: inquiry for flash and cdrom
 
 ---
  drivers/usb/gadget/function/f_mass_storage.c | 21 +++++++++-
@@ -10,10 +10,10 @@ Subject: [PATCH] pikvm: msd: inquiry for flash and cdrom
  3 files changed, 57 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
-index 08e0d1c511e8..47cbfd3a468f 100644
+index 74cb7e57a197..002ee715252d 100644
 --- a/drivers/usb/gadget/function/f_mass_storage.c
 +++ b/drivers/usb/gadget/function/f_mass_storage.c
-@@ -1071,7 +1071,10 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
+@@ -1072,7 +1072,10 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
  	buf[5] = 0;		/* No special options */
  	buf[6] = 0;
  	buf[7] = 0;
@@ -25,7 +25,7 @@ index 08e0d1c511e8..47cbfd3a468f 100644
  		memcpy(buf + 8, curlun->inquiry_string,
  		       sizeof(curlun->inquiry_string));
  	else
-@@ -3250,6 +3253,21 @@ static ssize_t fsg_lun_opts_inquiry_string_store(struct config_item *item,
+@@ -3258,6 +3261,21 @@ static ssize_t fsg_lun_opts_inquiry_string_store(struct config_item *item,
  
  CONFIGFS_ATTR(fsg_lun_opts_, inquiry_string);
  
@@ -47,7 +47,7 @@ index 08e0d1c511e8..47cbfd3a468f 100644
  static ssize_t fsg_lun_opts_forced_eject_store(struct config_item *item,
  					       const char *page, size_t len)
  {
-@@ -3269,6 +3287,7 @@ static struct configfs_attribute *fsg_lun_attrs[] = {
+@@ -3277,6 +3295,7 @@ static struct configfs_attribute *fsg_lun_attrs[] = {
  	&fsg_lun_opts_attr_cdrom,
  	&fsg_lun_opts_attr_nofua,
  	&fsg_lun_opts_attr_inquiry_string,
@@ -154,5 +154,5 @@ index ced5d2b09234..7e9468548760 100644
  			       const char *buf, size_t count);
  
 -- 
-2.51.2
+2.55.0
 

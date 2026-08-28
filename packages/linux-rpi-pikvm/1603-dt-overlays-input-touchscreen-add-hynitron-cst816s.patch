@@ -1,7 +1,8 @@
-From 80ee4d5685623a79c8214607ddf17ea591a428a7 Mon Sep 17 00:00:00 2001
+From 079637560172b3f0544800ba1539b53123df84e8 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 18:05:12 +0200
-Subject: [PATCH] dt-overlays: input: touchscreen: add hynitron cst816s
+Subject: [PATCH 1603/1603] dt-overlays: input: touchscreen: add hynitron
+ cst816s
 
 ---
  arch/arm/boot/dts/overlays/Makefile           |  1 +
@@ -10,7 +11,7 @@ Subject: [PATCH] dt-overlays: input: touchscreen: add hynitron cst816s
  create mode 100644 arch/arm/boot/dts/overlays/cst816s-overlay.dts
 
 diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
-index 77f3ecb1e2e7..db4da68cd510 100644
+index e32dd9dc89f1..63f6a9b2c98f 100644
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
 @@ -3,6 +3,7 @@
@@ -50,5 +51,5 @@ index 000000000000..7b287153b428
 +	};
 +};
 -- 
-2.51.2
+2.55.0
 

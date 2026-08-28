@@ -1,14 +1,14 @@
-From 2d6b3ce66dc51cd96fdd85881de5c2531316c3ed Mon Sep 17 00:00:00 2001
+From 8922e044bd5645a527f10e445fd1e9895d681258 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 05:40:59 +0200
-Subject: [PATCH] pikvm: hid: clean set_report_buf on hidg disabling
+Subject: [PATCH 1001/1003] pikvm: hid: clean set_report_buf on hidg disabling
 
 ---
  drivers/usb/gadget/function/f_hid.c | 9 ++++++++-
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
-index ab4d170469f5..cd375ad5ff44 100644
+index 2f4a5d22aca4..743c5898508d 100644
 --- a/drivers/usb/gadget/function/f_hid.c
 +++ b/drivers/usb/gadget/function/f_hid.c
 @@ -428,7 +428,7 @@ static ssize_t f_hidg_ssreport_read(struct file *file, char __user *buffer,
@@ -20,7 +20,7 @@ index ab4d170469f5..cd375ad5ff44 100644
  	}
  
  	wake_up(&hidg->read_queue);
-@@ -1010,6 +1010,13 @@ static void hidg_disable(struct usb_function *f)
+@@ -1011,6 +1011,13 @@ static void hidg_disable(struct usb_function *f)
  		spin_unlock_irqrestore(&hidg->read_spinlock, flags);
  	}
  
@@ -35,5 +35,5 @@ index ab4d170469f5..cd375ad5ff44 100644
  	if (!hidg->get_report_returned) {
  		usb_ep_free_request(f->config->cdev->gadget->ep0, hidg->get_req);
 -- 
-2.52.0
+2.55.0
 

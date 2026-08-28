@@ -1,7 +1,7 @@
-From 29e02ad2707f0b06291966f35ebbff40a342bf0e Mon Sep 17 00:00:00 2001
+From b4555218785b0115f9269b8fa05d24afeb447b65 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 16:53:30 +0200
-Subject: [PATCH] pikvm: uac: remove string ids
+Subject: [PATCH 1202/1202] pikvm: uac: remove string ids
 
 ---
  drivers/usb/gadget/function/f_uac2.c | 10 ++++++++++
@@ -85,5 +85,5 @@ index 9b324821c93b..5143a6a40967 100644
  
  	/* Initialize the configurable parameters */
 -- 
-2.51.2
+2.55.0
 

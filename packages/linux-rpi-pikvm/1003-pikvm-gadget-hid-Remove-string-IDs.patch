@@ -1,0 +1,57 @@
+From 9b60d7c12afd3965eff60af50daea70b68e1e82b Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Fri, 28 Aug 2026 18:30:23 +0300
+Subject: [PATCH 1003/1003] pikvm: gadget: hid: Remove string IDs
+
+---
+ drivers/usb/gadget/function/f_hid.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
+index e79d7234d4cf..87dda3119571 100644
+--- a/drivers/usb/gadget/function/f_hid.c
++++ b/drivers/usb/gadget/function/f_hid.c
+@@ -298,6 +298,7 @@ static struct usb_descriptor_header *hidg_fs_descriptors_ssreport[] = {
+ /*-------------------------------------------------------------------------*/
+ /*                                 Strings                                 */
+ 
++#if 0
+ #define CT_FUNC_HID_IDX	0
+ 
+ static struct usb_string ct_func_string_defs[] = {
+@@ -314,6 +315,7 @@ static struct usb_gadget_strings *ct_func_strings[] = {
+ 	&ct_func_string_table,
+ 	NULL,
+ };
++#endif
+ 
+ /*-------------------------------------------------------------------------*/
+ /*                              Char Device                                */
+@@ -1181,7 +1183,9 @@ static int hidg_bind(struct usb_configuration *c, struct usb_function *f)
+ {
+ 	struct usb_ep		*ep;
+ 	struct f_hidg		*hidg = func_to_hidg(f);
++#	if 0
+ 	struct usb_string	*us;
++#	endif
+ 	int			status;
+ 
+ 	hidg->get_req = usb_ep_alloc_request(c->cdev->gadget->ep0, GFP_ATOMIC);
+@@ -1193,12 +1197,14 @@ static int hidg_bind(struct usb_configuration *c, struct usb_function *f)
+ 	hidg->get_req->context = hidg;
+ 	hidg->get_report_returned = true;
+ 
++#	if 0
+ 	/* maybe allocate device-global string IDs, and patch descriptors */
+ 	us = usb_gstrings_attach(c->cdev, ct_func_strings,
+ 				 ARRAY_SIZE(ct_func_string_defs));
+ 	if (IS_ERR(us))
+ 		return PTR_ERR(us);
+ 	hidg_interface_desc.iInterface = us[CT_FUNC_HID_IDX].id;
++#	endif
+ 
+ 	/* allocate instance-specific interface IDs, and patch descriptors */
+ 	status = usb_interface_id(c, f);
+-- 
+2.55.0
+

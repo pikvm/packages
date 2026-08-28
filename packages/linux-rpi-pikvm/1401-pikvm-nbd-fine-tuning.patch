@@ -1,4 +1,4 @@
-From 406f75383962b456b34c3f8904f3666d274031d2 Mon Sep 17 00:00:00 2001
+From 75ec23bc697bef1c0068c3a1fd196f9b6122734f Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sun, 18 Jan 2026 06:19:56 +0200
 Subject: [PATCH] pikvm: nbd: fine tuning
@@ -12,7 +12,7 @@ Subject: [PATCH] pikvm: nbd: fine tuning
  1 file changed, 42 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/block/nbd.c b/drivers/block/nbd.c
-index deb298371a6a..fa417263edd9 100644
+index 958bd115a341..7fceacb03cc0 100644
 --- a/drivers/block/nbd.c
 +++ b/drivers/block/nbd.c
 @@ -21,6 +21,7 @@
@@ -105,5 +105,5 @@ index deb298371a6a..fa417263edd9 100644
  		goto out_free_work;
  
 -- 
-2.54.0
+2.55.0
 

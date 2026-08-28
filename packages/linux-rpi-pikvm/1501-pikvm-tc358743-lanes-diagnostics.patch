@@ -1,7 +1,7 @@
-From bc93bdbc80dcbad3ac06c5fcbf4deded7125afa6 Mon Sep 17 00:00:00 2001
+From bfd541fe6d03dc9fc4d5d3e9a1bf87c4d9c4da89 Mon Sep 17 00:00:00 2001
 From: Maxim Devaev <mdevaev@gmail.com>
 Date: Sat, 1 Nov 2025 16:43:32 +0200
-Subject: [PATCH] pikvm: tc358743: lanes diagnostics
+Subject: [PATCH 1501/1502] pikvm: tc358743: lanes diagnostics
 
 ---
  drivers/media/i2c/tc358743.c | 35 +++++++++++++++++++++++++++++++++++
@@ -102,5 +102,5 @@ index b343650c2948..0867ff624eac 100644
  
  #endif
 -- 
-2.51.2
+2.55.0
 
