@@ -3,7 +3,7 @@
 
 
 pkgname=kvmd-oidc
-pkgver=4.213
+pkgver=4.214
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -12,7 +12,6 @@ arch=(any)
 depends=(
 	"python>=3.14"
 	"python<3.15"
-	python-yaml
 	python-ruamel-yaml
 	python-aiohttp
 	python-aiofiles
