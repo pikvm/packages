@@ -3,7 +3,7 @@
 
 
 pkgname=kvmd-oidc
-pkgver=4.215
+pkgver=4.216
 pkgrel=1
 pkgdesc="The main PiKVM daemon"
 url="https://github.com/pikvm/kvmd"
@@ -62,7 +62,7 @@ depends=(
 	certbot
 	"raspberrypi-io-access>=0.9"
 	raspberrypi-utils
-	"ustreamer>=6.47"
+	"ustreamer>=6.67"
 
 	# Bootconfig
 	dos2unix
