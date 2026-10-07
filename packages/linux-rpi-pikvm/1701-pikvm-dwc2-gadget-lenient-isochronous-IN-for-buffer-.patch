@@ -1,0 +1,176 @@
+From 0a1e7e26585e936ffd97a0d211fe41aa86027157 Mon Sep 17 00:00:00 2001
+From: Adrian Fedoreanu <adrian.fedoreanu@gmail.com>
+Date: Wed, 9 Sep 2026 18:08:03 +0200
+Subject: [PATCH] pikvm: dwc2: gadget: lenient isochronous IN for buffer DMA
+ mode
+
+In buffer DMA mode dwc2 serves an isochronous IN endpoint with one
+request per (micro)frame, started from the completion interrupt. Since
+commit 91bb163e1e4f ("usb: dwc2: gadget: Fix ISOC flow for BDMA and
+Slave") every request whose target frame has passed is given back with
+-ENODATA: when the completion interrupt runs late, when the DMA has not
+filled the TX FIFO before the IN token arrives (the core answers with a
+ZLP and raises NAK), and from the incomplete-isoc-IN interrupt. Each of
+those aborts the transfer with dwc2_hsotg_ep_stop_xfr(), which polls up
+to 200us inside the interrupt handler and on this hardware regularly
+times out on both NAKEFF and EPDisable, so one miss makes the next
+window late as well.
+
+The UVC function drops the rest of the video frame on -ENODATA, so with
+a bInterval of 1 (8000 windows a second, needed for 1080p) a 1080p
+MJPEG stream on a V4 Mini came through at 7.5 fps with 25 lost frames a
+second, and about one in three data packets missed its first window at
+1024 bytes per window.
+
+For a stream like MJPEG nothing depends on which (micro)frame a packet
+arrives in; the host reassembles payloads until the FID bit toggles.
+So add a lenient mode for isochronous IN endpoints, on by default and
+switchable with the isoc_in_lenient module parameter, which is what the
+driver did before that commit: a transfer that missed its frame is not
+aborted but left armed (or started late) and goes out in the next
+possible (micro)frame.
+
+- dwc2_hsotg_start_req(): a late start moves the target past the
+  current frame and programs the transfer instead of returning -ENODATA.
+- dwc2_gadget_handle_nak(): an armed transfer is left alone, only the
+  frame bookkeeping is moved on. No dwc2_hsotg_ep_stop_xfr() and no
+  -ENODATA.
+- dwc2_gadget_handle_incomplete_isoc_in(): the endpoint is not disabled.
+- The XferCompl interrupt is honoured even with a NAK pending when the
+  transfer size has been consumed, since the NAK may be from an earlier
+  window (the token found the FIFO empty, the packet went out one
+  window later). Otherwise a packet that was actually sent is reported
+  as missed.
+
+With this the same 1080p stream shows no missed windows at all and no
+stop_xfr timeouts, and the frames arrive whole.
+
+Signed-off-by: Adrian Fedoreanu <phedoreanu@users.noreply.github.com>
+---
+ drivers/usb/dwc2/gadget.c | 75 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 74 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/dwc2/gadget.c b/drivers/usb/dwc2/gadget.c
+index e88683b12..5cc0fbc2a 100644
+--- a/drivers/usb/dwc2/gadget.c
++++ b/drivers/usb/dwc2/gadget.c
+@@ -1030,6 +1030,8 @@ static void dwc2_gadget_start_isoc_ddma(struct dwc2_hsotg_ep *hs_ep)
+ }
+ 
+ static bool dwc2_gadget_target_frame_elapsed(struct dwc2_hsotg_ep *hs_ep);
++static bool dwc2_gadget_isoc_in_lenient(struct dwc2_hsotg_ep *hs_ep);
++static void dwc2_gadget_catch_up_frame(struct dwc2_hsotg_ep *hs_ep);
+ static void dwc2_hsotg_complete_request(struct dwc2_hsotg *hsotg,
+ 					struct dwc2_hsotg_ep *hs_ep,
+ 				       struct dwc2_hsotg_req *hs_req,
+@@ -1188,6 +1190,10 @@ static void dwc2_hsotg_start_req(struct dwc2_hsotg *hsotg,
+ 	}
+ 
+ 	if (hs_ep->isochronous) {
++		if (dwc2_gadget_target_frame_elapsed(hs_ep) &&
++		    dwc2_gadget_isoc_in_lenient(hs_ep))
++			dwc2_gadget_catch_up_frame(hs_ep);
++
+ 		if (!dwc2_gadget_target_frame_elapsed(hs_ep)) {
+ 			if (hs_ep->interval == 1) {
+ 				if (hs_ep->target_frame & 0x1)
+@@ -1364,6 +1370,44 @@ static bool dwc2_gadget_target_frame_elapsed(struct dwc2_hsotg_ep *hs_ep)
+ 	return false;
+ }
+ 
++/*
++ * Isochronous IN in buffer DMA mode: a packet that missed its (micro)frame,
++ * because the completion interrupt came late or the DMA had not filled the
++ * FIFO before the IN token, is normally given back with -ENODATA and never
++ * sent. For a stream like MJPEG over UVC that costs a whole video frame per
++ * 125us window. With the lenient mode the transfer is left armed (or started
++ * again) and simply goes out in the next possible (micro)frame instead.
++ */
++static bool isoc_in_lenient = true;
++module_param(isoc_in_lenient, bool, 0644);
++MODULE_PARM_DESC(isoc_in_lenient,
++		 "Send a late isochronous IN packet in the next (micro)frame instead of dropping it (buffer DMA mode)");
++
++static bool dwc2_gadget_isoc_in_lenient(struct dwc2_hsotg_ep *hs_ep)
++{
++	return (isoc_in_lenient && hs_ep->isochronous && hs_ep->dir_in &&
++		hs_ep->index != 0 && !using_desc_dma(hs_ep->parent));
++}
++
++/*
++ * dwc2_gadget_catch_up_frame - move the target frame past the current one
++ * @hs_ep: The endpoint
++ *
++ * Re-reads the (micro)frame counter and advances the target until it is in
++ * the future again, so that a late transfer aims at the next frame instead
++ * of one that has already passed.
++ */
++static void dwc2_gadget_catch_up_frame(struct dwc2_hsotg_ep *hs_ep)
++{
++	struct dwc2_hsotg *hsotg = hs_ep->parent;
++
++	hsotg->frame_number = dwc2_hsotg_read_frameno(hsotg);
++	while (dwc2_gadget_target_frame_elapsed(hs_ep)) {
++		dwc2_gadget_incr_frame_num(hs_ep);
++		hsotg->frame_number = dwc2_hsotg_read_frameno(hsotg);
++	}
++}
++
+ /*
+  * dwc2_gadget_set_ep0_desc_chain - Set EP's desc chain pointers
+  * @hsotg: The driver state
+@@ -3006,6 +3050,23 @@ static void dwc2_gadget_handle_nak(struct dwc2_hsotg_ep *hs_ep)
+ 		return;
+ 
+ 	ctrl = dwc2_readl(hsotg, DIEPCTL(hs_ep->index));
++
++	if (dwc2_gadget_isoc_in_lenient(hs_ep)) {
++		/*
++		 * The token came before the data was in the FIFO and the core
++		 * answered with a ZLP. An armed transfer just goes out in the
++		 * next (micro)frame of its parity, so leave it alone and only
++		 * move the bookkeeping on; stopping it here would cost a couple
++		 * of hundred microseconds of polling in the interrupt handler.
++		 */
++		if (!(ctrl & DXEPCTL_EPENA))
++			dwc2_hsotg_txfifo_flush(hsotg, hs_ep->fifo_index);
++		dwc2_gadget_catch_up_frame(hs_ep);
++		if (!hs_ep->req)
++			dwc2_gadget_start_next_request(hs_ep);
++		return;
++	}
++
+ 	if (ctrl & DXEPCTL_EPENA)
+ 		dwc2_hsotg_ep_stop_xfr(hsotg, hs_ep);
+ 	else
+@@ -3088,7 +3149,15 @@ static void dwc2_hsotg_epint(struct dwc2_hsotg *hsotg, unsigned int idx,
+ 			 * need to look at completing IN requests here
+ 			 * if operating slave mode
+ 			 */
+-			if (!hs_ep->isochronous || !(ints & DXEPINT_NAKINTRPT))
++			/*
++			 * With a NAK pending the XferCompl may only stand for the
++			 * ZLP the core answered with, unless the transfer size has
++			 * really been consumed (lenient mode checks that, as the
++			 * NAK could be from an earlier (micro)frame).
++			 */
++			if (!hs_ep->isochronous || !(ints & DXEPINT_NAKINTRPT) ||
++			    (dwc2_gadget_isoc_in_lenient(hs_ep) && hs_ep->req &&
++			     !DXEPTSIZ_XFERSIZE_GET(dwc2_readl(hsotg, epsiz_reg))))
+ 				dwc2_hsotg_complete_in(hsotg, hs_ep);
+ 
+ 			if (idx == 0 && !hs_ep->req)
+@@ -3634,6 +3703,10 @@ static void dwc2_gadget_handle_incomplete_isoc_in(struct dwc2_hsotg *hsotg)
+ 		if ((BIT(idx) & ~daintmsk) || !hs_ep->isochronous)
+ 			continue;
+ 
++		/* A lenient endpoint keeps its transfer for the next (micro)frame */
++		if (dwc2_gadget_isoc_in_lenient(hs_ep))
++			continue;
++
+ 		epctrl = dwc2_readl(hsotg, DIEPCTL(idx));
+ 		if ((epctrl & DXEPCTL_EPENA) &&
+ 		    dwc2_gadget_target_frame_elapsed(hs_ep)) {
+-- 
+2.55.0
+
