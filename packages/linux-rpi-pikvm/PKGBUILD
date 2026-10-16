@@ -48,9 +48,10 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         1601-dt-bindings-input-touchscreen-add-hynitron-cst816x-s.patch
         1602-input-add-hynitron-cst816x-series.patch
         1603-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
+        1701-pikvm-dwc2-gadget-lenient-isochronous-IN-for-buffer-.patch
 )
 md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
