@@ -1,0 +1,41 @@
+From d36b030ad1853b224c07ffb8e6299c1320cbe783 Mon Sep 17 00:00:00 2001
+From: Maxim Devaev <mdevaev@gmail.com>
+Date: Sat, 17 Oct 2026 11:11:07 +0300
+Subject: [PATCH] pikvm: gadget: hid: Revert "usb: gadget: f_hid: Fix zero
+ length packet transfer"
+
+This reverts commit fd6820af0ac9cd197a918e07b490a654e41fc351.
+
+It breaks something inside ATEN machinery, also it seems it generates
+some garbage input in some UEFIs.
+
+Link: https://github.com/pikvm/pikvm/issues/1706
+---
+ drivers/usb/gadget/function/f_hid.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/gadget/function/f_hid.c b/drivers/usb/gadget/function/f_hid.c
+index 87dda3119571..11c7281a71a3 100644
+--- a/drivers/usb/gadget/function/f_hid.c
++++ b/drivers/usb/gadget/function/f_hid.c
+@@ -539,7 +539,7 @@ static ssize_t f_hidg_write(struct file *file, const char __user *buffer,
+ 	}
+ 
+ 	req->status   = 0;
+-	req->zero     = 1;
++	req->zero     = 0;
+ 	req->length   = count;
+ 	req->complete = f_hidg_req_complete;
+ 	req->context  = hidg;
+@@ -996,7 +996,7 @@ static int hidg_setup(struct usb_function *f,
+ 	return -EOPNOTSUPP;
+ 
+ respond:
+-	req->zero = 1;
++	req->zero = 0;
+ 	req->length = length;
+ 	status = usb_ep_queue(cdev->gadget->ep0, req, GFP_ATOMIC);
+ 	if (status < 0)
+-- 
+2.56.0
+

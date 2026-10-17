@@ -10,7 +10,7 @@ _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
 pkgver=6.12.105
-pkgrel=2
+pkgrel=3
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
 arch=(armv7h aarch64)
@@ -33,6 +33,7 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         1001-pikvm-hid-clean-set_report_buf-on-hidg-disabling.patch
         1002-pikvm-hid-remote-wakeup-support.patch
         1003-pikvm-gadget-hid-Remove-string-IDs.patch
+        1004-pikvm-gadget-hid-Revert-usb-gadget-f_hid-Fix-zero-le.patch
         1101-pikvm-msd-inquiry-for-flash-and-cdrom.patch
         1102-pikvm-msd-dvd-support.patch
         1103-pikvm-gadget-msd-Remove-string-IDs.patch
@@ -50,7 +51,7 @@ source=("linux-$pkgver-${_commit:0:10}.tar.gz::https://github.com/raspberrypi/li
         1603-dt-overlays-input-touchscreen-add-hynitron-cst816s.patch
 )
 md5sums=(SKIP SKIP SKIP SKIP SKIP SKIP SKIP
-         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
+         SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP SKIP)
 md5sums_armv7h=(SKIP)
 md5sums_aarch64=(SKIP)
 
