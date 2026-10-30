@@ -1,0 +1,48 @@
+pkgname=kvmd-certmgr-thirdparty
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="PiKVM - HTTPS & Certificate Authority Manager (third-party)"
+url="https://github.com/adamoutler/kvmd-certmgr-thirdparty"
+license=(GPL)
+arch=(any)
+depends=(
+	"python>=3.14"
+	"python<3.15"
+	kvmd
+	openssl
+	python-aiohttp
+)
+makedepends=(
+	python-build
+	python-installer
+	python-wheel
+	python-setuptools
+)
+install=$pkgname.install
+source=(
+	"$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz"
+	"$pkgname.install"
+)
+md5sums=(
+	SKIP
+	SKIP
+)
+
+
+build() {
+	cd "$srcdir/$pkgname-$pkgver"
+	python -m build --wheel --no-isolation
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+	python -m installer --destdir="$pkgdir" dist/*.whl
+
+	install -Dm644 systemd/kvmd-certmgr.service "$pkgdir/usr/lib/systemd/system/kvmd-certmgr.service"
+
+	install -dm755 "$pkgdir/usr/share/kvmd/extras/certmgr"
+	install -Dm644 extras/certmgr/manifest.yaml extras/certmgr/nginx.ctx-server.conf "$pkgdir/usr/share/kvmd/extras/certmgr"
+
+	install -dm755 "$pkgdir/usr/share/kvmd/web/extras/certmgr"
+	install -Dm644 web/extras/certmgr/index.html web/extras/certmgr/certmgr.css web/extras/certmgr/certmgr.js web/extras/certmgr/ssl.svg "$pkgdir/usr/share/kvmd/web/extras/certmgr"
+}

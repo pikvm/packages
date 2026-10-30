@@ -1,0 +1,70 @@
+# shellcheck disable=SC2148
+
+post_install() {
+	post_upgrade "$1" ""
+}
+
+post_upgrade() {
+	echo "==> Ensuring KVMD-CertMgr certificates permissions ..."
+	if [ -d /etc/kvmd/nginx/ssl ]; then
+		chown root:kvmd-nginx /etc/kvmd/nginx/ssl || true
+		chmod 750 /etc/kvmd/nginx/ssl || true
+	fi
+
+	if [ -f /etc/kvmd/nginx/ssl/ca.key ]; then
+		chown root:root /etc/kvmd/nginx/ssl/ca.key || true
+		chmod 600 /etc/kvmd/nginx/ssl/ca.key || true
+	fi
+
+	if [ -f /etc/kvmd/nginx/ssl/ca.crt ]; then
+		chown root:kvmd-nginx /etc/kvmd/nginx/ssl/ca.crt || true
+		chmod 644 /etc/kvmd/nginx/ssl/ca.crt || true
+	fi
+
+	if [ -f /etc/kvmd/nginx/ssl/ca.der ]; then
+		chown root:kvmd-nginx /etc/kvmd/nginx/ssl/ca.der || true
+		chmod 644 /etc/kvmd/nginx/ssl/ca.der || true
+	fi
+
+	if [ -f /etc/kvmd/nginx/ssl/certmgr.json ]; then
+		chown root:root /etc/kvmd/nginx/ssl/certmgr.json || true
+		chmod 600 /etc/kvmd/nginx/ssl/certmgr.json || true
+	fi
+
+	rm -f /run/kvmd/certmgr.sock 2>/dev/null || true
+
+	systemctl enable kvmd-certmgr.service 2>/dev/null || true
+
+	if [ -d /run/systemd/system ]; then
+		echo "==> Starting kvmd-certmgr.service ..."
+		systemctl daemon-reload || true
+		systemctl restart kvmd-certmgr.service || true
+
+		if systemctl is-active --quiet kvmd-nginx.service; then
+			echo "==> Reloading kvmd-nginx.service to load /extras/certmgr ..."
+			if [ -x /usr/bin/kvmd-nginx-mkconf ]; then
+				/usr/bin/kvmd-nginx-mkconf /etc/kvmd/nginx/nginx.conf.mako /run/kvmd/nginx.conf || true
+			fi
+			systemctl reload-or-restart kvmd-nginx.service || true
+		fi
+	fi
+}
+
+pre_remove() {
+	if [ -d /run/systemd/system ]; then
+		systemctl disable --now kvmd-certmgr.service 2>/dev/null || true
+	fi
+	rm -f /run/kvmd-certmgr/certmgr.sock /run/kvmd/certmgr.sock 2>/dev/null || true
+}
+
+post_remove() {
+	if [ -d /run/systemd/system ]; then
+		systemctl daemon-reload || true
+		if systemctl is-active --quiet kvmd-nginx.service; then
+			if [ -x /usr/bin/kvmd-nginx-mkconf ]; then
+				/usr/bin/kvmd-nginx-mkconf /etc/kvmd/nginx/nginx.conf.mako /run/kvmd/nginx.conf || true
+			fi
+			systemctl reload-or-restart kvmd-nginx.service || true
+		fi
+	fi
+}
