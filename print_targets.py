@@ -42,6 +42,7 @@ _PKGS = [
     "kvmd",
     "kvmd-oidc",
     "kvmd-webterm",
+    "kvmd-certmgr-thirdparty",
     "kvmd-fan",
     "kvmd-cloud",
     "vi-vim-symlink",
