@@ -19,6 +19,7 @@ _PKGS = [
     "pistat",
     "pikvm-os-ro",
     "pikvm-os-updater",
+    "pikvm-os-support",
     "pikvm-os-raspberrypi",
     "mkinitcpio-rootdelay",
     "janus-gateway-pikvm",
