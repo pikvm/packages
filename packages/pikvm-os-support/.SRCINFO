@@ -1,0 +1,12 @@
+pkgbase = pikvm-os-support
+	pkgdesc = PiKVM remote support tools
+	pkgver = 0.1
+	pkgrel = 1
+	url = https://github.com/pikvm/packages
+	arch = any
+	license = GPL-2.0-or-later
+	depends = upterm
+	source = pikvm-support.sh
+	md5sums = SKIP
+
+pkgname = pikvm-os-support

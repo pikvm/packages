@@ -1,0 +1,22 @@
+pkgname=pikvm-os-support
+pkgver=0.1
+pkgrel=1
+pkgdesc="PiKVM remote support tools"
+url="https://github.com/pikvm/packages"
+license=(GPL-2.0-or-later)
+arch=(any)
+depends=(
+	upterm
+)
+source=(
+	pikvm-support.sh
+)
+md5sums=(
+	SKIP
+)
+
+package() {
+	install -Dm755 \
+		pikvm-support.sh \
+		"$pkgdir/usr/bin/pikvm-support"
+}
