@@ -5,11 +5,11 @@
 # Contributer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 
 pkgbase=linux-rpi
-_commit=5bd564aaa8dc4b1b8ed11733c19ec8ece63a72cc
+_commit=ab4372076bb840600e522ae776887ae2bc488fa6
 _srcname=linux-${_commit}
 _kernelname=${pkgbase#linux}
 _regen=
-pkgver=6.12.114
+pkgver=6.12.116
 pkgrel=1
 pkgdesc='Linux'
 url="https://github.com/raspberrypi/linux"
