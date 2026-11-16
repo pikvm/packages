@@ -30,6 +30,7 @@ _PKGS = [
     "python-pyftdi",
     "python-spidev",
     "python-smbus2",
+    "python-pymodbus",
     "python-luma-core",
     "python-luma-oled",
     "python-luma-lcd",
