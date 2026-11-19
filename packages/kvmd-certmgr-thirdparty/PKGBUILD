@@ -23,10 +23,7 @@ source=(
 	"$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz"
 	"$pkgname.install"
 )
-md5sums=(
-	SKIP
-	SKIP
-)
+md5sums=(SKIP SKIP)
 
 
 build() {
@@ -41,8 +38,8 @@ package() {
 	install -Dm644 systemd/kvmd-certmgr.service "$pkgdir/usr/lib/systemd/system/kvmd-certmgr.service"
 
 	install -dm755 "$pkgdir/usr/share/kvmd/extras/certmgr"
-	install -Dm644 extras/certmgr/manifest.yaml extras/certmgr/nginx.ctx-server.conf "$pkgdir/usr/share/kvmd/extras/certmgr"
+	install -Dm644 extras/certmgr/{manifest.yaml,nginx.ctx-server.conf} "$pkgdir/usr/share/kvmd/extras/certmgr"
 
 	install -dm755 "$pkgdir/usr/share/kvmd/web/extras/certmgr"
-	install -Dm644 web/extras/certmgr/index.html web/extras/certmgr/certmgr.css web/extras/certmgr/certmgr.js web/extras/certmgr/ssl.svg "$pkgdir/usr/share/kvmd/web/extras/certmgr"
+	install -Dm644 web/extras/certmgr/{index.html,certmgr.css,certmgr.js,ssl.svg} "$pkgdir/usr/share/kvmd/web/extras/certmgr"
 }
